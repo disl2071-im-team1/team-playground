@@ -12,6 +12,25 @@ export default function Home() {
           the point. Read each other's code, ask each other questions, leave
           traces.
         </p>
+        <div className="pt-4">
+          <div className="text-sm font-medium uppercase tracking-wider text-zinc-400">
+            Prototypes
+          </div>
+          <ul className="mt-3 space-y-2 text-lg">
+            <li>
+              <a
+                href="/cleanpath/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Clean Path
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · routing London by air quality, not just time
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </main>
   );
