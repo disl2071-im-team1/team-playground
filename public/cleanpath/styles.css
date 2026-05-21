@@ -214,12 +214,127 @@ body {
   padding: 10px;
 }
 
-.map-svg {
+.leaflet-map {
   width: 100%;
-  height: auto;
+  height: 420px;
   display: block;
   border-radius: var(--radius-md);
-  font-family: inherit;
+  background: var(--bg-secondary);
+}
+
+.leaflet-map .leaflet-tile-pane {
+  filter: saturate(0.85);
+}
+
+.map-legend {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border);
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  box-shadow: var(--shadow);
+}
+
+.map-legend strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.map-legend .swatch {
+  display: inline-block;
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.map-legend .line {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.map-status {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding: 0 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.map-status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-status-item .status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+}
+
+.map-status-item .status-dot.pending {
+  background: var(--amber);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.map-status-item .status-dot.ok {
+  background: var(--green);
+}
+
+.map-status-item .status-dot.offline {
+  background: var(--text-tertiary);
+}
+
+.map-status-item .status-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.map-status-item .status-detail {
+  color: var(--text-tertiary);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.station-popup {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.station-popup strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.station-popup .station-meta {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+.station-popup .station-value {
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .slider-row {

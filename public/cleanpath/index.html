@@ -9,7 +9,10 @@
   <meta property="og:description" content="Map your route by air, not just by time." />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230F6E56'/%3E%3Cpath d='M25 55 Q40 35 55 50 T80 45' stroke='white' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" defer></script>
 </head>
 <body>
   <main class="app">
@@ -59,111 +62,24 @@
       <div class="map-grid">
 
         <div class="card map-card">
-          <svg class="map-svg" viewBox="0 0 600 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Central London air quality heatmap with route from Waterloo to Old Street">
-            <defs>
-              <pattern id="m-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,0,0,0.04)" stroke-width="1"/>
-              </pattern>
-              <filter id="m-soft" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="18"/>
-              </filter>
-            </defs>
+          <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Central London air quality map with route from Waterloo to Old Street"></div>
 
-            <rect width="600" height="420" fill="#F1EFE8" rx="6"/>
-            <rect width="600" height="420" fill="url(#m-grid)" rx="6"/>
-
-            <g opacity="0.78" filter="url(#m-soft)">
-              <circle cx="120" cy="280" r="70" fill="#97C459"/>
-              <circle cx="200" cy="320" r="90" fill="#C0DD97"/>
-              <circle cx="80" cy="180" r="60" fill="#C0DD97"/>
-              <circle cx="280" cy="220" r="80" fill="#FAC775"/>
-              <circle cx="350" cy="180" r="70" fill="#FAC775"/>
-              <circle cx="240" cy="120" r="55" fill="#EF9F27"/>
-              <circle cx="420" cy="240" r="85" fill="#EF9F27"/>
-              <circle cx="480" cy="200" r="65" fill="#E24B4A"/>
-              <circle cx="520" cy="280" r="75" fill="#E24B4A"/>
-              <circle cx="450" cy="320" r="55" fill="#EF9F27"/>
-              <circle cx="380" cy="360" r="60" fill="#FAC775"/>
-              <circle cx="160" cy="380" r="55" fill="#C0DD97"/>
-            </g>
-
-            <path d="M 380 340 Q 380 300 400 270 Q 420 250 450 250 Q 470 250 470 230 Q 470 210 460 200 Q 440 190 425 220 Q 410 250 390 245" fill="none" stroke="rgba(56,118,165,0.32)" stroke-width="14" stroke-linecap="round"/>
-            <text x="350" y="295" font-size="9" font-style="italic" fill="#185FA5" opacity="0.7">River Thames</text>
-
-            <g stroke="rgba(255,255,255,0.55)" stroke-width="1.5" fill="none" stroke-linecap="round">
-              <path d="M 40 280 Q 150 250 280 230 T 560 200"/>
-              <path d="M 90 90 Q 200 140 320 200 T 560 320"/>
-              <path d="M 60 400 Q 200 360 360 340 T 580 360"/>
-              <path d="M 320 30 Q 310 150 300 260 T 280 400"/>
-              <path d="M 100 30 Q 180 180 240 280 T 380 400"/>
-            </g>
-
-            <g font-size="9" fill="#444441" opacity="0.85">
-              <text x="60" y="270" transform="rotate(-8 60 270)">Borough High St</text>
-              <text x="190" y="225" transform="rotate(-12 190 225)">Blackfriars Rd</text>
-              <text x="380" y="200" transform="rotate(-8 380 200)">Holborn Viaduct</text>
-              <text x="495" y="195" transform="rotate(8 495 195)" fill="#791F1F" font-weight="500">A40 Marylebone</text>
-              <text x="475" y="285" transform="rotate(-72 475 285)" fill="#791F1F" font-weight="500">Bishopsgate</text>
-              <text x="105" y="395" transform="rotate(-6 105 395)">Lower Marsh</text>
-              <text x="170" y="375" transform="rotate(-8 170 375)">The Cut</text>
-              <text x="305" y="345" transform="rotate(-3 305 345)">Southwark St</text>
-              <text x="220" y="135" transform="rotate(-20 220 135)" fill="#633806">Theobalds Rd</text>
-              <text x="330" y="100" transform="rotate(8 330 100)" fill="#633806">Clerkenwell Rd</text>
-              <text x="40" y="170" transform="rotate(-65 40 170)">Waterloo Rd</text>
-            </g>
-
-            <g stroke-linecap="round" stroke-linejoin="round" fill="none">
-              <path d="M 90 340 L 160 320 L 230 290 L 290 250 L 360 220 L 430 230 L 490 220 L 530 180" stroke="#E24B4A" stroke-width="5" opacity="0.95"/>
-              <path d="M 90 340 L 160 320 L 230 290 L 290 250 L 360 220 L 430 230 L 490 220 L 530 180" stroke="#A32D2D" stroke-width="1.5" stroke-dasharray="2 4"/>
-            </g>
-
-            <g stroke-linecap="round" stroke-linejoin="round" fill="none">
-              <path d="M 90 340 L 130 350 L 180 360 L 230 355 L 290 340 L 350 330 L 410 340 L 470 330 L 510 300 L 530 240 L 530 180" stroke="#0F6E56" stroke-width="5" opacity="0.95"/>
-            </g>
-
-            <g>
-              <circle cx="90" cy="340" r="9" fill="#FFFFFF" stroke="#2C2C2A" stroke-width="2"/>
-              <circle cx="90" cy="340" r="3" fill="#2C2C2A"/>
-              <text x="78" y="365" font-size="11" font-weight="500" fill="#2C2C2A">Waterloo</text>
-            </g>
-            <g>
-              <circle cx="530" cy="180" r="9" fill="#2C2C2A"/>
-              <circle cx="530" cy="180" r="3" fill="#FFFFFF"/>
-              <text x="478" y="170" font-size="11" font-weight="500" fill="#2C2C2A">Old Street</text>
-            </g>
-
-            <g transform="translate(440, 260)">
-              <circle r="14" fill="#FFFFFF" stroke="#A32D2D" stroke-width="1.5"/>
-              <text text-anchor="middle" y="4" font-size="11" font-weight="500" fill="#A32D2D">!</text>
-            </g>
-            <text x="408" y="294" font-size="10" fill="#A32D2D">High smog · Bishopsgate</text>
-
-            <g transform="translate(20, 20)">
-              <rect width="120" height="76" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
-              <text x="10" y="18" font-size="10" font-weight="500" fill="#2C2C2A">Air quality</text>
-              <g font-size="9" fill="#5F5E5A">
-                <rect x="10" y="26" width="14" height="8" rx="2" fill="#97C459"/>
-                <text x="30" y="33">Cleaner</text>
-                <rect x="10" y="38" width="14" height="8" rx="2" fill="#EF9F27"/>
-                <text x="30" y="45">Moderate</text>
-                <rect x="10" y="50" width="14" height="8" rx="2" fill="#E24B4A"/>
-                <text x="30" y="57">More polluted</text>
-              </g>
-            </g>
-
-            <g transform="translate(460, 20)">
-              <rect width="120" height="58" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.08)" stroke-width="0.5"/>
-              <text x="10" y="18" font-size="10" font-weight="500" fill="#2C2C2A">Routes</text>
-              <line x1="10" y1="30" x2="30" y2="30" stroke="#E24B4A" stroke-width="3.5"/>
-              <text x="36" y="33" font-size="9" fill="#5F5E5A">Fastest</text>
-              <line x1="10" y1="44" x2="30" y2="44" stroke="#0F6E56" stroke-width="3.5"/>
-              <text x="36" y="47" font-size="9" fill="#5F5E5A">Cleanest</text>
-            </g>
-          </svg>
+          <div class="map-status">
+            <div class="map-status-item" id="status-stations">
+              <span class="status-dot pending"></span>
+              <span class="status-label">London Air stations</span>
+              <span class="status-detail" id="status-stations-detail">loading…</span>
+            </div>
+            <div class="map-status-item" id="status-cams">
+              <span class="status-dot pending"></span>
+              <span class="status-label">Copernicus CAMS</span>
+              <span class="status-detail" id="status-cams-detail">loading…</span>
+            </div>
+          </div>
 
           <div class="slider-row">
             <span class="slider-time" id="slider-time">14:00</span>
-            <input type="range" id="time-slider" min="0" max="23" value="14" step="1" aria-label="Hour of day"/>
+            <input type="range" id="time-slider" min="0" max="23" value="14" step="1" aria-label="Forecast hour"/>
             <span class="slider-period" id="period-label">Afternoon</span>
           </div>
         </div>
