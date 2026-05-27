@@ -29,6 +29,18 @@ export default function Home() {
                 · routing London by air quality, not just time
               </span>
             </li>
+            <li>
+              <a
+                href="/yourname/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Click Counter
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · a purple button that counts how many times you click it
+              </span>
+            </li>
           </ul>
         </div>
       </div>
