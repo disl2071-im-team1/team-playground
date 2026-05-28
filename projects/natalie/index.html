@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Natalie Kolarova</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: #f9f7f4;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .card {
+      max-width: 560px;
+      width: 100%;
+    }
+
+    .name {
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: normal;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+
+    .tag {
+      font-family: 'Courier New', monospace;
+      font-size: 0.8rem;
+      color: #888;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .bio {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #333;
+      margin-bottom: 2.5rem;
+    }
+
+    .bio p + p {
+      margin-top: 1rem;
+    }
+
+    .interests {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .pill {
+      background: #1a1a1a;
+      color: #f9f7f4;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 999px;
+      letter-spacing: 0.03em;
+    }
+
+    .footer {
+      font-size: 0.85rem;
+      color: #aaa;
+      border-top: 1px solid #e5e0d8;
+      padding-top: 1.5rem;
+    }
+
+    a { color: #1a1a1a; }
+    a:hover { opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 class="name">Natalie Kolarova</h1>
+    <p class="tag">Hyper Island &middot; Innovation &amp; Strategic Leadership 2026&ndash;2027</p>
+
+    <div class="bio">
+      <p>
+        Hi, I'm Natalie. I'm part of the Hyper Island cohort exploring how leadership, creativity, and technology intersect.
+      </p>
+      <p>
+        I'm new to coding but not new to building things. This folder is where I'll experiment, break stuff, and figure it out as I go.
+      </p>
+    </div>
+
+    <div class="interests">
+      <span class="pill">strategic design</span>
+      <span class="pill">innovation</span>
+      <span class="pill">learning in public</span>
+      <span class="pill">first commits</span>
+    </div>
+
+    <p class="footer">
+      Say hi: <a href="mailto:nataliekolarovaa@gmail.com">nataliekolarovaa@gmail.com</a>
+    </p>
+  </div>
+</body>
+</html>
