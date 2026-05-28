@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mike's Click Game</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fffbe6;
+      color: #3a2f00;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: #7a6500;
+      margin: 0 0 12px;
+    }
+    .count {
+      font-size: 96px;
+      font-weight: 700;
+      color: #b58900;
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 32px;
+    }
+    button {
+      background: #f5c518;
+      color: #3a2f00;
+      border: none;
+      border-radius: 12px;
+      padding: 18px 36px;
+      font-size: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(181, 137, 0, 0.35);
+      transition: transform 0.05s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover { background: #e6b800; }
+    button:active {
+      transform: scale(0.96);
+      box-shadow: 0 2px 8px rgba(181, 137, 0, 0.35);
+    }
+    .reset {
+      margin-top: 20px;
+      background: transparent;
+      color: #b58900;
+      border: 1.5px solid #f1d97a;
+      box-shadow: none;
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+    .reset:hover { background: #fff3b0; }
+    .reset:active {
+      transform: scale(0.97);
+      box-shadow: none;
+    }
+    .hint {
+      margin-top: 28px;
+      font-size: 14px;
+      color: #a08a3a;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clicks</h1>
+  <div class="count" id="count">0</div>
+  <button id="btn">Click me!</button>
+  <button id="reset" class="reset">Reset</button>
+  <div class="hint">Press the button. Watch the number go up.</div>
+
+  <script>
+    const countEl = document.getElementById('count');
+    const btn = document.getElementById('btn');
+    const resetBtn = document.getElementById('reset');
+
+    let count = 0;
+
+    btn.addEventListener('click', () => {
+      count += 1;
+      countEl.textContent = count;
+    });
+
+    resetBtn.addEventListener('click', () => {
+      count = 0;
+      countEl.textContent = count;
+    });
+  </script>
+</body>
+</html>

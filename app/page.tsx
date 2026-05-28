@@ -41,6 +41,18 @@ export default function Home() {
                 · chase a button that runs away every time you click it
               </span>
             </li>
+            <li>
+              <a
+                href="/mike/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Mike's Click Game
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · a yellow button, a counter, and the joy of clicking
+              </span>
+            </li>
           </ul>
         </div>
       </div>
