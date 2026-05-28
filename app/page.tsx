@@ -34,11 +34,11 @@ export default function Home() {
                 href="/yourname/index.html"
                 className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
               >
-                Click Counter
+                Catch the Button
               </a>
               <span className="text-zinc-500">
                 {" "}
-                · a purple button that counts how many times you click it
+                · chase a button that runs away every time you click it
               </span>
             </li>
           </ul>

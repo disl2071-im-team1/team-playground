@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Click Counter</title>
+  <title>Catch the Button</title>
   <style>
     * { box-sizing: border-box; }
     html, body {
@@ -12,28 +12,43 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f4f1fa;
       color: #2c2c2a;
+      overflow: hidden;
     }
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
+    .hud {
+      position: fixed;
+      top: 24px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      pointer-events: none;
     }
-    h1 {
+    .hud h1 {
       font-size: 20px;
       font-weight: 500;
       color: #5f5e5a;
       margin: 0;
     }
-    .count {
+    .score {
       font-size: 72px;
       font-weight: 600;
       color: #534ab7;
       line-height: 1;
       font-variant-numeric: tabular-nums;
     }
+    .best {
+      font-size: 15px;
+      color: #7b5cd6;
+      font-weight: 500;
+      margin-top: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .hint {
+      font-size: 14px;
+      color: #9a98a6;
+      margin-top: 8px;
+    }
     button {
+      position: absolute;
       background: #7b5cd6;
       color: white;
       border: none;
@@ -43,30 +58,104 @@
       font-weight: 500;
       cursor: pointer;
       box-shadow: 0 4px 14px rgba(123, 92, 214, 0.35);
-      transition: transform 0.05s ease, background 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.05s ease, background 0.2s ease, box-shadow 0.2s ease,
+                  top 0.12s ease, left 0.12s ease;
+      white-space: nowrap;
     }
-    button:hover {
-      background: #6a4cc4;
-    }
+    button:hover { background: #6a4cc4; }
     button:active {
       transform: scale(0.96);
       box-shadow: 0 2px 8px rgba(123, 92, 214, 0.35);
     }
+    .reset {
+      position: fixed;
+      top: auto;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: transparent;
+      color: #7b5cd6;
+      border: 1.5px solid #d8cdf2;
+      box-shadow: none;
+      padding: 10px 20px;
+      font-size: 15px;
+    }
+    .reset:hover { background: #efeafc; }
+    .reset:active {
+      transform: translateX(-50%) scale(0.97);
+      box-shadow: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Clicks</h1>
-  <div class="count" id="count">0</div>
-  <button id="btn">Click me!</button>
+  <div class="hud">
+    <h1>Score</h1>
+    <div class="score" id="score">0</div>
+    <div class="best" id="best">Best: 0</div>
+    <div class="hint">Catch the button. It moves every time you click it.</div>
+  </div>
+
+  <button id="btn">Catch me!</button>
+  <button id="reset" class="reset">New round</button>
 
   <script>
-    const countEl = document.getElementById('count');
+    const scoreEl = document.getElementById('score');
+    const bestEl = document.getElementById('best');
     const btn = document.getElementById('btn');
-    let count = 0;
+    const resetBtn = document.getElementById('reset');
+    const BEST_KEY = 'catch-the-button-best';
+
+    let score = 0;
+    let best = Number(localStorage.getItem(BEST_KEY)) || 0;
+    bestEl.textContent = 'Best: ' + best;
+
+    const margin = 12;
+    const hudSafeZone = 180; // keep the button below the score readout
+
+    function moveButton() {
+      const maxLeft = window.innerWidth - btn.offsetWidth - margin;
+      const maxTop = window.innerHeight - btn.offsetHeight - margin;
+      const minTop = Math.min(hudSafeZone, maxTop);
+
+      const left = margin + Math.random() * Math.max(0, maxLeft - margin);
+      const top = minTop + Math.random() * Math.max(0, maxTop - minTop);
+
+      btn.style.left = left + 'px';
+      btn.style.top = top + 'px';
+    }
+
+    function centerButton() {
+      btn.style.left = (window.innerWidth - btn.offsetWidth) / 2 + 'px';
+      btn.style.top = (window.innerHeight - btn.offsetHeight) / 2 + 'px';
+    }
+
     btn.addEventListener('click', () => {
-      count += 1;
-      countEl.textContent = count;
+      score += 1;
+      scoreEl.textContent = score;
+      if (score > best) {
+        best = score;
+        bestEl.textContent = 'Best: ' + best;
+        localStorage.setItem(BEST_KEY, best);
+      }
+      moveButton();
     });
+
+    resetBtn.addEventListener('click', () => {
+      score = 0;
+      scoreEl.textContent = score;
+      centerButton();
+    });
+
+    window.addEventListener('resize', () => {
+      const left = parseFloat(btn.style.left) || 0;
+      const top = parseFloat(btn.style.top) || 0;
+      const maxLeft = window.innerWidth - btn.offsetWidth - margin;
+      const maxTop = window.innerHeight - btn.offsetHeight - margin;
+      btn.style.left = Math.max(margin, Math.min(left, maxLeft)) + 'px';
+      btn.style.top = Math.max(margin, Math.min(top, maxTop)) + 'px';
+    });
+
+    centerButton();
   </script>
 </body>
 </html>
