@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEGA TIMER 3000 !!!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Press Start 2P', monospace;
+      background: #000080;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .star {
+      position: absolute;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--d) infinite ease-in-out alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: 0.1; transform: scale(0.8); }
+      to   { opacity: 1;   transform: scale(1.2); }
+    }
+
+    .marquee-bar {
+      background: #ff00ff;
+      color: #ffff00;
+      padding: 6px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 0.55rem;
+      position: relative;
+      z-index: 10;
+      border-bottom: 3px solid #00ffff;
+      border-top: 3px solid #00ffff;
+    }
+    .marquee-inner {
+      display: inline-block;
+      animation: marquee 18s linear infinite;
+    }
+    @keyframes marquee {
+      from { transform: translateX(100vw); }
+      to   { transform: translateX(-100%); }
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem 3rem;
+      gap: 1.5rem;
+    }
+
+    .title {
+      text-align: center;
+      line-height: 2;
+    }
+    .title h1 {
+      font-size: clamp(1rem, 4vw, 1.6rem);
+      animation: rainbow 1.5s linear infinite;
+    }
+    @keyframes rainbow {
+      0%   { color: #ff0000; }
+      17%  { color: #ff8800; }
+      33%  { color: #ffff00; }
+      50%  { color: #00ff00; }
+      67%  { color: #00ffff; }
+      83%  { color: #ff00ff; }
+      100% { color: #ff0000; }
+    }
+    .blink {
+      animation: blink 0.9s step-end infinite;
+      color: #ffff00;
+      font-size: 0.5rem;
+      display: block;
+      margin-top: 0.5rem;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    .card {
+      background: #000033;
+      border: 4px solid #00ffff;
+      box-shadow: 0 0 0 4px #ff00ff, 8px 8px 0 #ff00ff;
+      padding: 2rem 1.5rem;
+      width: min(420px, 100%);
+      text-align: center;
+    }
+
+    .display {
+      background: #001100;
+      border: 3px inset #004400;
+      padding: 1.2rem 0.8rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .time {
+      font-size: clamp(2.5rem, 10vw, 4rem);
+      color: #00ff41;
+      text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+      letter-spacing: 0.05em;
+      transition: color 0.3s;
+    }
+    .time.urgent {
+      color: #ff3300;
+      text-shadow: 0 0 10px #ff3300, 0 0 20px #ff3300;
+      animation: urgentPulse 0.5s ease-in-out infinite alternate;
+    }
+    @keyframes urgentPulse {
+      from { opacity: 0.7; }
+      to   { opacity: 1; }
+    }
+    .label {
+      font-size: 0.4rem;
+      color: #006600;
+      margin-top: 0.4rem;
+      letter-spacing: 0.3em;
+    }
+
+    .set-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .set-row label {
+      font-size: 0.45rem;
+      color: #00ffff;
+    }
+    .set-row input {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.7rem;
+      width: 4.5rem;
+      background: #001100;
+      border: 2px solid #00ff41;
+      color: #00ff41;
+      padding: 0.4rem 0.5rem;
+      text-align: center;
+      outline: none;
+    }
+    .set-row input:focus {
+      border-color: #ffff00;
+      box-shadow: 0 0 8px #ffff00;
+    }
+    .set-btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.45rem;
+      background: #ff00ff;
+      color: #fff;
+      border: none;
+      padding: 0.5rem 0.7rem;
+      cursor: pointer;
+      border-bottom: 3px solid #880088;
+      border-right: 3px solid #880088;
+      border-top: 3px solid #ff88ff;
+      border-left: 3px solid #ff88ff;
+    }
+    .set-btn:active {
+      border-bottom: 3px solid #ff88ff;
+      border-right: 3px solid #ff88ff;
+      border-top: 3px solid #880088;
+      border-left: 3px solid #880088;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      border: none;
+      letter-spacing: 0.05em;
+      transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.95); }
+
+    .btn-start {
+      background: #00cc00;
+      color: #fff;
+      border-bottom: 4px solid #005500;
+      border-right: 4px solid #005500;
+      border-top: 4px solid #88ff88;
+      border-left: 4px solid #88ff88;
+    }
+    .btn-pause {
+      background: #ffaa00;
+      color: #000;
+      border-bottom: 4px solid #885500;
+      border-right: 4px solid #885500;
+      border-top: 4px solid #ffdd88;
+      border-left: 4px solid #ffdd88;
+    }
+    .btn-reset {
+      background: #cc0000;
+      color: #fff;
+      border-bottom: 4px solid #550000;
+      border-right: 4px solid #550000;
+      border-top: 4px solid #ff8888;
+      border-left: 4px solid #ff8888;
+    }
+
+    .done-msg {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.8rem;
+      animation: flashBg 0.4s step-end infinite;
+    }
+    .done-msg.show { display: flex; }
+    @keyframes flashBg {
+      0%  { background: rgba(255,0,255,0.7); }
+      50% { background: rgba(0,0,0,0.85); }
+    }
+    .done-msg span:first-child {
+      font-size: clamp(1rem, 5vw, 1.8rem);
+      animation: rainbow 0.5s linear infinite;
+    }
+    .done-msg span:last-child {
+      font-size: 0.5rem;
+      color: #ffff00;
+      animation: blink 0.5s step-end infinite;
+    }
+
+    .counter-section {
+      background: #000033;
+      border: 4px solid #ff00ff;
+      box-shadow: 0 0 0 4px #00ffff, 8px 8px 0 #00ffff;
+      padding: 1.2rem 1.5rem;
+      width: min(420px, 100%);
+      text-align: center;
+    }
+    .counter-title {
+      font-size: 0.5rem;
+      color: #ff00ff;
+      margin-bottom: 1rem;
+      animation: blink 1.5s step-end infinite;
+    }
+    .counter-display {
+      font-size: clamp(1.5rem, 6vw, 2.5rem);
+      color: #ffff00;
+      text-shadow: 0 0 10px #ffff00;
+      margin-bottom: 1rem;
+    }
+    .counter-buttons {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+    }
+    .btn-plus {
+      background: #0000cc;
+      color: #fff;
+      border-bottom: 4px solid #000055;
+      border-right: 4px solid #000055;
+      border-top: 4px solid #8888ff;
+      border-left: 4px solid #8888ff;
+      font-size: 1.2rem;
+      padding: 0.6rem 1.2rem;
+    }
+    .btn-minus {
+      background: #440066;
+      color: #fff;
+      border-bottom: 4px solid #110022;
+      border-right: 4px solid #110022;
+      border-top: 4px solid #cc88ff;
+      border-left: 4px solid #cc88ff;
+      font-size: 1.2rem;
+      padding: 0.6rem 1.2rem;
+    }
+    .btn-creset {
+      background: #333;
+      color: #aaa;
+      border-bottom: 4px solid #111;
+      border-right: 4px solid #111;
+      border-top: 4px solid #777;
+      border-left: 4px solid #777;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.45rem;
+      padding: 0.6rem 0.8rem;
+      cursor: pointer;
+    }
+
+    .footer {
+      font-size: 0.4rem;
+      color: #888;
+      text-align: center;
+    }
+    .footer a { color: #00ffff; }
+
+    .visitor {
+      font-size: 0.4rem;
+      color: #ffff00;
+      background: #000;
+      border: 2px solid #ffff00;
+      padding: 0.5rem 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="marquee-bar">
+    <span class="marquee-inner">
+      *** WELCOME TO MEGA TIMER 3000 *** YOUR #1 SOURCE FOR TIMING THINGS *** BEST VIEWED IN NETSCAPE NAVIGATOR 4.0 *** DON'T FORGET TO BOOKMARK THIS PAGE *** COOL TIMER *** WOW *** AMAZING *** TOTALLY RAD ***&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </span>
+  </div>
+
+  <div class="page">
+
+    <div class="title">
+      <h1>MEGA TIMER 3000 !!!</h1>
+      <span class="blink">*** NEW IMPROVED VERSION ***</span>
+    </div>
+
+    <div class="card">
+      <div class="display">
+        <div class="time" id="display">00:00</div>
+        <div class="label">MIN : SEC</div>
+        <div class="done-msg" id="doneMsg">
+          <span>DING DING DING!</span>
+          <span>CLICK RESET TO CONTINUE</span>
+        </div>
+      </div>
+
+      <div class="set-row">
+        <label>MIN</label>
+        <input type="number" id="minInput" value="5" min="0" max="99" />
+        <label>SEC</label>
+        <input type="number" id="secInput" value="0" min="0" max="59" />
+        <button class="set-btn" onclick="setTime()">SET</button>
+      </div>
+
+      <div class="buttons">
+        <button class="btn btn-start" id="startBtn" onclick="startTimer()">START</button>
+        <button class="btn btn-pause" id="pauseBtn" onclick="pauseTimer()" disabled>PAUSE</button>
+        <button class="btn btn-reset" onclick="resetTimer()">RESET</button>
+      </div>
+    </div>
+
+    <div class="counter-section">
+      <div class="counter-title">*** LAPS / ROUNDS COUNTER ***</div>
+      <div class="counter-display" id="counterDisplay">0</div>
+      <div class="counter-buttons">
+        <button class="btn btn-plus" onclick="changeCount(1)">+</button>
+        <button class="btn btn-minus" onclick="changeCount(-1)">-</button>
+        <button class="btn-creset" onclick="resetCount()">RESET</button>
+      </div>
+    </div>
+
+    <div class="visitor">
+      YOU ARE VISITOR #&nbsp;<span id="visits">001337</span>&nbsp;TO THIS AMAZING PAGE!
+    </div>
+
+    <div class="footer">
+      BEST VIEWED AT 800x600 &bull; MADE WITH &lt;3 &bull;
+      <a href="mailto:nataliekolarovaa@gmail.com">WEBMASTER</a>
+    </div>
+
+  </div>
+
+  <script>
+    const starsEl = document.getElementById('stars');
+    for (let i = 0; i < 120; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      const size = Math.random() * 3 + 1;
+      s.style.cssText = `
+        width:${size}px; height:${size}px;
+        top:${Math.random()*100}%; left:${Math.random()*100}%;
+        --d:${(Math.random()*2+0.5).toFixed(2)}s;
+        animation-delay:${(Math.random()*2).toFixed(2)}s;
+      `;
+      starsEl.appendChild(s);
+    }
+
+    const base = 1337;
+    const extra = Math.floor(Math.random() * 50);
+    document.getElementById('visits').textContent = String(base + extra).padStart(6, '0');
+
+    let totalSeconds = 5 * 60;
+    let remaining = totalSeconds;
+    let interval = null;
+    let running = false;
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
+
+    function updateDisplay() {
+      const el = document.getElementById('display');
+      el.textContent = formatTime(remaining);
+      el.className = 'time' + (remaining <= 10 && remaining > 0 ? ' urgent' : '');
+    }
+
+    function setTime() {
+      if (running) return;
+      const m = parseInt(document.getElementById('minInput').value) || 0;
+      const s = parseInt(document.getElementById('secInput').value) || 0;
+      totalSeconds = m * 60 + s;
+      remaining = totalSeconds;
+      updateDisplay();
+      document.getElementById('doneMsg').classList.remove('show');
+    }
+
+    function startTimer() {
+      if (running || remaining === 0) return;
+      running = true;
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('pauseBtn').disabled = false;
+      interval = setInterval(() => {
+        remaining--;
+        updateDisplay();
+        if (remaining <= 0) {
+          clearInterval(interval);
+          running = false;
+          document.getElementById('startBtn').disabled = false;
+          document.getElementById('pauseBtn').disabled = true;
+          document.getElementById('doneMsg').classList.add('show');
+          beep();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!running) return;
+      clearInterval(interval);
+      running = false;
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('pauseBtn').disabled = true;
+    }
+
+    function resetTimer() {
+      clearInterval(interval);
+      running = false;
+      remaining = totalSeconds;
+      updateDisplay();
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('doneMsg').classList.remove('show');
+    }
+
+    function beep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [880, 1046, 880, 1046, 880];
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = 'square';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.2);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.2 + 0.18);
+          osc.start(ctx.currentTime + i * 0.2);
+          osc.stop(ctx.currentTime + i * 0.2 + 0.2);
+        });
+      } catch(e) {}
+    }
+
+    let count = 0;
+    function changeCount(n) {
+      count = Math.max(0, count + n);
+      document.getElementById('counterDisplay').textContent = count;
+    }
+    function resetCount() {
+      count = 0;
+      document.getElementById('counterDisplay').textContent = 0;
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
