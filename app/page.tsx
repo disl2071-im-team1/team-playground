@@ -51,6 +51,14 @@ export default function Home() {
               <span className="text-zinc-500">
                 {" "}
                 · a retro 90s kitchen timer, beeps included
+                href="/mike/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Mike's Click Game
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · a yellow button, a counter, and the joy of clicking
               </span>
             </li>
           </ul>
