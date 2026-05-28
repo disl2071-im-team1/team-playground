@@ -41,6 +41,18 @@ export default function Home() {
                 · chase a button that runs away every time you click it
               </span>
             </li>
+            <li>
+              <a
+                href="/natalie/timer/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Mega Timer 3000
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · a retro 90s kitchen timer, beeps included
+              </span>
+            </li>
           </ul>
         </div>
       </div>
