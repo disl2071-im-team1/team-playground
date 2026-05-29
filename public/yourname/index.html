@@ -10,9 +10,19 @@
       margin: 0;
       height: 100%;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f4f1fa;
       color: #2c2c2a;
       overflow: hidden;
+      background: linear-gradient(135deg, #f4f1fa, #e7defb, #f0e6fb, #e2ecfb, #f4f1fa);
+      background-size: 400% 400%;
+      animation: drift 18s ease infinite;
+    }
+    @keyframes drift {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html, body { animation: none; }
     }
     .hud {
       position: fixed;
@@ -109,6 +119,26 @@
     let best = Number(localStorage.getItem(BEST_KEY)) || 0;
     bestEl.textContent = 'Best: ' + best;
 
+    // Web Audio: short blips, no audio files needed. The context is created
+    // lazily on first click because browsers block audio until a user gesture.
+    let audioCtx = null;
+    function playTone(freq, duration = 0.12) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const now = audioCtx.currentTime;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(0.2, now + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      } catch (e) { /* audio unsupported, fail silently */ }
+    }
+
     const margin = 12;
     const hudSafeZone = 180; // keep the button below the score readout
 
@@ -132,6 +162,8 @@
     btn.addEventListener('click', () => {
       score += 1;
       scoreEl.textContent = score;
+      // Pitch climbs with the score, so a streak sounds like a rising run.
+      playTone(440 + Math.min(score, 24) * 30);
       if (score > best) {
         best = score;
         bestEl.textContent = 'Best: ' + best;
@@ -143,6 +175,7 @@
     resetBtn.addEventListener('click', () => {
       score = 0;
       scoreEl.textContent = score;
+      playTone(220, 0.2); // low note to mark a fresh round
       centerButton();
     });
 
