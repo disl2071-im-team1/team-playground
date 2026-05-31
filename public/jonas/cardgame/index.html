@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galdrastafur</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #09090f;
+  color: #d4c9a8;
+  font-family: Georgia, 'Times New Roman', serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 3rem;
+}
+
+/* ── Header ── */
+header {
+  text-align: center;
+  padding: 2rem 1rem 1.25rem;
+}
+header h1 {
+  font-size: 2.4rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: #c9a227;
+  text-shadow: 0 0 24px rgba(201,162,39,0.45);
+}
+.subtitle {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  margin-top: 0.4rem;
+}
+
+/* ── Layout ── */
+.game-wrap {
+  width: 100%;
+  max-width: 1040px;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Status bar ── */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #222233;
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.85rem;
+  background: rgba(255,255,255,0.02);
+  letter-spacing: 0.05em;
+}
+.status-bar span { opacity: 0.7; }
+
+/* ── Stave grid ── */
+.stave {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+/* ── Area slot ── */
+.area-slot {
+  border: 2px solid #333;
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  min-height: 148px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.area-slot.cracked {
+  opacity: 0.28;
+  filter: grayscale(0.7);
+}
+.cracked-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.55);
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+.area-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.area-name {
+  font-size: 1.25rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+}
+.area-theme {
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.area-nums {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+.area-bar {
+  height: 5px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.area-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.area-rune-list {
+  font-size: 0.72rem;
+  opacity: 0.45;
+  letter-spacing: 0.04em;
+}
+.area-channeled {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 0.2rem;
+}
+.ch-glyph {
+  font-size: 1.05rem;
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ── Flash animation ── */
+@keyframes crack-flash {
+  0%   { transform: scale(1); filter: brightness(1); }
+  30%  { transform: scale(1.04); filter: brightness(1.6); }
+  60%  { transform: scale(0.97); filter: brightness(0.8); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.area-slot.flash {
+  animation: crack-flash 0.55s ease;
+}
+
+/* ── Message ── */
+.message {
+  text-align: center;
+  font-style: italic;
+  font-size: 0.9rem;
+  opacity: 0.65;
+  min-height: 1.4em;
+  letter-spacing: 0.03em;
+}
+
+/* ── Hand section ── */
+.hand-section {
+  border: 1px solid #222233;
+  border-radius: 8px;
+  padding: 1rem;
+  background: rgba(255,255,255,0.015);
+}
+.hand-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.4;
+  margin-bottom: 0.75rem;
+}
+.hand-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  min-height: 118px;
+  align-items: flex-start;
+}
+.empty-hand {
+  opacity: 0.3;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* ── Card ── */
+.card {
+  width: 82px;
+  height: 112px;
+  border: 2px solid #2e2e42;
+  border-radius: 7px;
+  background: linear-gradient(155deg, #141424, #0e0e1c);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+}
+.card:hover:not(.dead) {
+  transform: translateY(-5px);
+  border-color: #555;
+}
+.card.selected {
+  transform: translateY(-8px);
+}
+.card.dead {
+  opacity: 0.35;
+  cursor: default;
+}
+.card-val {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 0.78rem;
+  color: #c9a227;
+  font-weight: bold;
+}
+.card-glyph {
+  font-size: 2.1rem;
+  line-height: 1;
+  color: #c9a227;
+  text-shadow: 0 0 12px rgba(201,162,39,0.35);
+}
+.card-name {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 0.25rem;
+  opacity: 0.75;
+}
+.card-area {
+  font-size: 0.58rem;
+  margin-top: 0.1rem;
+  opacity: 0.5;
+}
+
+/* ── Controls ── */
+.controls {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+button {
+  padding: 0.55rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.btn-primary {
+  background: transparent;
+  border-color: #c9a227;
+  color: #c9a227;
+}
+.btn-primary:hover:not(:disabled) { background: rgba(201,162,39,0.14); }
+
+.btn-secondary {
+  background: transparent;
+  border-color: #3a3a55;
+  color: #8a8aaa;
+}
+.btn-secondary:hover:not(:disabled) { border-color: #7a7aaa; color: #d4c9a8; }
+
+.btn-danger {
+  background: transparent;
+  border-color: #8a2020;
+  color: #c0391b;
+}
+.btn-danger:hover:not(:disabled) { background: rgba(192,57,27,0.14); }
+
+/* ── Discard mode indicator ── */
+.hand-cards.discard-mode .card:not(.selected) {
+  border-color: #3a1a1a;
+}
+.hand-cards.discard-mode .card.selected {
+  transform: translateY(-8px);
+}
+
+/* ── Overlay ── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  z-index: 100;
+}
+.overlay.hidden { display: none; }
+.overlay-glyphs {
+  font-size: 1.6rem;
+  letter-spacing: 0.4em;
+  color: rgba(201,162,39,0.3);
+}
+.overlay h2 {
+  font-size: 2.4rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+}
+.overlay.win h2  { color: #c9a227; text-shadow: 0 0 30px rgba(201,162,39,0.5); }
+.overlay.lose h2 { color: #c0391b; text-shadow: 0 0 30px rgba(192,57,27,0.5); }
+.overlay p {
+  font-size: 1rem;
+  opacity: 0.65;
+  text-align: center;
+  max-width: 380px;
+  line-height: 1.6;
+}
+
+/* ── Rune legend (footer) ── */
+.legend {
+  margin-top: 0.5rem;
+  border: 1px solid #1a1a2a;
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  background: rgba(255,255,255,0.01);
+}
+.legend-title {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.35;
+  margin-bottom: 0.6rem;
+}
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.35rem 0.5rem;
+}
+.legend-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.6rem;
+  opacity: 0.5;
+  gap: 1px;
+}
+.legend-entry .lg { font-size: 1rem; opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Galdrastafur</h1>
+  <p class="subtitle">Six wards seal the stave. Channel the runes. Break them.</p>
+</header>
+
+<div class="game-wrap">
+  <div class="status-bar">
+    <span id="stat-deck">Deck: 60</span>
+    <span id="stat-turn">Turn 1</span>
+    <span id="stat-cracked">0 / 6 wards broken</span>
+  </div>
+
+  <div class="stave" id="stave"></div>
+
+  <div class="message" id="message"></div>
+
+  <div class="hand-section">
+    <div class="hand-label">Hand — <span id="hand-count">0</span> cards &nbsp;(max 7)</div>
+    <div class="hand-cards" id="hand"></div>
+  </div>
+
+  <div class="controls" id="controls"></div>
+
+  <div class="legend">
+    <div class="legend-title">Rune reference</div>
+    <div class="legend-grid" id="legend-grid"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="overlay-glyphs">ᚠ ᚢ ᚦ ᚬ ᚱ ᚴ ᚼ ᚾ ᛁ ᛅ ᛋ ᛏ ᛒ ᛘ ᛚ ᛦ</div>
+  <h2 id="overlay-title"></h2>
+  <p id="overlay-msg"></p>
+  <button class="btn-primary" onclick="newGame()">Play Again</button>
+</div>
+
+<script>
+// ===== DATA ==========================================================
+
+const RUNE_DATA = [
+  {rune:'ᚠ', name:'Fé',      meaning:'wealth, cattle, land', area:'Jörð',  value:4, copies:5},
+  {rune:'ᚢ', name:'Úr',      meaning:'drizzle, slag',        area:'Vatn',  value:3, copies:3},
+  {rune:'ᚦ', name:'Þurs',    meaning:'frost-giant',          area:'Ís',    value:5, copies:3},
+  {rune:'ᚬ', name:'Óss',     meaning:'god, river-mouth',     area:'Vatn',  value:3, copies:3},
+  {rune:'ᚱ', name:'Reið',    meaning:'riding, thunder',      area:'Eldur', value:3, copies:5},
+  {rune:'ᚴ', name:'Kaun',    meaning:'torch, sore',          area:'Eldur', value:3, copies:5},
+  {rune:'ᚼ', name:'Hagall',  meaning:'hail',                 area:'Ís',    value:3, copies:4},
+  {rune:'ᚾ', name:'Nauð',    meaning:'need, distress',       area:'Dauði', value:3, copies:4},
+  {rune:'ᛁ', name:'Íss',     meaning:'ice',                  area:'Ís',    value:2, copies:3},
+  {rune:'ᛅ', name:'Ár',      meaning:'harvest, plenty',      area:'Líf',   value:3, copies:3},
+  {rune:'ᛋ', name:'Sól',     meaning:'sun',                  area:'Líf',   value:4, copies:4},
+  {rune:'ᛏ', name:'Týr',     meaning:'victory, sacrifice',   area:'Dauði', value:4, copies:3},
+  {rune:'ᛒ', name:'Bjarkan', meaning:'birch, growth',        area:'Líf',   value:3, copies:3},
+  {rune:'ᛘ', name:'Maðr',    meaning:'man, humankind',       area:'Jörð',  value:3, copies:5},
+  {rune:'ᛚ', name:'Lögr',    meaning:'water, sea',           area:'Vatn',  value:4, copies:4},
+  {rune:'ᛦ', name:'Ýr',      meaning:'yew, death-tree',      area:'Dauði', value:5, copies:3},
+];
+
+const STAVE_DATA = [
+  {id:'Eldur', theme:'Fire',  resistance:8,  runeNames:['Reið','Kaun']},
+  {id:'Ís',    theme:'Frost', resistance:9,  runeNames:['Þurs','Hagall','Íss']},
+  {id:'Vatn',  theme:'Water', resistance:9,  runeNames:['Úr','Óss','Lögr']},
+  {id:'Jörð',  theme:'Earth', resistance:8,  runeNames:['Fé','Maðr']},
+  {id:'Líf',   theme:'Life',  resistance:9,  runeNames:['Ár','Sól','Bjarkan']},
+  {id:'Dauði', theme:'Death', resistance:11, runeNames:['Nauð','Týr','Ýr']},
+];
+
+const THEME = {
+  Eldur: {color:'#c0391b', border:'#c0391b', bg:'rgba(192,57,27,0.08)'},
+  Ís:    {color:'#7fb3cc', border:'#7fb3cc', bg:'rgba(127,179,204,0.07)'},
+  Vatn:  {color:'#1a8cb8', border:'#1a8cb8', bg:'rgba(26,140,184,0.08)'},
+  Jörð:  {color:'#a07830', border:'#a07830', bg:'rgba(160,120,48,0.08)'},
+  Líf:   {color:'#3a8f50', border:'#3a8f50', bg:'rgba(58,143,80,0.08)'},
+  Dauði: {color:'#8a3fcf', border:'#8a3fcf', bg:'rgba(138,63,207,0.09)'},
+};
+
+// ===== ENGINE ========================================================
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildDeck() {
+  let uid = 0;
+  const cards = [];
+  for (const r of RUNE_DATA) {
+    for (let i = 0; i < r.copies; i++) cards.push({...r, uid: uid++});
+  }
+  return shuffle(cards);
+}
+
+function initAreas() {
+  return STAVE_DATA.map(s => ({...s, channeled: 0, cracked: false, channeledCards: []}));
+}
+
+function drawN(deck, n) {
+  const count = Math.min(n, deck.length);
+  return {drawn: deck.slice(0, count), rest: deck.slice(count)};
+}
+
+function applyChannel(areas, cards) {
+  const next = areas.map(a => ({...a, channeledCards: [...a.channeledCards]}));
+  const cracked = [];
+  const placedUids = new Set();
+  for (const c of cards) {
+    const a = next.find(x => x.id === c.area);
+    if (!a || a.cracked) continue;
+    a.channeled += c.value;
+    a.channeledCards.push(c);
+    placedUids.add(c.uid);
+    if (a.channeled > a.resistance) {
+      a.cracked = true;
+      cracked.push(a.id);
+    }
+  }
+  return {areas: next, cracked, placedUids};
+}
+
+function isWin(areas) { return areas.every(a => a.cracked); }
+
+// ===== STATE =========================================================
+
+const HAND_TARGET = 5;
+const HAND_MAX = 7;
+
+let G = {};
+
+function newGame() {
+  const deck = buildDeck();
+  const {drawn, rest} = drawN(deck, HAND_TARGET);
+  G = {
+    deck: rest,
+    hand: drawn,
+    areas: initAreas(),
+    sel: new Set(),
+    discardMode: false,
+    discardUsed: false,
+    turn: 1,
+    msg: 'The stave awakens. Channel runes to break its wards.',
+    done: false,
+    won: false,
+  };
+  render();
+}
+
+// ===== ACTIONS =======================================================
+
+function selectCard(uid) {
+  if (G.done) return;
+  if (!G.discardMode) {
+    const card = G.hand.find(c => c.uid === uid);
+    if (!card) return;
+    const area = G.areas.find(a => a.id === card.area);
+    if (area && area.cracked) return;
+  }
+  G.sel.has(uid) ? G.sel.delete(uid) : G.sel.add(uid);
+  render();
+}
+
+function channelSelected() {
+  if (G.done || G.sel.size === 0) return;
+  const toChannel = G.hand.filter(c => G.sel.has(c.uid) &&
+    G.areas.find(a => a.id === c.area && !a.cracked));
+
+  if (toChannel.length === 0) {
+    G.msg = 'No valid cards selected. Those wards are already broken.';
+    render();
+    return;
+  }
+
+  const {areas, cracked, placedUids} = applyChannel(G.areas, toChannel);
+  G.areas = areas;
+  G.hand = G.hand.filter(c => !placedUids.has(c.uid));
+  G.sel.clear();
+
+  if (cracked.length > 0) {
+    G.msg = cracked.length === 1
+      ? `Ward broken: ${cracked[0]}!`
+      : `Wards broken: ${cracked.join(', ')}!`;
+    setTimeout(() => {
+      for (const id of cracked) {
+        const el = document.querySelector(`[data-area="${id}"]`);
+        if (el) { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 600); }
+      }
+    }, 20);
+  } else {
+    G.msg = `Channeled ${toChannel.length} rune${toChannel.length > 1 ? 's' : ''}.`;
+  }
+
+  if (isWin(G.areas)) { G.done = true; G.won = true; }
+  render();
+}
+
+function startDiscard() {
+  if (G.done || G.discardUsed) return;
+  G.discardMode = true;
+  G.sel.clear();
+  G.msg = 'Select cards to discard, then confirm. You will draw back up to 5.';
+  render();
+}
+
+function confirmDiscard() {
+  if (!G.discardMode) return;
+  const count = G.sel.size;
+  G.hand = G.hand.filter(c => !G.sel.has(c.uid));
+  G.sel.clear();
+  G.discardMode = false;
+  G.discardUsed = true;
+  const need = Math.max(0, HAND_TARGET - G.hand.length);
+  const {drawn, rest} = drawN(G.deck, need);
+  G.hand = [...G.hand, ...drawn];
+  G.deck = rest;
+  G.msg = `Discarded ${count} card${count !== 1 ? 's' : ''}. Drew ${drawn.length}.`;
+  render();
+}
+
+function cancelDiscard() {
+  G.discardMode = false;
+  G.sel.clear();
+  G.msg = 'Discard cancelled.';
+  render();
+}
+
+function endTurn() {
+  if (G.done) return;
+  if (G.hand.length > HAND_MAX) G.hand = G.hand.slice(0, HAND_MAX);
+  G.turn++;
+  G.discardUsed = false;
+  G.discardMode = false;
+  G.sel.clear();
+
+  const need = Math.max(0, HAND_TARGET - G.hand.length);
+  const {drawn, rest} = drawN(G.deck, need);
+  G.hand = [...G.hand, ...drawn];
+  G.deck = rest;
+
+  if (isWin(G.areas)) {
+    G.done = true; G.won = true;
+    G.msg = 'The stave is broken.';
+  } else if (G.deck.length === 0) {
+    G.done = true; G.won = false;
+    G.msg = 'The deck runs dry. The stave holds.';
+  } else {
+    G.msg = `Turn ${G.turn}. Drew ${drawn.length} card${drawn.length !== 1 ? 's' : ''}.`;
+  }
+  render();
+}
+
+// ===== RENDER ========================================================
+
+function render() {
+  renderStatus();
+  renderStave();
+  renderHand();
+  renderControls();
+  document.getElementById('message').textContent = G.msg;
+  renderOverlay();
+}
+
+function renderStatus() {
+  document.getElementById('stat-deck').textContent = `Deck: ${G.deck.length}`;
+  document.getElementById('stat-turn').textContent = `Turn ${G.turn}`;
+  const n = G.areas.filter(a => a.cracked).length;
+  document.getElementById('stat-cracked').textContent = `${n} / 6 wards broken`;
+}
+
+function renderStave() {
+  const el = document.getElementById('stave');
+  el.innerHTML = G.areas.map(area => {
+    const t = THEME[area.id];
+    const pct = Math.min(100, Math.round((area.channeled / area.resistance) * 100));
+    const runeList = RUNE_DATA.filter(r => area.runeNames.includes(r.name))
+      .map(r => `${r.rune} ${r.name}`).join('  ·  ');
+    const glyphs = area.channeledCards.map(c =>
+      `<span class="ch-glyph" title="${c.name} +${c.value}" style="color:${t.color}">${c.rune}</span>`
+    ).join('');
+
+    return `<div class="area-slot${area.cracked ? ' cracked' : ''}"
+                 data-area="${area.id}"
+                 style="border-color:${t.border};background:${t.bg}">
+      <div class="area-top">
+        <span class="area-name" style="color:${t.color}">${area.id}</span>
+        <span class="area-theme">${area.theme}</span>
+      </div>
+      <div class="area-nums">${area.channeled} / ${area.resistance}</div>
+      <div class="area-bar"><div class="area-fill" style="width:${pct}%;background:${t.color}"></div></div>
+      <div class="area-rune-list">${runeList}</div>
+      ${glyphs ? `<div class="area-channeled">${glyphs}</div>` : ''}
+      ${area.cracked ? '<div class="cracked-label">✦ cracked ✦</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderHand() {
+  const handEl = document.getElementById('hand');
+  document.getElementById('hand-count').textContent = G.hand.length;
+
+  if (G.hand.length === 0) {
+    handEl.className = 'hand-cards';
+    handEl.innerHTML = '<span class="empty-hand">No cards in hand.</span>';
+    return;
+  }
+
+  handEl.className = 'hand-cards' + (G.discardMode ? ' discard-mode' : '');
+  handEl.innerHTML = G.hand.map(c => {
+    const area = G.areas.find(a => a.id === c.area);
+    const dead = !G.discardMode && area && area.cracked;
+    const sel = G.sel.has(c.uid);
+    const t = THEME[c.area];
+    const borderStyle = sel ? `border-color:${t.color};box-shadow:0 6px 20px ${t.color}55` : '';
+    return `<div class="card${sel ? ' selected' : ''}${dead ? ' dead' : ''}"
+                 style="${borderStyle}"
+                 onclick="selectCard(${c.uid})"
+                 title="${c.meaning} (${c.area}, +${c.value})">
+      <div class="card-val">${c.value}</div>
+      <div class="card-glyph">${c.rune}</div>
+      <div class="card-name">${c.name}</div>
+      <div class="card-area" style="color:${t.color}">${c.area}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderControls() {
+  const el = document.getElementById('controls');
+  if (G.done) {
+    el.innerHTML = `<button class="btn-primary" onclick="newGame()">New Game</button>`;
+    return;
+  }
+  if (G.discardMode) {
+    el.innerHTML = `
+      <button class="btn-danger" onclick="confirmDiscard()">Confirm Discard (${G.sel.size} selected)</button>
+      <button class="btn-secondary" onclick="cancelDiscard()">Cancel</button>`;
+  } else {
+    el.innerHTML = `
+      <button class="btn-primary" onclick="channelSelected()" ${G.sel.size === 0 ? 'disabled' : ''}>
+        Channel${G.sel.size > 0 ? ` (${G.sel.size} selected)` : ''}
+      </button>
+      <button class="btn-secondary" onclick="startDiscard()" ${G.discardUsed ? 'disabled' : ''}>
+        ${G.discardUsed ? 'Discard used' : 'Discard & Redraw'}
+      </button>
+      <button class="btn-secondary" onclick="endTurn()">End Turn</button>`;
+  }
+}
+
+function renderOverlay() {
+  const el = document.getElementById('overlay');
+  if (!G.done) { el.className = 'overlay hidden'; return; }
+  el.className = 'overlay ' + (G.won ? 'win' : 'lose');
+  document.getElementById('overlay-title').textContent =
+    G.won ? 'The Stave is Broken' : 'The Stave Holds';
+  document.getElementById('overlay-msg').textContent = G.won
+    ? 'You channeled the runes and shattered all six wards. The Galdrastafur is undone.'
+    : 'The cards run out. Not all wards were broken. The stave endures beyond you.';
+}
+
+// ===== LEGEND ========================================================
+
+function buildLegend() {
+  document.getElementById('legend-grid').innerHTML = RUNE_DATA.map(r => {
+    const t = THEME[r.area];
+    return `<div class="legend-entry" title="${r.meaning}">
+      <span class="lg" style="color:${t.color}">${r.rune}</span>
+      <span>${r.name}</span>
+      <span>+${r.value}</span>
+    </div>`;
+  }).join('');
+}
+
+// ===== START =========================================================
+
+buildLegend();
+newGame();
+</script>
+</body>
+</html>
