@@ -182,10 +182,11 @@ header h1 {
 }
 .hand-cards {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  min-height: 118px;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: flex-end;
+  flex-wrap: nowrap;
+  min-height: 180px;
+  padding: 1.6rem 0.5rem 0.4rem;
 }
 .empty-hand {
   opacity: 0.3;
@@ -207,14 +208,25 @@ header h1 {
   cursor: pointer;
   position: relative;
   user-select: none;
-  transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+  margin: 0 -16px;
+  opacity: 0.88;
+  transform: rotate(var(--card-rot, 0deg)) translateY(var(--card-ty, 0px));
+  transform-origin: 50% 60%;
+  transition: transform 0.2s ease, border-color 0.15s, box-shadow 0.2s, opacity 0.2s;
 }
+.card:first-child { margin-left: 0; }
+.card:last-child  { margin-right: 0; }
 .card:hover:not(.dead) {
-  transform: translateY(-5px);
-  border-color: #555;
+  transform: translateY(-44px) scale(1.15) rotate(0deg);
+  border-color: #c9a227;
+  box-shadow: 0 14px 28px rgba(201,162,39,0.35);
+  opacity: 1;
+  z-index: 50;
 }
 .card.selected {
-  transform: translateY(-8px);
+  transform: translateY(-56px) scale(1.08) rotate(0deg);
+  opacity: 1;
+  z-index: 40;
 }
 .card.dead {
   opacity: 0.35;
@@ -291,7 +303,9 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   border-color: #3a1a1a;
 }
 .hand-cards.discard-mode .card.selected {
-  transform: translateY(-8px);
+  transform: translateY(-56px) scale(1.08) rotate(0deg);
+  border-color: #c0391b;
+  box-shadow: 0 12px 26px rgba(192,57,27,0.4);
 }
 
 /* ── Overlay ── */
@@ -356,6 +370,98 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   gap: 1px;
 }
 .legend-entry .lg { font-size: 1rem; opacity: 0.8; }
+
+/* ── Card info popup (revealed on hover) ── */
+.card-info {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 188px;
+  background: rgba(8,8,15,0.97);
+  border: 1px solid #c9a227;
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  line-height: 1.55;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease 0.05s;
+  z-index: 80;
+  text-align: center;
+  white-space: normal;
+  text-transform: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.card:hover:not(.dead) .card-info { opacity: 1; }
+.card-info .ci-meaning {
+  color: #d4c9a8;
+  margin-bottom: 0.35rem;
+  font-style: italic;
+}
+.card-info .ci-flavour {
+  color: #8a8aaa;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+}
+.card-info .ci-area {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+}
+
+/* ── HP & conditions in status bar ── */
+.stat-hp {
+  color: #d04040;
+  letter-spacing: 0.08em;
+  font-weight: bold;
+  opacity: 1 !important;
+}
+.stat-hp.low {
+  color: #ff4030;
+  animation: hp-pulse 1.2s ease-in-out infinite;
+}
+@keyframes hp-pulse {
+  0%, 100% { text-shadow: 0 0 6px rgba(208,64,64,0.4); }
+  50%      { text-shadow: 0 0 14px rgba(255,80,80,0.95); }
+}
+.stat-conditions {
+  color: #ffb347;
+  font-weight: bold;
+  opacity: 1 !important;
+  text-shadow: 0 0 8px rgba(255,179,71,0.6);
+  animation: cond-glow 2.2s ease-in-out infinite;
+}
+@keyframes cond-glow {
+  0%, 100% { text-shadow: 0 0 8px rgba(255,179,71,0.6); color: #ffb347; }
+  50%      { text-shadow: 0 0 14px rgba(255,107,61,0.95); color: #ff8030; }
+}
+
+/* ── Damage shake on HP ── */
+@keyframes hp-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  35% { transform: translateX(4px); }
+  55% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+.hp-shake {
+  animation: hp-shake 0.5s ease;
+  color: #ff4030 !important;
+  text-shadow: 0 0 14px rgba(255,64,48,0.95) !important;
+}
+
+/* ── Hand flash on condition applied ── */
+@keyframes hand-flash {
+  0%, 100% { box-shadow: none; transform: translateX(0); }
+  15% { box-shadow: inset 0 0 30px rgba(255,140,40,0.4); transform: translateX(-4px); }
+  40% { box-shadow: inset 0 0 40px rgba(255,107,61,0.45); transform: translateX(3px); }
+  70% { box-shadow: inset 0 0 30px rgba(255,140,40,0.3); transform: translateX(-2px); }
+}
+.hand-flash { animation: hand-flash 0.55s ease; }
+
 </style>
 </head>
 <body>
@@ -368,6 +474,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 <div class="game-wrap">
   <div class="status-bar">
     <span id="stat-deck">Deck: 60</span>
+    <span id="stat-hp" class="stat-hp">❤ 20 / 20</span>
+    <span id="stat-conditions"></span>
     <span id="stat-turn">Turn 1</span>
     <span id="stat-cracked">0 / 6 wards broken</span>
   </div>
@@ -503,6 +611,11 @@ function newGame() {
     discardMode: false,
     discardUsed: false,
     turn: 1,
+    playerHp: 20,
+    playerMaxHp: 20,
+    conditions: [],
+    weakenedTurn: false,
+    exhaustedTurn: false,
     msg: 'The stave awakens. Channel runes to break its wards.',
     done: false,
     won: false,
@@ -526,8 +639,12 @@ function selectCard(uid) {
 
 function channelSelected() {
   if (G.done || G.sel.size === 0) return;
+
+  // Snapshot which wards were alive before this channel
+  const preAreas = G.areas.map(a => ({...a}));
+
   const toChannel = G.hand.filter(c => G.sel.has(c.uid) &&
-    G.areas.find(a => a.id === c.area && !a.cracked));
+    preAreas.find(a => a.id === c.area && !a.cracked));
 
   if (toChannel.length === 0) {
     G.msg = 'No valid cards selected. Those wards are already broken.';
@@ -535,15 +652,71 @@ function channelSelected() {
     return;
   }
 
-  const {areas, cracked, placedUids} = applyChannel(G.areas, toChannel);
+  // Weakened condition: card values −1 (min 1) for this channel only
+  let effectiveCards = toChannel;
+  let weakenedUsed = false;
+  if (G.weakenedTurn) {
+    effectiveCards = toChannel.map(c => ({...c, value: Math.max(1, c.value - 1)}));
+    weakenedUsed = true;
+    G.weakenedTurn = false;
+  }
+
+  const {areas, cracked, placedUids} = applyChannel(G.areas, effectiveCards);
   G.areas = areas;
   G.hand = G.hand.filter(c => !placedUids.has(c.uid));
   G.sel.clear();
 
+  // Unique attacked wards that were alive before the channel
+  const attackedAreaIds = [];
+  const seen = new Set();
+  for (const c of toChannel) {
+    if (seen.has(c.area)) continue;
+    seen.add(c.area);
+    const pre = preAreas.find(a => a.id === c.area);
+    if (pre && !pre.cracked) attackedAreaIds.push(c.area);
+  }
+
+  // Fight-back: 55% per attacked ward. 40% damage / 60% condition.
+  const fightBacks = [];
+  let totalDamage = 0;
+  const appliedConds = [];
+
+  for (const areaId of attackedAreaIds) {
+    if (Math.random() < 0.55) {
+      if (Math.random() < 0.4) {
+        const dmg = 2 + Math.floor(Math.random() * 4); // 2..5
+        totalDamage += dmg;
+        G.playerHp = Math.max(0, G.playerHp - dmg);
+        fightBacks.push({areaId, kind: 'damage', amount: dmg});
+      } else {
+        const conds = ['Dazed', 'Cursed', 'Weakened', 'Exhausted'];
+        const chosen = conds[Math.floor(Math.random() * conds.length)];
+        G.conditions.push(chosen);
+        appliedConds.push(chosen);
+        fightBacks.push({areaId, kind: 'condition', name: chosen});
+      }
+    }
+  }
+
+  if (totalDamage > 0) {
+    setTimeout(() => {
+      const el = document.getElementById('stat-hp');
+      if (el) { el.classList.add('hp-shake'); setTimeout(() => el.classList.remove('hp-shake'), 520); }
+    }, 30);
+  }
+  if (appliedConds.length > 0) {
+    setTimeout(() => {
+      const el = document.querySelector('.hand-section');
+      if (el) { el.classList.add('hand-flash'); setTimeout(() => el.classList.remove('hand-flash'), 560); }
+    }, 30);
+  }
+
+  // Build message (can contain HTML — rendered via innerHTML)
+  const parts = [];
   if (cracked.length > 0) {
-    G.msg = cracked.length === 1
+    parts.push(cracked.length === 1
       ? `Ward broken: ${cracked[0]}!`
-      : `Wards broken: ${cracked.join(', ')}!`;
+      : `Wards broken: ${cracked.join(', ')}!`);
     setTimeout(() => {
       for (const id of cracked) {
         const el = document.querySelector(`[data-area="${id}"]`);
@@ -551,15 +724,36 @@ function channelSelected() {
       }
     }, 20);
   } else {
-    G.msg = `Channeled ${toChannel.length} rune${toChannel.length > 1 ? 's' : ''}.`;
+    parts.push(`Channeled ${toChannel.length} rune${toChannel.length > 1 ? 's' : ''}.`);
   }
+  if (weakenedUsed) parts.push('<em>(Weakened: −1 each)</em>');
+  for (const fb of fightBacks) {
+    const t = THEME[fb.areaId];
+    const color = t ? t.color : '#c0391b';
+    if (fb.kind === 'damage') {
+      parts.push(`The <span style="color:${color}">${fb.areaId}</span> ward strikes back — <strong style="color:#ff5040">${fb.amount} damage</strong>.`);
+    } else {
+      parts.push(`The <span style="color:${color}">${fb.areaId}</span> ward lashes out — you are <strong style="color:#ffb347">${fb.name}</strong>.`);
+    }
+  }
+  G.msg = parts.join(' ');
 
-  if (isWin(G.areas)) { G.done = true; G.won = true; }
+  if (G.playerHp <= 0) {
+    G.done = true; G.won = false;
+    G.msg = parts.join(' ') + ' <em>You fall before the stave.</em>';
+  } else if (isWin(G.areas)) {
+    G.done = true; G.won = true;
+  }
   render();
 }
 
 function startDiscard() {
   if (G.done || G.discardUsed) return;
+  if (G.exhaustedTurn) {
+    G.msg = 'You are too <strong style="color:#ffb347">Exhausted</strong> — no discard this turn.';
+    render();
+    return;
+  }
   G.discardMode = true;
   G.sel.clear();
   G.msg = 'Select cards to discard, then confirm. You will draw back up to 5.';
@@ -595,20 +789,53 @@ function endTurn() {
   G.discardUsed = false;
   G.discardMode = false;
   G.sel.clear();
+  G.weakenedTurn = false;
+  G.exhaustedTurn = false;
 
-  const need = Math.max(0, HAND_TARGET - G.hand.length);
-  const {drawn, rest} = drawN(G.deck, need);
+  // Apply pending conditions from previous turn's fight-backs
+  const pending = G.conditions.slice();
+  G.conditions = [];
+  const condEvents = [];
+
+  const cursedCount = pending.filter(c => c === 'Cursed').length;
+  for (let i = 0; i < cursedCount && G.hand.length > 0; i++) {
+    const idx = Math.floor(Math.random() * G.hand.length);
+    const lost = G.hand.splice(idx, 1)[0];
+    condEvents.push(`<strong style="color:#ffb347">Cursed</strong> — ${lost.name} slips from your grasp`);
+  }
+
+  let drawCount = Math.max(0, HAND_TARGET - G.hand.length);
+  const dazedCount = pending.filter(c => c === 'Dazed').length;
+  if (dazedCount > 0 && drawCount > 0) {
+    drawCount = Math.max(1, drawCount - 2 * dazedCount);
+    condEvents.push(`<strong style="color:#ffb347">Dazed${dazedCount > 1 ? ` x${dazedCount}` : ''}</strong> — fewer runes come`);
+  }
+
+  if (pending.includes('Weakened')) {
+    G.weakenedTurn = true;
+    condEvents.push('<strong style="color:#ffb347">Weakened</strong> — your runes channel for less');
+  }
+  if (pending.includes('Exhausted')) {
+    G.exhaustedTurn = true;
+    condEvents.push('<strong style="color:#ffb347">Exhausted</strong> — no discard this turn');
+  }
+
+  const {drawn, rest} = drawN(G.deck, drawCount);
   G.hand = [...G.hand, ...drawn];
   G.deck = rest;
 
   if (isWin(G.areas)) {
     G.done = true; G.won = true;
     G.msg = 'The stave is broken.';
+  } else if (G.playerHp <= 0) {
+    G.done = true; G.won = false;
+    G.msg = 'You fall before the stave.';
   } else if (G.deck.length === 0) {
     G.done = true; G.won = false;
     G.msg = 'The deck runs dry. The stave holds.';
   } else {
-    G.msg = `Turn ${G.turn}. Drew ${drawn.length} card${drawn.length !== 1 ? 's' : ''}.`;
+    const tail = condEvents.length ? ` &nbsp;·&nbsp; ${condEvents.join(' &nbsp;·&nbsp; ')}` : '';
+    G.msg = `Turn ${G.turn}. Drew ${drawn.length} card${drawn.length !== 1 ? 's' : ''}.${tail}`;
   }
   render();
 }
@@ -620,12 +847,39 @@ function render() {
   renderStave();
   renderHand();
   renderControls();
-  document.getElementById('message').textContent = G.msg;
+  document.getElementById('message').innerHTML = G.msg;
   renderOverlay();
 }
 
 function renderStatus() {
   document.getElementById('stat-deck').textContent = `Deck: ${G.deck.length}`;
+
+  const hpEl = document.getElementById('stat-hp');
+  hpEl.textContent = `❤ ${G.playerHp} / ${G.playerMaxHp}`;
+  hpEl.classList.toggle('low', G.playerHp > 0 && G.playerHp <= 6);
+
+  const condEl = document.getElementById('stat-conditions');
+  const queued = G.conditions.slice();
+  const active = [];
+  if (G.weakenedTurn)  active.push('Weakened');
+  if (G.exhaustedTurn) active.push('Exhausted');
+
+  const counts = {};
+  for (const c of queued) counts[c] = (counts[c] || 0) + 1;
+  const queuedLabels = Object.entries(counts).map(([k, v]) => v > 1 ? `${k}×${v}` : k);
+
+  const parts = [];
+  if (active.length)       parts.push(active.join(' + '));
+  if (queuedLabels.length) parts.push('next: ' + queuedLabels.join(', '));
+
+  if (parts.length) {
+    condEl.textContent = `⚡ ${parts.join(' · ')}`;
+    condEl.className = 'stat-conditions';
+  } else {
+    condEl.textContent = '';
+    condEl.className = '';
+  }
+
   document.getElementById('stat-turn').textContent = `Turn ${G.turn}`;
   const n = G.areas.filter(a => a.cracked).length;
   document.getElementById('stat-cracked').textContent = `${n} / 6 wards broken`;
@@ -668,21 +922,43 @@ function renderHand() {
     return;
   }
 
+  const n = G.hand.length;
+  const maxRot = n > 1 ? Math.min(12, 4 + (n - 1) * 1.6) : 0;
+
   handEl.className = 'hand-cards' + (G.discardMode ? ' discard-mode' : '');
-  handEl.innerHTML = G.hand.map(c => {
+  handEl.innerHTML = G.hand.map((c, i) => {
     const area = G.areas.find(a => a.id === c.area);
     const dead = !G.discardMode && area && area.cracked;
     const sel = G.sel.has(c.uid);
     const t = THEME[c.area];
-    const borderStyle = sel ? `border-color:${t.color};box-shadow:0 6px 20px ${t.color}55` : '';
+    const stave = STAVE_DATA.find(s => s.id === c.area);
+    const themeName = stave ? stave.theme : '';
+
+    let rot = 0, ty = 0;
+    if (n > 1) {
+      const p = (i / (n - 1)) - 0.5; // -0.5..0.5
+      rot = p * 2 * maxRot;
+      ty  = Math.abs(p) * 18;
+    }
+
+    const styles = [`--card-rot:${rot.toFixed(2)}deg`, `--card-ty:${ty.toFixed(1)}px`];
+    if (sel) {
+      styles.push(`border-color:${t.color}`);
+      styles.push(`box-shadow:0 10px 24px ${t.color}66`);
+    }
+
     return `<div class="card${sel ? ' selected' : ''}${dead ? ' dead' : ''}"
-                 style="${borderStyle}"
-                 onclick="selectCard(${c.uid})"
-                 title="${c.meaning} (${c.area}, +${c.value})">
+                 style="${styles.join(';')}"
+                 onclick="selectCard(${c.uid})">
       <div class="card-val">${c.value}</div>
       <div class="card-glyph">${c.rune}</div>
       <div class="card-name">${c.name}</div>
       <div class="card-area" style="color:${t.color}">${c.area}</div>
+      <div class="card-info">
+        <div class="ci-meaning">${c.meaning}</div>
+        <div class="ci-flavour">Channels into ${c.area} · value +${c.value}</div>
+        <div class="ci-area" style="color:${t.color}">${c.area} · ${themeName}</div>
+      </div>
     </div>`;
   }).join('');
 }
@@ -717,7 +993,9 @@ function renderOverlay() {
     G.won ? 'The Stave is Broken' : 'The Stave Holds';
   document.getElementById('overlay-msg').textContent = G.won
     ? 'You channeled the runes and shattered all six wards. The Galdrastafur is undone.'
-    : 'The cards run out. Not all wards were broken. The stave endures beyond you.';
+    : G.playerHp <= 0
+      ? 'The wards lashed back until your last breath was spent. The stave endures beyond you.'
+      : 'The cards run out. Not all wards were broken. The stave endures beyond you.';
 }
 
 // ===== LEGEND ========================================================
