@@ -26,7 +26,7 @@ export default function Home() {
               </a>
               <span className="text-zinc-500">
                 {" "}
-                · routing London by air quality, not just time
+                · routing Stockholm by air quality, not just time
               </span>
             </li>
             <li>
