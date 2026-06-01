@@ -9,8 +9,8 @@ export const maxDuration = 60;
 const ADS_BASE = "https://ads.atmosphere.copernicus.eu/api";
 const DATASET = "cams-europe-air-quality-forecasts";
 
-// London bounding box (rounded to CAMS 0.1° grid)
-const AREA = { north: 51.7, west: -0.6, south: 51.3, east: 0.3 };
+// Stockholm bounding box (rounded to CAMS 0.1° grid)
+const AREA = { north: 59.5, west: 17.8, south: 59.2, east: 18.3 };
 
 type AdsJob = {
   jobID?: string;

@@ -48,31 +48,27 @@
 
   const ROUTES = {
     fast: {
-      name: 'Fastest via Bishopsgate',
+      name: 'Fastest via Centralbron',
       color: '#E24B4A',
       coords: [
-        [51.5031, -0.1132], // Waterloo
-        [51.5081, -0.1090], // Waterloo Bridge
-        [51.5117, -0.1056], // Aldwych
-        [51.5175, -0.1175], // Holborn
-        [51.5191, -0.0986], // Holborn Viaduct
-        [51.5174, -0.0808], // Liverpool Street
-        [51.5230, -0.0810], // Bishopsgate
-        [51.5258, -0.0876]  // Old Street
+        [59.3306, 18.0586], // Centralstation
+        [59.3258, 18.0635], // Tegelbacken
+        [59.3210, 18.0680], // Centralbron
+        [59.3197, 18.0712], // Slussen
+        [59.3137, 18.0745], // Götgatan
+        [59.3076, 18.0786]  // Skanstull
       ]
     },
     clean: {
-      name: 'Cleanest via The Cut',
+      name: 'Cleanest via Söder Mälarstrand',
       color: '#0F6E56',
       coords: [
-        [51.5031, -0.1132], // Waterloo
-        [51.5022, -0.1054], // The Cut
-        [51.5036, -0.0935], // Southwark Street
-        [51.5074, -0.0877], // London Bridge south
-        [51.5121, -0.0884], // Monument
-        [51.5145, -0.0883], // Bank
-        [51.5189, -0.0876], // Moorgate
-        [51.5258, -0.0876]  // Old Street
+        [59.3306, 18.0586], // Centralstation
+        [59.3272, 18.0558], // Klara sjö
+        [59.3233, 18.0530], // Riddarholmen
+        [59.3185, 18.0560], // Söder Mälarstrand
+        [59.3120, 18.0660], // Zinkensdamm
+        [59.3076, 18.0786]  // Skanstull
       ]
     }
   };
@@ -105,7 +101,7 @@
     leafletMap = L.map('leaflet-map', {
       zoomControl: true,
       attributionControl: true
-    }).setView([51.5150, -0.1000], 13);
+    }).setView([59.3210, 18.0660], 13);
 
     window._leafletMap = leafletMap;
 
@@ -127,8 +123,8 @@
 
     // Terminals
     const startEnd = [
-      { latlng: ROUTES.fast.coords[0], label: 'Waterloo', kind: 'start' },
-      { latlng: ROUTES.fast.coords[ROUTES.fast.coords.length - 1], label: 'Old Street', kind: 'end' }
+      { latlng: ROUTES.fast.coords[0], label: 'Centralstation', kind: 'start' },
+      { latlng: ROUTES.fast.coords[ROUTES.fast.coords.length - 1], label: 'Skanstull', kind: 'end' }
     ];
     startEnd.forEach(p => {
       L.circleMarker(p.latlng, {
@@ -149,7 +145,7 @@
     legend.onAdd = function () {
       const div = L.DomUtil.create('div', 'map-legend');
       div.innerHTML = `
-        <strong>PM2.5 (London Air)</strong>
+        <strong>PM2.5 (WAQI)</strong>
         <div><span class="swatch" style="background:#1D9E75"></span>Low (index 1-3)</div>
         <div><span class="swatch" style="background:#EF9F27"></span>Moderate (4-6)</div>
         <div><span class="swatch" style="background:#E24B4A"></span>High (7-9)</div>
@@ -164,7 +160,7 @@
   }
 
   /* --------------------------------------------------------
-   * Live data: London Air ground stations
+   * Live data: WAQI ground stations
    * ------------------------------------------------------ */
 
   function setStatus(which, state, detail) {
@@ -177,13 +173,16 @@
     if (det) det.textContent = detail;
   }
 
-  async function loadLondonAir() {
+  async function loadStations() {
     setStatus('stations', 'pending', 'loading…');
     try {
-      const res = await fetch('/api/london-air', { cache: 'no-store' });
+      const res = await fetch('/api/air-quality', { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
-      if (!data.ok) throw new Error(data.reason || 'unknown error');
+      if (!data.ok) {
+        if (data.configured === false) throw new Error('API token not configured');
+        throw new Error(data.reason || 'unknown error');
+      }
 
       stationsLayer.clearLayers();
       let withPm25 = 0;
@@ -297,7 +296,7 @@
   }
 
   /* --------------------------------------------------------
-   * Route exposure scores (sampled from London Air stations)
+   * Route exposure scores (sampled from WAQI stations)
    * ------------------------------------------------------ */
 
   function nearestStationIndex(lat, lon, stations) {
@@ -323,10 +322,10 @@
     return Math.round((avg / 10) * 100);
   }
 
-  function updateRouteScores(londonAir) {
-    if (!londonAir || !londonAir.stations) return;
-    const fast = routeExposureScore(ROUTES.fast, londonAir.stations);
-    const clean = routeExposureScore(ROUTES.clean, londonAir.stations);
+  function updateRouteScores(airData) {
+    if (!airData || !airData.stations) return;
+    const fast = routeExposureScore(ROUTES.fast, airData.stations);
+    const clean = routeExposureScore(ROUTES.clean, airData.stations);
     if (fast != null && rfScore && rfBar) {
       rfScore.textContent = fast;
       rfBar.style.width = fast + '%';
@@ -342,7 +341,7 @@
       } else if (diff >= 5) {
         advice.textContent = `Modest gap today (${diff} points). The cleaner route still helps, but the air is reasonably similar on both.`;
       } else {
-        advice.textContent = `London Air says the two routes are close today. Take whichever fits your schedule.`;
+        advice.textContent = `The stations say the two routes are close today. Take whichever fits your schedule.`;
       }
     }
   }
@@ -387,15 +386,15 @@
   const info = {
     fast: {
       eyebrow: 'Route detail',
-      title: 'Fastest route via Bishopsgate',
-      body: `<p>This route hugs Bishopsgate and clips the A40 to save five minutes. Both are heavy bus corridors with constant diesel traffic, so PM2.5 and NO₂ peak here during commuting hours.</p>
-             <p>The score in the panel is computed live from the nearest London Air ground stations to each waypoint on this route. It moves with the actual air, not a mockup.</p>`
+      title: 'Fastest route via Centralbron',
+      body: `<p>This route cuts across Centralbron and down Götgatan to save a few minutes. Both are heavy traffic corridors, so PM2.5 and NO₂ peak here during commuting hours.</p>
+             <p>The score in the panel is computed live from the nearest WAQI ground stations to each waypoint on this route. It moves with the actual air, not a mockup.</p>`
     },
     clean: {
       eyebrow: 'Route detail',
-      title: 'Cleanest route via The Cut & Southwark Street',
-      body: `<p>This route stays south of the river longer, uses The Cut and Lower Marsh, crosses on a quieter bridge, then approaches Old Street through Bank rather than Liverpool Street.</p>
-             <p>The score is sampled from the same network of London Air sites as the fastest route, so the comparison is apples-to-apples.</p>`
+      title: 'Cleanest route via Söder Mälarstrand',
+      body: `<p>This route hugs the water past Riddarholmen and Söder Mälarstrand, away from the main traffic arteries, then climbs to Skanstull through quieter Södermalm streets.</p>
+             <p>The score is sampled from the same network of WAQI sites as the fastest route, so the comparison is apples-to-apples.</p>`
     },
     'threat-corp': {
       eyebrow: 'Threat model',
@@ -423,20 +422,20 @@
     trend: {
       eyebrow: 'Weekly trend',
       title: 'What’s driving the high days',
-      body: `<p>Weekday peaks line up with Bishopsgate commutes. Weekends drop into Southwark, which sits in a cleaner pocket.</p>
+      body: `<p>Weekday peaks line up with the Centralbron commute. Weekends drop along the Söder Mälarstrand waterfront, which sits in a cleaner pocket.</p>
              <p>The route, more than the effort, is what moves the number.</p>`
     },
     context: {
       eyebrow: 'Context',
       title: 'What does this exposure score mean?',
       body: `<p>The score is normalised against WHO PM2.5 guidelines (5 µg/m³ annual mean, 15 µg/m³ 24-hour mean). A score of 38 means today's exposure is roughly 38% of the daily threshold.</p>
-             <p>Anything below 50 on a typical workday is good for inner London. Above 70 starts to add up over weeks for sensitive groups.</p>`
+             <p>Anything below 50 on a typical workday is good for inner Stockholm. Above 70 starts to add up over weeks for sensitive groups.</p>`
     },
     improve: {
       eyebrow: 'Practical',
       title: 'Realistic ways to lower this',
-      body: `<p><strong>Easy wins:</strong> Leave 20 minutes earlier or later to miss the 08:00 peak. Take The Cut instead of Bishopsgate when you can.</p>
-             <p><strong>Harder, but real:</strong> Switch one cycle commute per week to a Tube journey on days when surface PM2.5 is highest.</p>`
+      body: `<p><strong>Easy wins:</strong> Leave 20 minutes earlier or later to miss the 08:00 peak. Take Söder Mälarstrand instead of Centralbron when you can.</p>
+             <p><strong>Harder, but real:</strong> Switch one cycle commute per week to a tunnelbana journey on days when surface PM2.5 is highest.</p>`
     },
     share: {
       eyebrow: 'Sharing',
@@ -484,7 +483,7 @@
 
   function boot() {
     initMap();
-    loadLondonAir();
+    loadStations();
     loadCams();
   }
 

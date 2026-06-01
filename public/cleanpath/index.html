@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clean Path · London</title>
-  <meta name="description" content="Map your route by air, not just by time. A privacy-first navigation prototype for London, built on a mesh of environmental sensors." />
-  <meta property="og:title" content="Clean Path · London" />
+  <title>Clean Path · Stockholm</title>
+  <meta name="description" content="Map your route by air, not just by time. A privacy-first navigation prototype for Stockholm, built on a mesh of environmental sensors." />
+  <meta property="og:title" content="Clean Path · Stockholm" />
   <meta property="og:description" content="Map your route by air, not just by time." />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230F6E56'/%3E%3Cpath d='M25 55 Q40 35 55 50 T80 45' stroke='white' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -27,7 +27,7 @@
         </div>
         <div>
           <div class="brand-name">Clean Path</div>
-          <div class="brand-sub">London · prototype v0.3</div>
+          <div class="brand-sub">Stockholm · prototype v0.3</div>
         </div>
       </div>
       <nav class="tabs" role="tablist">
@@ -62,12 +62,12 @@
       <div class="map-grid">
 
         <div class="card map-card">
-          <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Central London air quality map with route from Waterloo to Old Street"></div>
+          <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Central Stockholm air quality map with route from Centralstation to Skanstull"></div>
 
           <div class="map-status">
             <div class="map-status-item" id="status-stations">
               <span class="status-dot pending"></span>
-              <span class="status-label">London Air stations</span>
+              <span class="status-label">WAQI stations</span>
               <span class="status-detail" id="status-stations-detail">loading…</span>
             </div>
             <div class="map-status-item" id="status-cams">
@@ -87,8 +87,8 @@
         <aside class="route-panel">
           <div class="route-meta">
             <div class="route-meta-label">Route</div>
-            <div class="route-meta-name">Waterloo → Old Street</div>
-            <div class="route-meta-sub">Cycling · via The Cut</div>
+            <div class="route-meta-name">Centralstation → Skanstull</div>
+            <div class="route-meta-sub">Cycling · via Söder Mälarstrand</div>
           </div>
 
           <button class="route-card route-fast" id="route-fast" data-info="fast">
@@ -101,7 +101,7 @@
               <span class="route-card-unit">/100 exposure</span>
             </div>
             <div class="bar-track red-track"><div class="rf-bar" style="width: 72%;"></div></div>
-            <div class="route-card-via">via Bishopsgate, A40</div>
+            <div class="route-card-via">via Centralbron, Götgatan</div>
           </button>
 
           <button class="route-card route-clean" id="route-clean" data-info="clean">
@@ -114,12 +114,12 @@
               <span class="route-card-unit">/100 exposure</span>
             </div>
             <div class="bar-track green-track"><div class="rc-bar" style="width: 31%;"></div></div>
-            <div class="route-card-via">via The Cut, Southwark St</div>
+            <div class="route-card-via">via Riddarholmen, Söder Mälarstrand</div>
           </button>
 
           <div class="advice-box">
             <div class="advice-label">For you</div>
-            <div id="advice">The cleanest route avoids the Bishopsgate traffic peak and cuts your exposure by more than half. Worth the extra 5 minutes.</div>
+            <div id="advice">The cleanest route avoids the Centralbron traffic peak and cuts your exposure by more than half. Worth the extra 5 minutes.</div>
           </div>
         </aside>
       </div>
@@ -139,7 +139,7 @@
       </div>
 
       <div class="card">
-        <svg class="mesh-svg" viewBox="0 0 656 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mesh of air quality sensors across London communicating peer-to-peer">
+        <svg class="mesh-svg" viewBox="0 0 656 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Mesh of air quality sensors across Stockholm communicating peer-to-peer">
           <defs>
             <pattern id="me-dotgrid" width="20" height="20" patternUnits="userSpaceOnUse">
               <circle cx="1" cy="1" r="0.6" fill="rgba(0,0,0,0.06)"/>
@@ -171,16 +171,16 @@
           </g>
 
           <g font-size="9" fill="#5F5E5A">
-            <g class="sensor-pulse"><circle cx="90" cy="80" r="6" fill="#0F6E56"/><text x="100" y="76">Angel</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.3s"><circle cx="220" cy="120" r="6" fill="#0F6E56"/><text x="230" y="116">Farringdon</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.6s"><circle cx="350" cy="90" r="6" fill="#0F6E56"/><text x="360" y="86">Old St</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.9s"><circle cx="470" cy="140" r="6" fill="#0F6E56"/><text x="480" y="136">Liverpool St</text></g>
-            <g class="sensor-pulse" style="animation-delay: 1.2s"><circle cx="170" cy="220" r="6" fill="#0F6E56"/><text x="180" y="216">Holborn</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.4s"><circle cx="290" cy="240" r="6" fill="#0F6E56"/><text x="300" y="236">St Paul's</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.7s"><circle cx="420" cy="230" r="6" fill="#0F6E56"/><text x="430" y="226">Bank</text></g>
-            <g class="sensor-pulse" style="animation-delay: 1s"><circle cx="540" cy="240" r="6" fill="#0F6E56"/><text x="550" y="236">Aldgate</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.2s"><circle cx="230" cy="300" r="6" fill="#0F6E56"/><text x="200" y="320">Waterloo</text></g>
-            <g class="sensor-pulse" style="animation-delay: 0.8s"><circle cx="500" cy="300" r="6" fill="#0F6E56"/><text x="478" y="320">London Bridge</text></g>
+            <g class="sensor-pulse"><circle cx="90" cy="80" r="6" fill="#0F6E56"/><text x="100" y="76">Odenplan</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.3s"><circle cx="220" cy="120" r="6" fill="#0F6E56"/><text x="230" y="116">Vasastan</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.6s"><circle cx="350" cy="90" r="6" fill="#0F6E56"/><text x="360" y="86">Östermalm</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.9s"><circle cx="470" cy="140" r="6" fill="#0F6E56"/><text x="480" y="136">Gärdet</text></g>
+            <g class="sensor-pulse" style="animation-delay: 1.2s"><circle cx="170" cy="220" r="6" fill="#0F6E56"/><text x="180" y="216">Kungsholmen</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.4s"><circle cx="290" cy="240" r="6" fill="#0F6E56"/><text x="300" y="236">Gamla stan</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.7s"><circle cx="420" cy="230" r="6" fill="#0F6E56"/><text x="430" y="226">Slussen</text></g>
+            <g class="sensor-pulse" style="animation-delay: 1s"><circle cx="540" cy="240" r="6" fill="#0F6E56"/><text x="550" y="236">Hammarby</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.2s"><circle cx="230" cy="300" r="6" fill="#0F6E56"/><text x="200" y="320">Hornstull</text></g>
+            <g class="sensor-pulse" style="animation-delay: 0.8s"><circle cx="500" cy="300" r="6" fill="#0F6E56"/><text x="478" y="320">Skanstull</text></g>
           </g>
 
           <g>
@@ -188,7 +188,7 @@
             <circle cx="370" cy="300" r="22" fill="none" stroke="#534AB7" stroke-width="0.5" opacity="0.3"/>
             <circle cx="370" cy="300" r="30" fill="none" stroke="#534AB7" stroke-width="0.5" opacity="0.15"/>
             <text x="370" y="304" text-anchor="middle" font-size="11" font-weight="500" fill="#534AB7">you</text>
-            <text x="370" y="332" text-anchor="middle" font-size="9" fill="#5F5E5A">Southwark</text>
+            <text x="370" y="332" text-anchor="middle" font-size="9" fill="#5F5E5A">Södermalm</text>
           </g>
 
           <g transform="translate(550, 20)">
@@ -263,7 +263,7 @@
         <div class="avatar">SR</div>
         <div class="profile-meta">
           <div class="profile-name">Sam Reyes</div>
-          <div class="profile-sub">Southwark · cycles to Old Street · mild asthma</div>
+          <div class="profile-sub">Södermalm · cycles to Skanstull · mild asthma</div>
           <div class="chips">
             <span class="chip chip-green">Prefers cleanest</span>
             <span class="chip chip-blue">Cycling</span>
@@ -284,14 +284,14 @@
             <text x="60" y="74" text-anchor="middle" font-size="9" fill="var(--text-secondary)">of 100</text>
           </svg>
           <div class="ring-status">Below your average</div>
-          <div class="ring-note">You took The Cut instead<br/>of Bishopsgate.</div>
+          <div class="ring-note">You took Söder Mälarstrand<br/>instead of Centralbron.</div>
           <div class="ring-stats">
             <div>
               <div class="stat-label">vs yesterday</div>
               <div class="stat-value green">−24%</div>
             </div>
             <div>
-              <div class="stat-label">vs London</div>
+              <div class="stat-label">vs Stockholm</div>
               <div class="stat-value green">−41%</div>
             </div>
           </div>
@@ -305,17 +305,17 @@
           <div class="bars">
             <div class="hbar" style="height: 18%; background: #97C459;" title="06:00 · home"></div>
             <div class="hbar" style="height: 22%; background: #97C459;" title="07:00 · home"></div>
-            <div class="hbar" style="height: 75%; background: #E24B4A;" title="08:00 · Bishopsgate commute"></div>
-            <div class="hbar" style="height: 32%; background: #FAC775;" title="09:00 · Old Street office"></div>
+            <div class="hbar" style="height: 75%; background: #E24B4A;" title="08:00 · Centralbron commute"></div>
+            <div class="hbar" style="height: 32%; background: #FAC775;" title="09:00 · Skanstull office"></div>
             <div class="hbar" style="height: 28%; background: #FAC775;" title="10:00 · office"></div>
             <div class="hbar" style="height: 26%; background: #FAC775;" title="11:00 · office"></div>
             <div class="hbar" style="height: 30%; background: #FAC775;" title="12:00 · lunch walk"></div>
-            <div class="hbar" style="height: 42%; background: #EF9F27;" title="13:00 · Old Street"></div>
+            <div class="hbar" style="height: 42%; background: #EF9F27;" title="13:00 · Skanstull"></div>
             <div class="hbar" style="height: 28%; background: #FAC775;" title="14:00 · office"></div>
             <div class="hbar" style="height: 26%; background: #FAC775;" title="15:00 · office"></div>
             <div class="hbar" style="height: 24%; background: #FAC775;" title="16:00 · office"></div>
             <div class="hbar" style="height: 35%; background: #FAC775;" title="17:00 · office"></div>
-            <div class="hbar" style="height: 38%; background: #FAC775;" title="18:00 · The Cut canal route"></div>
+            <div class="hbar" style="height: 38%; background: #FAC775;" title="18:00 · Söder Mälarstrand route"></div>
             <div class="hbar" style="height: 22%; background: #97C459;" title="19:00 · home"></div>
             <div class="hbar" style="height: 18%; background: #97C459;" title="20:00 · home"></div>
             <div class="hbar" style="height: 16%; background: #97C459;" title="21:00 · home"></div>
@@ -324,7 +324,7 @@
             <span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span>
           </div>
           <div class="hourly-alert">
-            <span class="alert-text"><strong>08:00 on Bishopsgate</strong> accounts for 41% of today. Leave 20 min earlier — the peak passes by 08:30.</span>
+            <span class="alert-text"><strong>08:00 on Centralbron</strong> accounts for 41% of today. Leave 20 min earlier — the peak passes by 08:30.</span>
           </div>
         </div>
       </div>
