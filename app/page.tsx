@@ -65,6 +65,18 @@ export default function Home() {
                 · a retro 90s kitchen timer, beeps included
               </span>
             </li>
+            <li>
+              <a
+                href="/jonas/cardgame/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Galdrastafur
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · a Norse rune puzzle, six wards to break before the deck runs out
+              </span>
+            </li>
           </ul>
         </div>
       </div>
