@@ -31,7 +31,7 @@ export default function Home() {
             </li>
             <li>
               <a
-                href="/yourname/index.html"
+                href="/pelle/index.html"
                 className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
               >
                 Catch the Button
