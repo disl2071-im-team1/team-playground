@@ -151,6 +151,10 @@
         <div><span class="swatch" style="background:#EF9F27"></span>Moderate (4-6)</div>
         <div><span class="swatch" style="background:#E24B4A"></span>High (7-9)</div>
         <div><span class="swatch" style="background:#7F1D1D"></span>Very high (10)</div>
+        <strong style="margin-top:6px">Integration layer (source)</strong>
+        <div><span class="swatch" style="background:#fff;border:3px solid #534AB7"></span>SMHI (official µg/m³)</div>
+        <div><span class="swatch" style="background:#fff;border:3px solid #E07B00"></span>WAQI (AQI index)</div>
+        <div><span class="swatch" style="background:#fff;border:3px solid #0F6E56"></span>luftdaten (community)</div>
         <strong style="margin-top:6px">Routes</strong>
         <div><span class="line" style="background:#E24B4A"></span>Fastest</div>
         <div><span class="line" style="background:#0F6E56"></span>Cleanest</div>
@@ -223,154 +227,11 @@
    * Integration layer: unified multi-source store (data branch)
    * ------------------------------------------------------ */
 
-  // Rendered as a discrete nearest-station (Voronoi-style) area overlay: each
-  // grid cell takes the value of its single nearest station, colored on that
-  // ONE source's own unit scale. Sources are never combined into one scale
-  // (WAQI is an AQI index; SMHI and luftdaten are µg/m³). Cells far from any
-  // station are left blank, so the overlay stays honest about sparse coverage.
-
-  const SOURCE_LABELS = { smhi: 'SMHI', waqi: 'WAQI', luftdaten: 'luftdaten' };
-  const SOURCE_COLORS = { smhi: '#534AB7', waqi: '#E07B00', luftdaten: '#0F6E56' };
-  const METRIC_PREFERENCE = ['pm25', 'pm10', 'no2', 'o3', 'co'];
-
-  // Color bands per (metric, unit). Each band: [upperBound, color, label].
-  const SCALES = {
-    aqi:        [[3, '#1D9E75', 'Low (1-3)'], [6, '#EF9F27', 'Moderate (4-6)'], [9, '#E24B4A', 'High (7-9)'], [Infinity, '#7F1D1D', 'Very high (10)']],
-    pm25_ug:    [[5, '#1D9E75', '0-5'], [15, '#A7C957', '5-15'], [25, '#EF9F27', '15-25'], [50, '#E24B4A', '25-50'], [Infinity, '#7F1D1D', '50+']],
-    pm10_ug:    [[20, '#1D9E75', '0-20'], [40, '#A7C957', '20-40'], [50, '#EF9F27', '40-50'], [100, '#E24B4A', '50-100'], [Infinity, '#7F1D1D', '100+']],
-    no2_ug:     [[40, '#1D9E75', '0-40'], [90, '#EF9F27', '40-90'], [120, '#E24B4A', '90-120'], [Infinity, '#7F1D1D', '120+']],
-    o3_ug:      [[60, '#1D9E75', '0-60'], [120, '#A7C957', '60-120'], [180, '#EF9F27', '120-180'], [Infinity, '#7F1D1D', '180+']],
-    generic_ug: [[10, '#1D9E75', '0-10'], [25, '#A7C957', '10-25'], [50, '#EF9F27', '25-50'], [100, '#E24B4A', '50-100'], [Infinity, '#7F1D1D', '100+']]
+  const SOURCE_COLORS = {
+    smhi: '#534AB7',
+    waqi: '#E07B00',
+    luftdaten: '#0F6E56'
   };
-
-  function scaleFor(metric, unit) {
-    if (unit === 'aqi') return SCALES.aqi;
-    if (metric === 'pm25') return SCALES.pm25_ug;
-    if (metric === 'pm10') return SCALES.pm10_ug;
-    if (metric === 'no2') return SCALES.no2_ug;
-    if (metric === 'o3') return SCALES.o3_ug;
-    return SCALES.generic_ug;
-  }
-
-  function bandColor(scale, value) {
-    for (const [hi, color] of scale) if (value <= hi) return color;
-    return scale[scale.length - 1][1];
-  }
-
-  let integrationData = null;
-  let overlaySource = 'smhi';
-  let overlayLegendCtrl = null;
-  let sourceSelectCtrl = null;
-
-  // Points for one source, using its first available preferred metric.
-  function pointsFor(source) {
-    const sts = (integrationData.stations || []).filter(s => s.source === source && s.pollutants.length);
-    const available = new Set();
-    sts.forEach(s => s.pollutants.forEach(p => available.add(p.metric)));
-    let metric = METRIC_PREFERENCE.find(m => available.has(m));
-    if (!metric && sts.length) metric = sts[0].pollutants[0].metric;
-    const points = [];
-    if (metric) {
-      sts.forEach(s => {
-        const p = s.pollutants.find(x => x.metric === metric);
-        if (p) points.push({ lat: s.lat, lon: s.lon, value: p.value, unit: p.unit, station: s.station });
-      });
-    }
-    return { metric, points };
-  }
-
-  function renderOverlay() {
-    if (!integrationLayer || !integrationData) return;
-    integrationLayer.clearLayers();
-    const { metric, points } = pointsFor(overlaySource);
-    if (!metric || !points.length) { updateOverlayLegend(overlaySource, null, null); return; }
-
-    const unit = points[0].unit;
-    const scale = scaleFor(metric, unit);
-
-    let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
-    points.forEach(p => {
-      minLat = Math.min(minLat, p.lat); maxLat = Math.max(maxLat, p.lat);
-      minLon = Math.min(minLon, p.lon); maxLon = Math.max(maxLon, p.lon);
-    });
-    minLat -= 0.02; maxLat += 0.02; minLon -= 0.035; maxLon += 0.035;
-
-    const N = 26;
-    const dLat = (maxLat - minLat) / N, dLon = (maxLon - minLon) / N;
-    const MAX_DEG = 0.018; // ~2 km: blank beyond this so we don't imply coverage
-
-    for (let i = 0; i < N; i++) {
-      for (let j = 0; j < N; j++) {
-        const cLat = minLat + (i + 0.5) * dLat, cLon = minLon + (j + 0.5) * dLon;
-        let best = null, bestD = Infinity;
-        for (const p of points) {
-          const dx = p.lat - cLat, dy = (p.lon - cLon) * Math.cos(cLat * Math.PI / 180);
-          const d = dx * dx + dy * dy;
-          if (d < bestD) { bestD = d; best = p; }
-        }
-        if (!best || Math.sqrt(bestD) > MAX_DEG) continue;
-        const rect = L.rectangle(
-          [[minLat + i * dLat, minLon + j * dLon], [minLat + (i + 1) * dLat, minLon + (j + 1) * dLon]],
-          { color: '#2C2C2A', weight: 0.5, opacity: 0.4, fillColor: bandColor(scale, best.value), fillOpacity: 0.5 }
-        );
-        rect.bindTooltip(
-          `${escapeHtml(SOURCE_LABELS[overlaySource] || overlaySource)} · ${escapeHtml(metric.toUpperCase())} ${best.value} ${escapeHtml(unit)}` +
-          `<br><span style="opacity:.7">nearest: ${escapeHtml(best.station)}</span>`,
-          { sticky: true }
-        );
-        rect.addTo(integrationLayer);
-      }
-    }
-    updateOverlayLegend(overlaySource, metric, unit);
-  }
-
-  function updateOverlayLegend(source, metric, unit) {
-    const el = document.getElementById('overlay-legend');
-    if (!el) return;
-    if (!metric) {
-      el.innerHTML = `<strong>Integration layer</strong><div>no ${escapeHtml(SOURCE_LABELS[source] || source)} data</div>`;
-      return;
-    }
-    const swatches = scaleFor(metric, unit)
-      .map(([, color, label]) => `<div><span class="swatch" style="background:${color}"></span>${escapeHtml(label)}</div>`)
-      .join('');
-    el.innerHTML =
-      `<strong>${escapeHtml(SOURCE_LABELS[source] || source)} · ${escapeHtml(metric.toUpperCase())} (${escapeHtml(unit)})</strong>` +
-      swatches +
-      `<div class="legend-note">Nearest-station cells. One source at a time — units are not comparable across sources.</div>`;
-  }
-
-  function highlightActive(container) {
-    container.querySelectorAll('button').forEach(b => {
-      b.classList.toggle('active', b.dataset.source === overlaySource);
-      b.style.borderLeft = '4px solid ' + (SOURCE_COLORS[b.dataset.source] || '#999');
-    });
-  }
-
-  function buildOverlayControls() {
-    overlayLegendCtrl = L.control({ position: 'bottomleft' });
-    overlayLegendCtrl.onAdd = function () {
-      const d = L.DomUtil.create('div', 'map-legend overlay-legend');
-      d.id = 'overlay-legend';
-      return d;
-    };
-    overlayLegendCtrl.addTo(leafletMap);
-
-    sourceSelectCtrl = L.control({ position: 'topright' });
-    sourceSelectCtrl.onAdd = function () {
-      const d = L.DomUtil.create('div', 'map-legend overlay-select');
-      const sources = Object.keys(integrationData.bySource || {});
-      d.innerHTML = '<strong>Overlay source</strong>' +
-        sources.map(s => `<button type="button" class="src-btn" data-source="${s}">${escapeHtml(SOURCE_LABELS[s] || s)}</button>`).join('');
-      L.DomEvent.disableClickPropagation(d);
-      d.querySelectorAll('button').forEach(b => {
-        b.addEventListener('click', () => { overlaySource = b.dataset.source; highlightActive(d); renderOverlay(); });
-      });
-      setTimeout(() => highlightActive(d), 0);
-      return d;
-    };
-    sourceSelectCtrl.addTo(leafletMap);
-  }
 
   async function loadIntegrationLayer() {
     setStatus('integration', 'pending', 'loading…');
@@ -380,14 +241,33 @@
       const data = await res.json();
       if (!data.ok) throw new Error(data.reason || 'unavailable');
 
-      integrationData = data;
-      const sources = Object.keys(data.bySource || {});
-      if (!sources.includes(overlaySource)) overlaySource = sources.includes('smhi') ? 'smhi' : sources[0];
-      if (!sourceSelectCtrl) buildOverlayControls();
-      renderOverlay();
+      integrationLayer.clearLayers();
+      data.stations.forEach(s => {
+        const color = SOURCE_COLORS[s.source] || '#5F5E5A';
+        const marker = L.circleMarker([s.lat, s.lon], {
+          radius: 7,
+          fillColor: '#FFFFFF',
+          color: color,
+          weight: 3,
+          fillOpacity: 0.9
+        });
+        const rows = s.pollutants.map(p =>
+          `<div class="station-value" style="color:${color}">${escapeHtml(p.metric.toUpperCase())} ${p.value} ${escapeHtml(p.unit)}</div>`
+        ).join('');
+        const when = (s.pollutants[0] || {}).timestamp || '';
+        marker.bindPopup(`
+          <div class="station-popup">
+            <strong>${escapeHtml(s.station)}</strong>
+            <div class="station-meta">source: ${escapeHtml(s.source)} · ${escapeHtml(when)}</div>
+            ${rows}
+          </div>
+        `);
+        marker.addTo(integrationLayer);
+      });
 
-      const summary = Object.entries(data.bySource || {}).map(([k, v]) => `${v} ${k}`).join(' · ');
-      setStatus('integration', 'ok', `area overlay · ${summary}`);
+      const summary = Object.entries(data.bySource || {})
+        .map(([k, v]) => `${v} ${k}`).join(' · ');
+      setStatus('integration', 'ok', `${data.stations.length} stations · ${summary}`);
     } catch (err) {
       setStatus('integration', 'offline', 'unavailable (' + err.message + ')');
     }
