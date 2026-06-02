@@ -1,0 +1,376 @@
+[
+  {
+    "id": "85",
+    "label": "PM10 SPP-SE0027A_00005_100_100, Stockholm Sveavägen 59 Gata, SPP-SE0027A_00005_100_100",
+    "extras": [
+      "license"
+    ],
+    "firstValue": {
+      "timestamp": 1042117200000,
+      "value": 13.32
+    },
+    "lastValue": {
+      "timestamp": 1780383600000,
+      "value": 15.769
+    },
+    "uom": "µg/m3",
+    "primaryData": "hour",
+    "aggregationTypes": [
+      "P1D",
+      "hourly",
+      "daily"
+    ],
+    "station": {
+      "id": "182",
+      "properties": {
+        "label": "Stockholm Sveavägen 59 Gata",
+        "classification": "Gaturum"
+      },
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.058279584402218,
+          59.340838490167336
+        ]
+      }
+    },
+    "parameters": {
+      "phenomenon": {
+        "id": "5",
+        "label": "PM10"
+      },
+      "procedure": {
+        "id": "195",
+        "label": "SPP-SE0027A_00005_100_100"
+      },
+      "category": {
+        "id": "5",
+        "label": "PM10"
+      },
+      "offering": {
+        "id": "195",
+        "label": "SPP-SE0027A_00005_100_100"
+      },
+      "feature": {
+        "id": "182",
+        "label": "Stockholm Sveavägen 59 Gata"
+      },
+      "service": {
+        "id": "1",
+        "label": "My RESTful Dataset Service"
+      }
+    }
+  },
+  {
+    "id": "62",
+    "label": "PM2.5 SPP-SE0003A_06001_100_100, Stockholm Hornsgatan 108 Gata, SPP-SE0003A_06001_100_100",
+    "extras": [
+      "license"
+    ],
+    "firstValue": {
+      "timestamp": 946684800000,
+      "value": 208.32
+    },
+    "lastValue": {
+      "timestamp": 1780383600000,
+      "value": 3.342
+    },
+    "uom": "µg/m3",
+    "primaryData": "hour",
+    "aggregationTypes": [
+      "P1D",
+      "hourly",
+      "daily"
+    ],
+    "station": {
+      "id": "111",
+      "properties": {
+        "label": "Stockholm Hornsgatan 108 Gata",
+        "classification": "Gaturum"
+      },
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.049022600433855,
+          59.31725978789678
+        ]
+      }
+    },
+    "parameters": {
+      "phenomenon": {
+        "id": "6001",
+        "label": "PM2.5"
+      },
+      "procedure": {
+        "id": "385",
+        "label": "SPP-SE0003A_06001_100_100"
+      },
+      "category": {
+        "id": "6001",
+        "label": "PM2.5"
+      },
+      "offering": {
+        "id": "385",
+        "label": "SPP-SE0003A_06001_100_100"
+      },
+      "feature": {
+        "id": "111",
+        "label": "Stockholm Hornsgatan 108 Gata"
+      },
+      "service": {
+        "id": "1",
+        "label": "My RESTful Dataset Service"
+      }
+    }
+  },
+  {
+    "id": "5858",
+    "label": "NO2 SPP-SE0003A_00008_100_102, Stockholm Hornsgatan 108 Gata, SPP-SE0003A_00008_100_102",
+    "extras": [
+      "license"
+    ],
+    "firstValue": {
+      "timestamp": 1609455600000,
+      "value": 28.97
+    },
+    "lastValue": {
+      "timestamp": 1780383600000,
+      "value": 17.997
+    },
+    "uom": "µg/m3",
+    "primaryData": "hour",
+    "aggregationTypes": [
+      "P1D",
+      "hourly",
+      "daily"
+    ],
+    "station": {
+      "id": "115",
+      "properties": {
+        "label": "Stockholm Hornsgatan 108 Gata",
+        "classification": "Gaturum"
+      },
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.049022600433855,
+          59.31725978789678
+        ]
+      }
+    },
+    "parameters": {
+      "phenomenon": {
+        "id": "8",
+        "label": "NO2"
+      },
+      "procedure": {
+        "id": "4351",
+        "label": "SPP-SE0003A_00008_100_102"
+      },
+      "category": {
+        "id": "8",
+        "label": "NO2"
+      },
+      "offering": {
+        "id": "4351",
+        "label": "SPP-SE0003A_00008_100_102"
+      },
+      "feature": {
+        "id": "115",
+        "label": "Stockholm Hornsgatan 108 Gata"
+      },
+      "service": {
+        "id": "1",
+        "label": "My RESTful Dataset Service"
+      }
+    }
+  },
+  {
+    "id": "5860",
+    "label": "O3 SPP-SE0022A_00007_101_102, Stockholm Torkel Knutssongatan, SPP-SE0022A_00007_101_102",
+    "extras": [
+      "license"
+    ],
+    "firstValue": {
+      "timestamp": 1609455600000,
+      "value": 35.898
+    },
+    "lastValue": {
+      "timestamp": 1780383600000,
+      "value": 63.215
+    },
+    "uom": "µg/m3",
+    "primaryData": "hour",
+    "aggregationTypes": [
+      "P8H-run",
+      "P8H-dmax",
+      "hourly"
+    ],
+    "station": {
+      "id": "109",
+      "properties": {
+        "label": "Stockholm Torkel Knutssongatan",
+        "classification": "Urban bakgrund"
+      },
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.057807343668,
+          59.316006853996
+        ]
+      }
+    },
+    "parameters": {
+      "phenomenon": {
+        "id": "7",
+        "label": "O3"
+      },
+      "procedure": {
+        "id": "4353",
+        "label": "SPP-SE0022A_00007_101_102"
+      },
+      "category": {
+        "id": "7",
+        "label": "O3"
+      },
+      "offering": {
+        "id": "4353",
+        "label": "SPP-SE0022A_00007_101_102"
+      },
+      "feature": {
+        "id": "109",
+        "label": "Stockholm Torkel Knutssongatan"
+      },
+      "service": {
+        "id": "1",
+        "label": "My RESTful Dataset Service"
+      }
+    }
+  },
+  {
+    "id": "5388",
+    "label": "CO SPP-SE0027A_00010_100_101, Stockholm Sveavägen 59 Gata, SPP-SE0027A_00010_100_101",
+    "extras": [
+      "license"
+    ],
+    "firstValue": {
+      "timestamp": 1515675600000,
+      "value": 0.38
+    },
+    "lastValue": {
+      "timestamp": 1780383600000,
+      "value": -0.144
+    },
+    "uom": "mg/m3",
+    "primaryData": "hour",
+    "aggregationTypes": [
+      "hourly"
+    ],
+    "station": {
+      "id": "185",
+      "properties": {
+        "label": "Stockholm Sveavägen 59 Gata",
+        "classification": "Gaturum"
+      },
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.058279584402218,
+          59.340838490167336
+        ]
+      }
+    },
+    "parameters": {
+      "phenomenon": {
+        "id": "10",
+        "label": "CO"
+      },
+      "procedure": {
+        "id": "3881",
+        "label": "SPP-SE0027A_00010_100_101"
+      },
+      "category": {
+        "id": "10",
+        "label": "CO"
+      },
+      "offering": {
+        "id": "3881",
+        "label": "SPP-SE0027A_00010_100_101"
+      },
+      "feature": {
+        "id": "185",
+        "label": "Stockholm Sveavägen 59 Gata"
+      },
+      "service": {
+        "id": "1",
+        "label": "My RESTful Dataset Service"
+      }
+    }
+  },
+  {
+    "id": "174",
+    "label": "PM10 SPP-SE0099A_00005_100_100, Stockholm Folkungagatan, SPP-SE0099A_00005_100_100",
+    "extras": [
+      "license"
+    ],
+    "firstValue": {
+      "timestamp": 1262304000000,
+      "value": 50.9
+    },
+    "lastValue": {
+      "timestamp": 1410508800000,
+      "value": 36.9
+    },
+    "uom": "µg/m3",
+    "primaryData": "hour",
+    "aggregationTypes": [
+      "hourly"
+    ],
+    "station": {
+      "id": "362",
+      "properties": {
+        "label": "Stockholm Folkungagatan",
+        "classification": "Gaturum"
+      },
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          18.075294,
+          59.314508000000004
+        ]
+      }
+    },
+    "parameters": {
+      "phenomenon": {
+        "id": "5",
+        "label": "PM10"
+      },
+      "procedure": {
+        "id": "5045",
+        "label": "SPP-SE0099A_00005_100_100"
+      },
+      "category": {
+        "id": "5",
+        "label": "PM10"
+      },
+      "offering": {
+        "id": "5045",
+        "label": "SPP-SE0099A_00005_100_100"
+      },
+      "feature": {
+        "id": "362",
+        "label": "Stockholm Folkungagatan"
+      },
+      "service": {
+        "id": "1",
+        "label": "My RESTful Dataset Service"
+      }
+    }
+  }
+]
