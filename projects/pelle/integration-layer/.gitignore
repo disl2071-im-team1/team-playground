@@ -1,0 +1,9 @@
+# Stored readings are generated, append-only data, not source.
+data/
+
+# Python
+__pycache__/
+*.pyc
+
+# Secrets
+.env*
