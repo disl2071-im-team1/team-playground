@@ -485,7 +485,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   <div class="message" id="message"></div>
 
   <div class="hand-section">
-    <div class="hand-label">Hand — <span id="hand-count">0</span> cards &nbsp;(max 7)</div>
+    <div class="hand-label">Hand — <span id="hand-count">0</span> cards &nbsp;(max 8)</div>
     <div class="hand-cards" id="hand"></div>
   </div>
 
@@ -595,8 +595,8 @@ function isWin(areas) { return areas.every(a => a.cracked); }
 
 // ===== STATE =========================================================
 
-const HAND_TARGET = 5;
-const HAND_MAX = 7;
+const HAND_TARGET = 6;
+const HAND_MAX = 8;
 
 let G = {};
 
