@@ -33,7 +33,7 @@ NOW = datetime(2026, 6, 2, 8, 0, 0, tzinfo=timezone.utc)
 
 CONTRACT_FIELDS = {
     "source", "metric", "value", "unit",
-    "station", "lat", "lon", "timestamp", "category", "raw",
+    "station", "lat", "lon", "timestamp", "category", "provenance", "raw",
 }
 
 

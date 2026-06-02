@@ -87,10 +87,11 @@ Every reading from every source is normalized to these fields (defined in
 | `metric` | Canonical metric name, e.g. `pm25`, `pm10`, `no2`, `o3`, `co`, `temperature`. |
 | `value` | The numeric reading. Kept verbatim from the instrument, including negatives. |
 | `unit` | Unit of `value`. See the warning below — this is critical. |
-| `station` | Station name/id. |
-| `lat`, `lon` | Coordinates (may be null). |
-| `timestamp` | Observation time, UTC ISO-8601 (e.g. `2026-06-02T07:00:00+00:00`). |
+| `station` | Station name/id. `null` for non-point sources (a modelled grid is not a station). |
+| `lat`, `lon` | Coordinates (may be null). For modelled sources, the grid-cell centre. |
+| `timestamp` | Observation (or forecast valid) time, UTC ISO-8601 (e.g. `2026-06-02T07:00:00+00:00`). |
 | `category` | `pollutant`, `weather`, or `other`. Lets you filter non-pollutant readings out. |
+| `provenance` | `measured` (point instrument) or `modelled` (gridded forecast). Distinguishes a real measurement from a model. |
 | `raw` | The untouched source payload for this reading. |
 
 ### ⚠️ Values are NOT comparable across sources without checking `unit`
