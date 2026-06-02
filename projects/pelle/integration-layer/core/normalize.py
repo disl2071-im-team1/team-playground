@@ -5,6 +5,7 @@ knowledge (which raw code is which metric, and what unit it carries) lives
 here; the schema itself stays source-agnostic.
 """
 
+from datetime import datetime, timezone
 from typing import List
 
 from core.schema import (
@@ -57,6 +58,55 @@ def normalize_waqi(parsed_readings: List[dict]) -> List[Reading]:
                 lon=r.get("lon"),
                 timestamp=r.get("timestamp"),
                 raw=r,  # the parsed source record, kept untouched for tracing
+            )
+        )
+    return readings
+
+
+# SMHI phenomenon labels -> canonical metric names.
+SMHI_PHENOMENON_MAP = {
+    "PM10": "pm10",
+    "PM2.5": "pm25",
+    "NO2": "no2",
+    "O3": "o3",
+    "CO": "co",
+    "SO2": "so2",
+    "NOX as NO2": "nox",  # not in the canonical pollutant set -> category "other"
+}
+
+
+def _uom_to_unit(uom):
+    """Normalize SMHI's unit string to the contract's unit (m3 -> m³)."""
+    return (uom or "").replace("m3", "m³")
+
+
+def _epoch_ms_to_iso(ms):
+    """Epoch milliseconds (UTC) -> ISO-8601 UTC string."""
+    return datetime.fromtimestamp(ms / 1000, tz=timezone.utc).isoformat()
+
+
+def normalize_smhi(parsed_readings: List[dict]) -> List[Reading]:
+    """Map parsed SMHI readings (from sources.smhi.parse_active) onto the schema.
+
+    Unlike WAQI, SMHI reports true concentrations, so units are real (µg/m³,
+    mg/m³ for CO). Instrument values are kept verbatim, including negatives.
+    Unknown phenomena keep a lowercased label and fall to category "other".
+    """
+    readings: List[Reading] = []
+    for r in parsed_readings:
+        phenomenon = r.get("phenomenon")
+        metric = SMHI_PHENOMENON_MAP.get(phenomenon, (phenomenon or "").lower())
+        readings.append(
+            make_reading(
+                source="smhi",
+                metric=metric,
+                value=r.get("value"),
+                unit=_uom_to_unit(r.get("uom")),
+                station=r.get("station"),
+                lat=r.get("lat"),
+                lon=r.get("lon"),
+                timestamp=_epoch_ms_to_iso(r["timestamp_ms"]),
+                raw=r,  # source record kept untouched (negatives included)
             )
         )
     return readings
