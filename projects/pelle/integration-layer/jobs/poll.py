@@ -21,7 +21,12 @@ if PROJECT_ROOT not in sys.path:
 
 from sources.waqi import fetch_station, parse_station  # noqa: E402
 from sources.smhi import discover_timeseries, parse_active  # noqa: E402
-from core.normalize import normalize_waqi, normalize_smhi  # noqa: E402
+from sources.luftdaten import fetch_area, parse_outdoor, DEFAULT_AREA  # noqa: E402
+from core.normalize import (  # noqa: E402
+    normalize_waqi,
+    normalize_smhi,
+    normalize_luftdaten,
+)
 from core.store import Store, DEFAULT_PATH  # noqa: E402
 
 
@@ -53,11 +58,18 @@ def poll_smhi():
     return normalize_smhi(parse_active(discover_timeseries("Stockholm")))
 
 
+def poll_luftdaten():
+    """Fetch + normalize outdoor luftdaten sensors around Stockholm."""
+    lat, lon, km = DEFAULT_AREA
+    return normalize_luftdaten(parse_outdoor(fetch_area(lat, lon, km)))
+
+
 def default_sources():
     """The (name, fetch-fn) pairs polled on each run."""
     return [
         ("waqi", poll_waqi),
         ("smhi", poll_smhi),
+        ("luftdaten", poll_luftdaten),
     ]
 
 
