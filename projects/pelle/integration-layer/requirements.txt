@@ -1,0 +1,10 @@
+# Runtime dependencies for the integration layer.
+#
+# The core schema/store/serve and the WAQI, SMHI and luftdaten sources are
+# standard-library only. CAMS is the exception: it comes from the CDS/ADS API as
+# gridded NetCDF, which needs these two packages. They are imported lazily inside
+# sources/cams.py, so the rest of the package and the offline test suite run
+# without them installed.
+
+cdsapi>=0.7.0      # CDS/ADS client: async submit/poll/download, creds from env
+netCDF4>=1.6.0     # parse the gridded NetCDF forecast (pulls in numpy)
