@@ -31,7 +31,7 @@ INDOOR_IDS = {43909, 43911, 43913, 43915}
 
 CONTRACT_FIELDS = {
     "source", "metric", "value", "unit",
-    "station", "lat", "lon", "timestamp", "category", "raw",
+    "station", "lat", "lon", "timestamp", "category", "provenance", "raw",
 }
 
 

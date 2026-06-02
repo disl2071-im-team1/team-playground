@@ -26,6 +26,7 @@ from core.normalize import (  # noqa: E402
     normalize_waqi,
     normalize_smhi,
     normalize_luftdaten,
+    normalize_cams,
 )
 from core.store import Store, DEFAULT_PATH  # noqa: E402
 
@@ -64,12 +65,33 @@ def poll_luftdaten():
     return normalize_luftdaten(parse_outdoor(fetch_area(lat, lon, km)))
 
 
+def poll_cams(store=None):
+    """Fetch + normalize the CAMS modelled forecast — guarded.
+
+    CAMS issues a new forecast only ~once a day and the fetch is async/slow, so
+    we skip it when this run's forecast (today's base date) is already in the
+    store. That keeps the hourly poll cheap on most hours; per-source isolation
+    in run() means a slow or failing CAMS never blocks the other three.
+    """
+    # Lazy import so jobs.poll (and the tests) load without cdsapi/netCDF4.
+    from sources.cams import fetch_points, current_base_date
+    store = store or Store(DEFAULT_PATH)
+    base = current_base_date()
+    for row in store.read_all():
+        if row.get("source") == "cams":
+            bt = (row.get("raw") or {}).get("base_time", "")
+            if isinstance(bt, str) and bt.startswith(base):
+                return []  # already have today's CAMS forecast run
+    return normalize_cams(fetch_points())
+
+
 def default_sources():
     """The (name, fetch-fn) pairs polled on each run."""
     return [
         ("waqi", poll_waqi),
         ("smhi", poll_smhi),
         ("luftdaten", poll_luftdaten),
+        ("cams", poll_cams),
     ]
 
 

@@ -23,10 +23,16 @@ value      the numeric reading
 unit       unit of value (e.g. "aqi", "µg/m³", "°C")
 station    station name/id
 lat, lon   coordinates
-timestamp  observation time, UTC ISO-8601 (converted from source offset)
+timestamp  observation (or forecast valid) time, UTC ISO-8601 (converted from source offset)
 category   pollutant | weather | other (so non-pollutant readings stay separable)
+provenance measured (point instrument) | modelled (gridded forecast, e.g. CAMS)
 raw        the untouched source payload for this reading
 ```
+
+`station` is `None` for non-point sources: a modelled gridded source (CAMS) is
+not a station, so we leave `station` null rather than inventing one, and keep the
+grid cell's resolution and bounds in `raw`. `provenance` is how a consumer tells
+a real measurement (SMHI/WAQI/luftdaten) apart from a model forecast (CAMS).
 
 Notes on the two fields that aren't 1:1 with a source:
 

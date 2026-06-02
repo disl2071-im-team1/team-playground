@@ -26,7 +26,7 @@ FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "waqi_station.json
 
 CONTRACT_FIELDS = {
     "source", "metric", "value", "unit",
-    "station", "lat", "lon", "timestamp", "category", "raw",
+    "station", "lat", "lon", "timestamp", "category", "provenance", "raw",
 }
 
 

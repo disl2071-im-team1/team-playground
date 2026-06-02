@@ -54,15 +54,21 @@ class Reading:
     metric: str          # canonical metric name, e.g. "pm25", "temperature"
     value: float         # the numeric reading
     unit: str            # unit of value, e.g. "aqi", "µg/m³", "°C"
-    station: str         # station name/id
+    station: Optional[str]  # station name/id, or None for non-point sources
     lat: Optional[float]
     lon: Optional[float]
-    timestamp: str       # observation time, UTC ISO-8601
+    timestamp: str       # observation (or forecast valid) time, UTC ISO-8601
     category: str        # pollutant | weather | other
+    provenance: str = "measured"  # measured (instrument) | modelled (e.g. CAMS forecast)
     raw: Any = field(default=None)  # untouched source payload for this reading
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+# Provenance values.
+PROVENANCE_MEASURED = "measured"
+PROVENANCE_MODELLED = "modelled"
 
 
 def make_reading(
@@ -71,17 +77,23 @@ def make_reading(
     metric: str,
     value: float,
     unit: str,
-    station: str,
+    station: Optional[str],
     lat: Optional[float],
     lon: Optional[float],
     timestamp: str,
     raw: Any = None,
     category: Optional[str] = None,
+    provenance: str = PROVENANCE_MEASURED,
 ) -> Reading:
     """Build a Reading, deriving category from the metric and forcing UTC time.
 
     Keeping this in one place means every source goes through the same
     classification and timestamp rules.
+
+    `provenance` defaults to "measured" (a point reading from an instrument).
+    Modelled, gridded sources (e.g. the CAMS forecast) pass "modelled" and
+    leave `station` as None rather than faking a station name; the grid cell's
+    resolution and bounds belong in `raw`.
     """
     return Reading(
         source=source,
@@ -93,5 +105,6 @@ def make_reading(
         lon=lon,
         timestamp=to_utc_iso(timestamp),
         category=category or classify(metric),
+        provenance=provenance,
         raw=raw,
     )

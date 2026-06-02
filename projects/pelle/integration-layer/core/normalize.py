@@ -13,6 +13,7 @@ from core.schema import (
     make_reading,
     CATEGORY_POLLUTANT,
     CATEGORY_WEATHER,
+    PROVENANCE_MODELLED,
 )
 
 # WAQI iaqi codes -> (canonical metric name, unit).
@@ -150,6 +151,51 @@ def normalize_luftdaten(parsed_readings: List[dict]) -> List[Reading]:
                 lon=r.get("lon"),
                 timestamp=iso,
                 raw=r,  # keeps value_raw string + record_id for traceability
+            )
+        )
+    return readings
+
+
+# CAMS species (ADS variable / NetCDF short names) -> canonical metric.
+CAMS_SPECIES_MAP = {
+    "pm2p5": "pm25",
+    "pm2.5": "pm25",
+    "particulate_matter_2.5um": "pm25",
+    "pm10": "pm10",
+    "particulate_matter_10um": "pm10",
+    "no2": "no2",
+    "nitrogen_dioxide": "no2",
+    "o3": "o3",
+    "ozone": "o3",
+}
+
+
+def normalize_cams(parsed_points: List[dict]) -> List[Reading]:
+    """Map parsed CAMS grid points (from sources.cams.parse_grid) onto the schema.
+
+    CAMS is a MODELLED forecast on a coarse grid, not a point measurement, so:
+      - provenance is "modelled"
+      - station is None (a grid cell is not a station; we do not fake a name)
+      - lat/lon are the grid-cell centre; resolution and cell bounds stay in raw
+      - timestamp is the forecast VALID time; raw keeps base_time + leadtime_hour
+    Values are concentrations in µg/m³ (converted from CAMS kg/m³ upstream).
+    """
+    readings: List[Reading] = []
+    for p in parsed_points:
+        species = p.get("species")
+        metric = CAMS_SPECIES_MAP.get(species, (species or "").lower())
+        readings.append(
+            make_reading(
+                source="cams",
+                metric=metric,
+                value=p.get("value"),
+                unit="µg/m³",
+                station=None,
+                lat=p.get("lat"),
+                lon=p.get("lon"),
+                timestamp=p.get("valid_time"),
+                provenance=PROVENANCE_MODELLED,
+                raw=p,
             )
         )
     return readings
