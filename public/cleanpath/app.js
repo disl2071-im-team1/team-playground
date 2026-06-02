@@ -233,6 +233,10 @@
     luftdaten: '#0F6E56'
   };
 
+  // Holds the single /api/stockholm-air response so the map overlay and the
+  // Network section's "data reality" cards share one fetch (no duplicate calls).
+  let integrationData = null;
+
   async function loadIntegrationLayer() {
     setStatus('integration', 'pending', 'loading…');
     try {
@@ -240,6 +244,7 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (!data.ok) throw new Error(data.reason || 'unavailable');
+      integrationData = data;
 
       integrationLayer.clearLayers();
       data.stations.forEach(s => {
@@ -268,9 +273,72 @@
       const summary = Object.entries(data.bySource || {})
         .map(([k, v]) => `${v} ${k}`).join(' · ');
       setStatus('integration', 'ok', `${data.stations.length} stations · ${summary}`);
+      renderDataReality();
     } catch (err) {
       setStatus('integration', 'offline', 'unavailable (' + err.message + ')');
+      renderDataReality();
     }
+  }
+
+  /* --------------------------------------------------------
+   * Network section: "the same air, measured three ways"
+   * Features PM10 from all three sources, with real values and real units,
+   * to show they disagree. Reuses integrationData (no extra fetch). Numbers
+   * are pulled live from the store; nothing here is hardcoded.
+   * ------------------------------------------------------ */
+
+  const DR_METRIC = 'pm10';
+  const DR_REF = [59.334, 18.063]; // central Stockholm: compare the same area
+  const DR_ORDER = ['smhi', 'waqi', 'luftdaten'];
+  const DR_LABEL = { smhi: 'SMHI', waqi: 'WAQI', luftdaten: 'luftdaten' };
+  const DR_KIND = {
+    smhi: 'National environmental agency',
+    waqi: 'Commercial aggregator',
+    luftdaten: 'Citizen sensor network'
+  };
+
+  function unitLabel(u) {
+    return u === 'aqi' ? 'AQI index' : u;
+  }
+
+  // Nearest station of one source to the reference point that has DR_METRIC.
+  function drNearest(source) {
+    if (!integrationData || !integrationData.stations) return null;
+    let best = null, bestD = Infinity;
+    integrationData.stations.forEach(s => {
+      if (s.source !== source) return;
+      const p = (s.pollutants || []).find(x => x.metric === DR_METRIC);
+      if (!p) return;
+      const dx = s.lat - DR_REF[0], dy = (s.lon - DR_REF[1]) * Math.cos(DR_REF[0] * Math.PI / 180);
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = { value: p.value, unit: p.unit, station: s.station, timestamp: p.timestamp }; }
+    });
+    return best;
+  }
+
+  function renderDataReality() {
+    const host = document.getElementById('data-reality-cards');
+    if (!host) return;
+    if (!integrationData || !integrationData.stations) {
+      host.innerHTML = '<div class="dr-empty">Live data unavailable right now.</div>';
+      return;
+    }
+    host.innerHTML = DR_ORDER.map(src => {
+      const c = SOURCE_COLORS[src] || '#5F5E5A';
+      const r = drNearest(src);
+      const value = r ? r.value : '—';
+      const unit = r ? unitLabel(r.unit) : 'no PM10 reading';
+      const meta = r
+        ? `${escapeHtml(r.station)} · ${escapeHtml(r.timestamp)}`
+        : 'no current PM10 reading';
+      return `
+        <div class="dr-card" style="border-top:3px solid ${c}">
+          <div class="dr-source" style="color:${c}">${DR_LABEL[src]}</div>
+          <div class="dr-kind">${DR_KIND[src]}</div>
+          <div class="dr-value" style="color:${c}">${value} <span class="dr-unit">${escapeHtml(unit)}</span></div>
+          <div class="dr-meta">${meta}</div>
+        </div>`;
+    }).join('');
   }
 
   /* --------------------------------------------------------
