@@ -263,6 +263,37 @@ body {
   vertical-align: middle;
 }
 
+.overlay-legend {
+  max-width: 180px;
+}
+
+.overlay-legend .legend-note {
+  margin-top: 5px;
+  font-size: 9px;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+.overlay-select .src-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-top: 4px;
+  padding: 3px 6px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: #fff;
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+}
+
+.overlay-select .src-btn.active {
+  color: var(--text-primary);
+  font-weight: 600;
+  background: var(--bg-secondary, #f4f4f2);
+}
+
 .map-status {
   display: flex;
   gap: 16px;
