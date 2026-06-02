@@ -294,6 +294,97 @@ body {
   background: var(--bg-secondary, #f4f4f2);
 }
 
+.dr-intro {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 12px;
+}
+
+.dr-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 680px) {
+  .dr-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dr-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 14px;
+}
+
+.dr-source {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.dr-kind {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dr-value {
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+  margin-top: 12px;
+}
+
+.dr-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.dr-meta {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-top: 8px;
+}
+
+.dr-empty {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: 10px 2px;
+}
+
+.dr-notes {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dr-notes:empty {
+  display: none;
+}
+
+.dr-note {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+}
+
+.dr-takeaway {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 14px 0 0;
+  border-top: 0.5px solid var(--border-tertiary);
+  padding-top: 12px;
+}
+
 .map-status {
   display: flex;
   gap: 16px;

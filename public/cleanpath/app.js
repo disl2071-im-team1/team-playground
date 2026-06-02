@@ -233,6 +233,10 @@
     luftdaten: '#0F6E56'
   };
 
+  // Holds the single /api/stockholm-air response so the map overlay and the
+  // Network section's "data reality" cards share one fetch (no duplicate calls).
+  let integrationData = null;
+
   async function loadIntegrationLayer() {
     setStatus('integration', 'pending', 'loading…');
     try {
@@ -240,6 +244,7 @@
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (!data.ok) throw new Error(data.reason || 'unavailable');
+      integrationData = data;
 
       integrationLayer.clearLayers();
       data.stations.forEach(s => {
@@ -268,9 +273,93 @@
       const summary = Object.entries(data.bySource || {})
         .map(([k, v]) => `${v} ${k}`).join(' · ');
       setStatus('integration', 'ok', `${data.stations.length} stations · ${summary}`);
+      renderDataReality();
     } catch (err) {
       setStatus('integration', 'offline', 'unavailable (' + err.message + ')');
+      renderDataReality();
     }
+  }
+
+  /* --------------------------------------------------------
+   * Network section: "the same air, measured three ways"
+   * Features PM10 from all three sources, with real values and real units,
+   * to show they disagree. Reuses integrationData (no extra fetch). Numbers
+   * are pulled live from the store; nothing here is hardcoded.
+   * ------------------------------------------------------ */
+
+  const DR_METRIC = 'pm10';
+  const DR_REF = [59.334, 18.063]; // central Stockholm: compare the same area
+  const DR_ORDER = ['smhi', 'waqi', 'luftdaten'];
+  const DR_LABEL = { smhi: 'SMHI', waqi: 'WAQI', luftdaten: 'luftdaten' };
+  const DR_KIND = {
+    smhi: 'National environmental agency',
+    waqi: 'Commercial aggregator',
+    luftdaten: 'Citizen sensor network'
+  };
+
+  function unitLabel(u) {
+    return u === 'aqi' ? 'AQI index' : u;
+  }
+
+  // Nearest station of one source to the reference point that has DR_METRIC.
+  function drNearest(source) {
+    if (!integrationData || !integrationData.stations) return null;
+    let best = null, bestD = Infinity;
+    integrationData.stations.forEach(s => {
+      if (s.source !== source) return;
+      const p = (s.pollutants || []).find(x => x.metric === DR_METRIC);
+      if (!p) return;
+      const dx = s.lat - DR_REF[0], dy = (s.lon - DR_REF[1]) * Math.cos(DR_REF[0] * Math.PI / 180);
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = { value: p.value, unit: p.unit, station: s.station, timestamp: p.timestamp }; }
+    });
+    return best;
+  }
+
+  function renderDataReality() {
+    const host = document.getElementById('data-reality-cards');
+    const notesHost = document.getElementById('data-reality-notes');
+    if (!host) return;
+    if (!integrationData || !integrationData.stations) {
+      host.innerHTML = '<div class="dr-empty">Live data unavailable right now.</div>';
+      if (notesHost) notesHost.innerHTML = '';
+      return;
+    }
+    const readings = {};
+    DR_ORDER.forEach(src => { readings[src] = drNearest(src); });
+
+    host.innerHTML = DR_ORDER.map(src => {
+      const c = SOURCE_COLORS[src] || '#5F5E5A';
+      const r = readings[src];
+      const value = r ? r.value : '—';
+      const unit = r ? unitLabel(r.unit) : 'no PM10 reading';
+      const meta = r
+        ? `${escapeHtml(r.station)} · ${escapeHtml(r.timestamp)}`
+        : 'no current PM10 reading';
+      return `
+        <div class="dr-card" style="border-top:3px solid ${c}">
+          <div class="dr-source" style="color:${c}">${DR_LABEL[src]}</div>
+          <div class="dr-kind">${DR_KIND[src]}</div>
+          <div class="dr-value" style="color:${c}">${value} <span class="dr-unit">${escapeHtml(unit)}</span></div>
+          <div class="dr-meta">${meta}</div>
+        </div>`;
+    }).join('');
+
+    if (notesHost) notesHost.innerHTML = drNotes(readings);
+  }
+
+  // Honest caveats, derived from the actual readings (not hardcoded).
+  function drNotes(readings) {
+    const notes = [];
+    const times = DR_ORDER.map(s => readings[s] && readings[s].timestamp).filter(Boolean);
+    if (new Set(times).size > 1) {
+      notes.push('These readings are from slightly different times (each card shows its own timestamp) — snapshots of the same air, not the same instant.');
+    }
+    const ld = readings.luftdaten;
+    if (ld && typeof ld.value === 'number' && ld.value < 1) {
+      notes.push(`luftdaten’s ${ld.value} µg/m³ reading is implausibly low for a city street, most likely noise from a low-cost citizen sensor — itself a reminder that the source and instrument quality matter.`);
+    }
+    return notes.map(n => `<div class="dr-note">${escapeHtml(n)}</div>`).join('');
   }
 
   /* --------------------------------------------------------
@@ -451,22 +540,23 @@
       body: `<p>This route hugs the water past Riddarholmen and Söder Mälarstrand, away from the main traffic arteries, then climbs to Skanstull through quieter Södermalm streets.</p>
              <p>The score is sampled from the same network of WAQI sites as the fastest route, so the comparison is apples-to-apples.</p>`
     },
-    'threat-corp': {
-      eyebrow: 'Threat model',
-      title: 'What if a data broker acquires Clean Path?',
-      body: `<p>There's no commute database to sell. The architecture means we never had one in the first place, your routes, preferences, and history live on your phone, encrypted at rest, and never sync up.</p>
-             <p>What an acquirer would inherit: anonymous environmental readings from the public sensor mesh, which are already open data. Not a per-user product.</p>`
+    'arch-sources': {
+      eyebrow: 'Data reality',
+      title: 'Three sources, three answers',
+      body: `<p>The same air is measured by an official agency (SMHI), a commercial aggregator (WAQI), and a citizen sensor network (luftdaten). They report different values, sometimes in different units, an AQI index is not µg/m³.</p>
+             <p>This prototype shows all three side by side rather than picking one and calling it the truth.</p>`
     },
-    'threat-state': {
-      eyebrow: 'Threat model',
-      title: 'What if a government subpoenas user data?',
-      body: `<p>We can't hand over what we never had. There are no user accounts, no central server logging trips, no IP addresses tied to identities.</p>
-             <p>This is structurally different from Google Maps or Citymapper, where your full movement history is on file and could be subpoenaed.</p>`
+    'arch-outliers': {
+      eyebrow: 'Data reality',
+      title: 'Outliers are kept, not hidden',
+      body: `<p>There is no mesh and no automatic consensus filtering. When a low-cost citizen sensor reports an implausible value (like a 0.1 µg/m³ PM10 reading on a city street), the integration layer keeps it and flags it with a note, rather than silently rejecting it.</p>
+             <p>Nothing is dropped on the way into the store, so you can always see what each source actually said.</p>`
     },
-    'threat-mesh': {
-      eyebrow: 'Threat model',
-      title: 'What if a sensor lies?',
-      body: `<p>A compromised or faulty sensor can broadcast false readings, but mesh consensus protects the map. Each node's readings are cross-referenced against its neighbours, and outliers more than 2σ from local consensus are flagged and excluded.</p>`
+    'arch-prototype': {
+      eyebrow: 'Data reality',
+      title: 'A prototype, not a product',
+      body: `<p>There are no user accounts, no phone app, and no on-device routing. The integration layer polls public APIs once an hour, normalises the readings to one schema, and appends them to a shared store that this page reads.</p>
+             <p>Because it polls hourly, readings can be an hour or more old, and real-time data from the sources is preliminary.</p>`
     },
     'profile-edit': {
       eyebrow: 'Profile',
