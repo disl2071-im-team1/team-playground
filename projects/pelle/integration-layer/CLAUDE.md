@@ -18,14 +18,24 @@ source MUST normalize into exactly these fields:
 
 ```
 source     which fetcher produced it (e.g. "waqi")
-metric     what was measured (e.g. "pm25", "no2")
+metric     canonical metric name (e.g. "pm25", "temperature")
 value      the numeric reading
-unit       unit of value (e.g. "µg/m³")
+unit       unit of value (e.g. "aqi", "µg/m³", "°C")
 station    station name/id
 lat, lon   coordinates
-timestamp  observation time, UTC ISO-8601
+timestamp  observation time, UTC ISO-8601 (converted from source offset)
+category   pollutant | weather | other (so non-pollutant readings stay separable)
 raw        the untouched source payload for this reading
 ```
+
+Notes on the two fields that aren't 1:1 with a source:
+
+- **`unit`** is honest about the source. WAQI's `iaqi` values are AQI
+  *sub-indices*, not concentrations, so WAQI pollutant readings carry
+  `unit="aqi"`, not µg/m³. Weather fields carry real units (%, hPa, °C, m/s).
+- **`category`** is derived from the canonical metric name (`core.schema.classify`).
+  Weather readings (humidity/pressure/temperature/wind) are kept, not dropped,
+  but tagged `weather` so a consumer can filter to pollution only.
 
 A change to this shape ripples through `normalize.py`, `store.py`, `serve.py`,
 and every source normalizer. Treat it as a versioned interface, not an
