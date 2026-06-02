@@ -318,14 +318,19 @@
 
   function renderDataReality() {
     const host = document.getElementById('data-reality-cards');
+    const notesHost = document.getElementById('data-reality-notes');
     if (!host) return;
     if (!integrationData || !integrationData.stations) {
       host.innerHTML = '<div class="dr-empty">Live data unavailable right now.</div>';
+      if (notesHost) notesHost.innerHTML = '';
       return;
     }
+    const readings = {};
+    DR_ORDER.forEach(src => { readings[src] = drNearest(src); });
+
     host.innerHTML = DR_ORDER.map(src => {
       const c = SOURCE_COLORS[src] || '#5F5E5A';
-      const r = drNearest(src);
+      const r = readings[src];
       const value = r ? r.value : '—';
       const unit = r ? unitLabel(r.unit) : 'no PM10 reading';
       const meta = r
@@ -339,6 +344,22 @@
           <div class="dr-meta">${meta}</div>
         </div>`;
     }).join('');
+
+    if (notesHost) notesHost.innerHTML = drNotes(readings);
+  }
+
+  // Honest caveats, derived from the actual readings (not hardcoded).
+  function drNotes(readings) {
+    const notes = [];
+    const times = DR_ORDER.map(s => readings[s] && readings[s].timestamp).filter(Boolean);
+    if (new Set(times).size > 1) {
+      notes.push('These readings are from slightly different times (each card shows its own timestamp) — snapshots of the same air, not the same instant.');
+    }
+    const ld = readings.luftdaten;
+    if (ld && typeof ld.value === 'number' && ld.value < 1) {
+      notes.push(`luftdaten’s ${ld.value} µg/m³ reading is implausibly low for a city street, most likely noise from a low-cost citizen sensor — itself a reminder that the source and instrument quality matter.`);
+    }
+    return notes.map(n => `<div class="dr-note">${escapeHtml(n)}</div>`).join('');
   }
 
   /* --------------------------------------------------------
