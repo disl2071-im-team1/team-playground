@@ -139,10 +139,9 @@ def parse_grid(zip_path, base_date, leadtime_hour=0):
                     val = float(a[i, j])
                     if not np.isfinite(val):
                         continue
-                    # CAMS concentration is kg/m³ in some products; convert tiny
-                    # values to µg/m³ (×1e9), same heuristic as the TS route.
-                    if abs(val) < 1e-3:
-                        val *= 1e9
+                    # The CAMS European forecast NetCDF reports concentrations
+                    # directly in µg/m³ (the *_conc variables carry units="µg/m3"),
+                    # so no unit conversion is applied.
                     points.append(
                         {
                             "species": species,
