@@ -1,0 +1,90 @@
+name: Poll Stockholm air quality
+
+# Hourly fetch of one WAQI Stockholm station, normalized and appended to the
+# JSONL record. The growing record lives on a dedicated `data` branch so that
+# `main` stays clean and PR-governed (per the team's PRs-only rule).
+#
+# Each run: seed the prior record from the data branch -> poll (append) ->
+# commit the updated record back to the data branch only. Nothing touches main.
+#
+# NOTE: a `schedule` trigger only runs from the workflow file on the DEFAULT
+# branch (main). It will not fire while this lives on a feature branch; it
+# activates once merged to main. `workflow_dispatch` allows manual test runs
+# (also only after the file reaches main).
+
+on:
+  schedule:
+    - cron: "0 * * * *" # top of every hour, UTC
+  workflow_dispatch: {}
+
+# Needed so the job can push the record to the data branch.
+permissions:
+  contents: write
+
+# Serialize runs so two polls never race on the data branch push.
+concurrency:
+  group: poll-stockholm-air
+  cancel-in-progress: false
+
+env:
+  DATA_BRANCH: data
+  RECORD: projects/pelle/integration-layer/data/readings.jsonl
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Seed existing record from the data branch
+        run: |
+          git fetch origin "$DATA_BRANCH" || true   # branch may not exist on first run
+          mkdir -p "$(dirname "$RECORD")"
+          if git show-ref --verify --quiet "refs/remotes/origin/$DATA_BRANCH"; then
+            git show "origin/$DATA_BRANCH:$RECORD" > "$RECORD"
+            echo "Seeded $(wc -l < "$RECORD") prior reading line(s)."
+          else
+            echo "No data branch yet; starting a fresh record."
+          fi
+
+      - name: Run poll job
+        working-directory: projects/pelle/integration-layer
+        env:
+          # Provided as a repo Actions secret (Settings -> Secrets and
+          # variables -> Actions). Never committed.
+          WAQI_TOKEN: ${{ secrets.WAQI_TOKEN }}
+        run: python3 jobs/poll.py stockholm
+
+      - name: Publish record to the data branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Keep the appended record aside; data/ is gitignored on main and the
+          # branch switch below would otherwise refuse to clobber it.
+          cp "$RECORD" /tmp/readings.jsonl
+          rm -f "$RECORD"
+
+          if git show-ref --verify --quiet "refs/remotes/origin/$DATA_BRANCH"; then
+            git checkout -B "$DATA_BRANCH" "origin/$DATA_BRANCH"
+          else
+            git checkout --orphan "$DATA_BRANCH"
+            git rm -rf . >/dev/null 2>&1 || true   # data branch holds only the record
+          fi
+
+          mkdir -p "$(dirname "$RECORD")"
+          cp /tmp/readings.jsonl "$RECORD"
+          git add -f "$RECORD"
+
+          if git diff --cached --quiet; then
+            echo "No new readings to commit."
+          else
+            git commit -m "data: hourly Stockholm readings $(date -u +%Y-%m-%dT%H:%MZ)"
+            git push origin "$DATA_BRANCH"
+          fi

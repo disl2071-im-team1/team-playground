@@ -93,6 +93,17 @@ Each source has a different access pattern; this is the non-obvious part:
 - **Small commits, one concern each** (matches the team git conventions in the
   root `CLAUDE.md`).
 
+## Scheduled collection
+
+`jobs/poll.py` is run hourly by `.github/workflows/poll-stockholm-air.yml`.
+The growing append-only record does NOT live on `main`: the workflow commits
+each run's updated `data/readings.jsonl` to a dedicated `data` branch, keeping
+`main` clean and PR-governed. Each run seeds the prior record from the `data`
+branch, appends, and pushes back to `data` only. The WAQI token is a repo
+Actions secret (`WAQI_TOKEN`), never committed. The schedule only fires once the
+workflow file is on `main` (GitHub runs scheduled workflows from the default
+branch).
+
 ## Toolchain
 
 Greenfield — not yet bootstrapped. When set up, follow Python conventions:
