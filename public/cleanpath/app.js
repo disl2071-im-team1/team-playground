@@ -89,7 +89,7 @@
     return 'Very high';
   }
 
-  let leafletMap, stationsLayer, camsLayer;
+  let leafletMap, stationsLayer, camsLayer, integrationLayer;
 
   function initMap() {
     if (typeof L === 'undefined') {
@@ -139,6 +139,7 @@
     // Layer groups
     stationsLayer = L.layerGroup().addTo(leafletMap);
     camsLayer = L.layerGroup().addTo(leafletMap);
+    integrationLayer = L.layerGroup().addTo(leafletMap);
 
     // Legend
     const legend = L.control({ position: 'bottomright' });
@@ -150,6 +151,10 @@
         <div><span class="swatch" style="background:#EF9F27"></span>Moderate (4-6)</div>
         <div><span class="swatch" style="background:#E24B4A"></span>High (7-9)</div>
         <div><span class="swatch" style="background:#7F1D1D"></span>Very high (10)</div>
+        <strong style="margin-top:6px">Integration layer (source)</strong>
+        <div><span class="swatch" style="background:#fff;border:3px solid #534AB7"></span>SMHI (official µg/m³)</div>
+        <div><span class="swatch" style="background:#fff;border:3px solid #E07B00"></span>WAQI (AQI index)</div>
+        <div><span class="swatch" style="background:#fff;border:3px solid #0F6E56"></span>luftdaten (community)</div>
         <strong style="margin-top:6px">Routes</strong>
         <div><span class="line" style="background:#E24B4A"></span>Fastest</div>
         <div><span class="line" style="background:#0F6E56"></span>Cleanest</div>
@@ -215,6 +220,56 @@
     } catch (err) {
       setStatus('stations', 'offline', 'unavailable (' + err.message + ')');
       return null;
+    }
+  }
+
+  /* --------------------------------------------------------
+   * Integration layer: unified multi-source store (data branch)
+   * ------------------------------------------------------ */
+
+  const SOURCE_COLORS = {
+    smhi: '#534AB7',
+    waqi: '#E07B00',
+    luftdaten: '#0F6E56'
+  };
+
+  async function loadIntegrationLayer() {
+    setStatus('integration', 'pending', 'loading…');
+    try {
+      const res = await fetch('/api/stockholm-air', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      if (!data.ok) throw new Error(data.reason || 'unavailable');
+
+      integrationLayer.clearLayers();
+      data.stations.forEach(s => {
+        const color = SOURCE_COLORS[s.source] || '#5F5E5A';
+        const marker = L.circleMarker([s.lat, s.lon], {
+          radius: 7,
+          fillColor: '#FFFFFF',
+          color: color,
+          weight: 3,
+          fillOpacity: 0.9
+        });
+        const rows = s.pollutants.map(p =>
+          `<div class="station-value" style="color:${color}">${escapeHtml(p.metric.toUpperCase())} ${p.value} ${escapeHtml(p.unit)}</div>`
+        ).join('');
+        const when = (s.pollutants[0] || {}).timestamp || '';
+        marker.bindPopup(`
+          <div class="station-popup">
+            <strong>${escapeHtml(s.station)}</strong>
+            <div class="station-meta">source: ${escapeHtml(s.source)} · ${escapeHtml(when)}</div>
+            ${rows}
+          </div>
+        `);
+        marker.addTo(integrationLayer);
+      });
+
+      const summary = Object.entries(data.bySource || {})
+        .map(([k, v]) => `${v} ${k}`).join(' · ');
+      setStatus('integration', 'ok', `${data.stations.length} stations · ${summary}`);
+    } catch (err) {
+      setStatus('integration', 'offline', 'unavailable (' + err.message + ')');
     }
   }
 
@@ -484,6 +539,7 @@
   function boot() {
     initMap();
     loadStations();
+    loadIntegrationLayer();
     loadCams();
   }
 
