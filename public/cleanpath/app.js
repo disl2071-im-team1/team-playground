@@ -540,22 +540,23 @@
       body: `<p>This route hugs the water past Riddarholmen and Söder Mälarstrand, away from the main traffic arteries, then climbs to Skanstull through quieter Södermalm streets.</p>
              <p>The score is sampled from the same network of WAQI sites as the fastest route, so the comparison is apples-to-apples.</p>`
     },
-    'threat-corp': {
-      eyebrow: 'Threat model',
-      title: 'What if a data broker acquires Clean Path?',
-      body: `<p>There's no commute database to sell. The architecture means we never had one in the first place, your routes, preferences, and history live on your phone, encrypted at rest, and never sync up.</p>
-             <p>What an acquirer would inherit: anonymous environmental readings from the public sensor mesh, which are already open data. Not a per-user product.</p>`
+    'arch-sources': {
+      eyebrow: 'Data reality',
+      title: 'Three sources, three answers',
+      body: `<p>The same air is measured by an official agency (SMHI), a commercial aggregator (WAQI), and a citizen sensor network (luftdaten). They report different values, sometimes in different units, an AQI index is not µg/m³.</p>
+             <p>This prototype shows all three side by side rather than picking one and calling it the truth.</p>`
     },
-    'threat-state': {
-      eyebrow: 'Threat model',
-      title: 'What if a government subpoenas user data?',
-      body: `<p>We can't hand over what we never had. There are no user accounts, no central server logging trips, no IP addresses tied to identities.</p>
-             <p>This is structurally different from Google Maps or Citymapper, where your full movement history is on file and could be subpoenaed.</p>`
+    'arch-outliers': {
+      eyebrow: 'Data reality',
+      title: 'Outliers are kept, not hidden',
+      body: `<p>There is no mesh and no automatic consensus filtering. When a low-cost citizen sensor reports an implausible value (like a 0.1 µg/m³ PM10 reading on a city street), the integration layer keeps it and flags it with a note, rather than silently rejecting it.</p>
+             <p>Nothing is dropped on the way into the store, so you can always see what each source actually said.</p>`
     },
-    'threat-mesh': {
-      eyebrow: 'Threat model',
-      title: 'What if a sensor lies?',
-      body: `<p>A compromised or faulty sensor can broadcast false readings, but mesh consensus protects the map. Each node's readings are cross-referenced against its neighbours, and outliers more than 2σ from local consensus are flagged and excluded.</p>`
+    'arch-prototype': {
+      eyebrow: 'Data reality',
+      title: 'A prototype, not a product',
+      body: `<p>There are no user accounts, no phone app, and no on-device routing. The integration layer polls public APIs once an hour, normalises the readings to one schema, and appends them to a shared store that this page reads.</p>
+             <p>Because it polls hourly, readings can be an hour or more old, and real-time data from the sources is preliminary.</p>`
     },
     'profile-edit': {
       eyebrow: 'Profile',
