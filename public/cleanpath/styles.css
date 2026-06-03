@@ -1179,3 +1179,190 @@ body {
   color: var(--text-primary);
   font-weight: 500;
 }
+
+/* === Pablo Santos — Forecast Tab === */
+
+.forecast-week-card {
+  margin-bottom: 10px;
+}
+
+.forecast-week-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.forecast-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  align-items: end;
+}
+
+.forecast-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  padding: 6px 2px;
+  transition: background 0.15s;
+}
+
+.forecast-day-col:hover {
+  background: var(--bg-secondary);
+}
+
+.forecast-day-col.selected {
+  background: var(--bg-secondary);
+  outline: 1.5px solid var(--green-dark);
+}
+
+.forecast-day-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.forecast-day-label.today {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.forecast-bar-wrap {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.forecast-bar {
+  width: 60%;
+  border-radius: 3px 3px 0 0;
+  transition: height 0.4s ease, opacity 0.15s;
+  min-height: 4px;
+}
+
+.forecast-day-value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.forecast-day-pollutant {
+  font-size: 9px;
+  color: var(--text-tertiary);
+}
+
+.forecast-week-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 0.5px solid var(--border-tertiary);
+  flex-wrap: wrap;
+}
+
+.forecast-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.forecast-legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.forecast-detail-card {
+  margin-bottom: 10px;
+}
+
+.forecast-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.forecast-hourly-bars {
+  height: 70px;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.forecast-hbar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 0.3s ease;
+  cursor: default;
+}
+
+.forecast-hourly-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+.forecast-summary-card {
+  margin-bottom: 10px;
+}
+
+.forecast-summary-head {
+  margin-bottom: 10px;
+}
+
+.forecast-summary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.forecast-summary-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.forecast-summary-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  min-width: 88px;
+  padding-top: 1px;
+  flex-shrink: 0;
+}
+
+.forecast-summary-text {
+  color: var(--text-secondary);
+}
+
+.forecast-summary-text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.forecast-source-note {
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* === end Forecast Tab === */

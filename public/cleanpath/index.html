@@ -43,6 +43,10 @@
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19 a6 6 0 0 1 11 0"/></svg>
           Profile
         </button>
+        <button class="tab" data-screen="forecast" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Forecast
+        </button>
       </nav>
     </header>
 
@@ -266,6 +270,68 @@
         </button>
       </div>
     </section>
+
+    <!-- === Pablo Santos — Forecast Tab === -->
+    <section class="screen" id="screen-forecast" role="tabpanel">
+
+      <div class="screen-head">
+        <div>
+          <div class="eyebrow">7-day outlook</div>
+          <h2>Air quality forecast for your route</h2>
+        </div>
+        <div class="status">
+          <span class="status-dot" id="forecast-status-dot"></span>
+          <span id="forecast-source-label">Loading…</span>
+        </div>
+      </div>
+
+      <!-- Weekly bar chart -->
+      <div class="card forecast-week-card">
+        <div class="forecast-week-head">
+          <span class="card-title">Weekly AQI⁺ forecast</span>
+          <span class="card-meta" id="forecast-updated"></span>
+        </div>
+        <div class="forecast-week-grid" id="forecast-week-grid">
+          <!-- populated by JS -->
+        </div>
+        <div class="forecast-week-legend">
+          <span class="forecast-legend-item"><span class="forecast-legend-swatch" style="background:#1D9E75"></span>Low (0–33)</span>
+          <span class="forecast-legend-item"><span class="forecast-legend-swatch" style="background:#EF9F27"></span>Moderate (34–66)</span>
+          <span class="forecast-legend-item"><span class="forecast-legend-swatch" style="background:#E24B4A"></span>High (67–100)</span>
+        </div>
+      </div>
+
+      <!-- 24-hour detail panel -->
+      <div class="card forecast-detail-card" id="forecast-detail-card">
+        <div class="forecast-detail-head">
+          <span class="card-title" id="forecast-detail-title">Select a day</span>
+          <span class="card-meta">Hourly AQI⁺</span>
+        </div>
+        <div class="forecast-hourly-bars" id="forecast-hourly-bars">
+          <!-- populated by JS -->
+        </div>
+        <div class="forecast-hourly-axis">
+          <span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span>
+        </div>
+      </div>
+
+      <!-- Conditions summary -->
+      <div class="card forecast-summary-card" id="forecast-summary-card">
+        <div class="forecast-summary-head">
+          <span class="card-title">Conditions summary</span>
+        </div>
+        <div class="forecast-summary-body" id="forecast-summary-body">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Data source note -->
+      <div class="forecast-source-note">
+        Forecast derived from Copernicus CAMS and SMHI data via the integration layer · refreshed hourly · values are AQI⁺ (0–100 normalised index)
+      </div>
+
+    </section>
+    <!-- === end Forecast Tab === -->
 
     <section class="screen" id="screen-profile" role="tabpanel">
 
