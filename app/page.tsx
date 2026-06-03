@@ -77,6 +77,18 @@ export default function Home() {
                 · a Norse rune puzzle, six wards to break before the deck runs out
               </span>
             </li>
+            <li>
+              <a
+                href="/counter/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Counter Game
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · click the button, watch the number go up
+              </span>
+            </li>
           </ul>
         </div>
       </div>
