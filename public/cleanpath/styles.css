@@ -275,23 +275,41 @@ body {
 }
 
 .overlay-select .src-btn {
-  display: block;
+  display: flex;
+  align-items: center;
   width: 100%;
   text-align: left;
   margin-top: 4px;
-  padding: 3px 6px;
+  padding: 4px 7px;
   font-size: 10px;
-  color: var(--text-secondary);
-  background: #fff;
-  border: 0.5px solid var(--border);
+  color: var(--text-tertiary);
+  background: transparent;
+  border: 0.5px solid transparent;
   border-radius: var(--radius-sm, 4px);
   cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+}
+
+.overlay-select .src-btn:hover {
+  background: var(--bg-secondary);
 }
 
 .overlay-select .src-btn.active {
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 500;
   background: var(--bg-secondary, #f4f4f2);
+  border-color: var(--border-tertiary);
+}
+
+.overlay-select .src-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 .dr-intro {
