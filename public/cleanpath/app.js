@@ -623,6 +623,402 @@
   }
 
   /* --------------------------------------------------------
+   * Calm Route: profile preferences (Profile tab sub-card)
+   *
+   * Stored locally in localStorage. The integration layer never sees these.
+   * Asthma and pollen boosts stack into the effective air weight at compute
+   * time so the slider stays the source of truth.
+   * ------------------------------------------------------ */
+
+  const PREF_DEFAULTS = {
+    cp_w_air: 70,
+    cp_w_noise: 50,
+    cp_w_crowd: 30,
+    cp_asthma: false,
+    cp_pollen: false
+  };
+
+  function loadPref(key) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw == null) return PREF_DEFAULTS[key];
+      if (key === 'cp_asthma' || key === 'cp_pollen') return raw === 'true';
+      const n = parseInt(raw, 10);
+      return Number.isFinite(n) ? n : PREF_DEFAULTS[key];
+    } catch (e) {
+      return PREF_DEFAULTS[key];
+    }
+  }
+
+  function savePref(key, value) {
+    try {
+      localStorage.setItem(key, String(value));
+    } catch (e) { /* storage disabled — fine */ }
+  }
+
+  function getEffectiveWeights() {
+    const air = loadPref('cp_w_air');
+    const noise = loadPref('cp_w_noise');
+    const crowd = loadPref('cp_w_crowd');
+    const asthma = loadPref('cp_asthma');
+    const pollen = loadPref('cp_pollen');
+    const airBoost = (asthma ? 30 : 0) + (pollen ? 20 : 0);
+    const airEff = Math.min(100, air + airBoost);
+    return { air: airEff, noise, crowd, airBase: air, airBoost };
+  }
+
+  function initPrefControls() {
+    const map = [
+      ['pref-air', 'pref-air-val', 'cp_w_air'],
+      ['pref-noise', 'pref-noise-val', 'cp_w_noise'],
+      ['pref-crowd', 'pref-crowd-val', 'cp_w_crowd']
+    ];
+    map.forEach(([sliderId, labelId, key]) => {
+      const slider = document.getElementById(sliderId);
+      const label = document.getElementById(labelId);
+      if (!slider || !label) return;
+      const current = loadPref(key);
+      slider.value = String(current);
+      label.textContent = String(current);
+      slider.addEventListener('input', () => {
+        label.textContent = slider.value;
+        savePref(key, slider.value);
+      });
+    });
+
+    const togglePairs = [['pref-asthma', 'cp_asthma'], ['pref-pollen', 'cp_pollen']];
+    togglePairs.forEach(([id, key]) => {
+      const cb = document.getElementById(id);
+      if (!cb) return;
+      cb.checked = loadPref(key);
+      cb.addEventListener('change', () => savePref(key, cb.checked));
+    });
+  }
+
+  /* --------------------------------------------------------
+   * Calm Route: season banner
+   *
+   * Spring leans on real PM10 readings (road dust). Winter shows usable
+   * daylight from a local sunrise/sunset calc. Summer and autumn fall back
+   * to simulated for the layers we don't yet have sensors for.
+   * ------------------------------------------------------ */
+
+  const STOCKHOLM_LAT = 59.33;
+  const STOCKHOLM_LON = 18.07;
+
+  function dayOfYear(d) {
+    const start = new Date(d.getFullYear(), 0, 0);
+    const diff = d - start + (start.getTimezoneOffset() - d.getTimezoneOffset()) * 60 * 1000;
+    return Math.floor(diff / 86400000);
+  }
+
+  // NOAA solar position approximation. Returns sunrise and sunset as minutes
+  // past local midnight, or null if the sun never rises or never sets that day.
+  function sunTimes(date, lat, lon) {
+    const N = dayOfYear(date);
+    const gamma = (2 * Math.PI / 365) * (N - 1);
+    const eqtime = 229.18 * (
+      0.000075
+      + 0.001868 * Math.cos(gamma)
+      - 0.032077 * Math.sin(gamma)
+      - 0.014615 * Math.cos(2 * gamma)
+      - 0.040849 * Math.sin(2 * gamma)
+    );
+    const decl =
+      0.006918
+      - 0.399912 * Math.cos(gamma)
+      + 0.070257 * Math.sin(gamma)
+      - 0.006758 * Math.cos(2 * gamma)
+      + 0.000907 * Math.sin(2 * gamma)
+      - 0.002697 * Math.cos(3 * gamma)
+      + 0.00148 * Math.sin(3 * gamma);
+    const zenith = 90.833 * Math.PI / 180;
+    const latRad = lat * Math.PI / 180;
+    const cosHa = (Math.cos(zenith) - Math.sin(latRad) * Math.sin(decl)) / (Math.cos(latRad) * Math.cos(decl));
+    if (cosHa > 1 || cosHa < -1) return null;
+    const ha = Math.acos(cosHa) * 180 / Math.PI;
+    const sunriseUtcMin = 720 - 4 * (lon + ha) - eqtime;
+    const sunsetUtcMin = 720 - 4 * (lon - ha) - eqtime;
+    const tzOffsetMin = -date.getTimezoneOffset();
+    return {
+      sunrise: sunriseUtcMin + tzOffsetMin,
+      sunset: sunsetUtcMin + tzOffsetMin
+    };
+  }
+
+  function formatHoursMinutes(totalMinutes) {
+    const m = Math.max(0, Math.round(totalMinutes));
+    const h = Math.floor(m / 60);
+    const mm = m % 60;
+    return h + ' h ' + mm + ' min';
+  }
+
+  function renderSeasonBanner() {
+    const text = document.getElementById('season-text');
+    const badge = document.getElementById('season-badge');
+    if (!text || !badge) return;
+
+    const now = new Date();
+    const month = now.getMonth();
+
+    let label, badgeText, badgeClass;
+
+    if (month >= 2 && month <= 4) {
+      label = 'Road dust season · PM10 from live sensors is leading indicator.';
+      badgeText = 'LIVE';
+      badgeClass = 'season-badge-live';
+    } else if (month >= 5 && month <= 7) {
+      label = 'Heat & UV · noise and crowd layers are simulated.';
+      badgeText = 'SIMULATED';
+      badgeClass = 'season-badge-sim';
+    } else if (month >= 8 && month <= 10) {
+      label = 'Rain & wind · noise and crowd layers are simulated.';
+      badgeText = 'SIMULATED';
+      badgeClass = 'season-badge-sim';
+    } else {
+      const sun = sunTimes(now, STOCKHOLM_LAT, STOCKHOLM_LON);
+      const minutesNow = now.getHours() * 60 + now.getMinutes();
+      let remaining;
+      if (!sun) {
+        remaining = 0;
+      } else if (minutesNow >= sun.sunset) {
+        remaining = 0;
+      } else if (minutesNow < sun.sunrise) {
+        remaining = sun.sunset - sun.sunrise;
+      } else {
+        remaining = sun.sunset - minutesNow;
+      }
+      label = 'Short days · Usable daylight: ' + formatHoursMinutes(remaining) + ' remaining.';
+      badgeText = 'COMPUTED';
+      badgeClass = 'season-badge-computed';
+    }
+
+    badge.textContent = badgeText;
+    badge.className = 'season-badge ' + badgeClass;
+    text.textContent = label;
+  }
+
+  /* --------------------------------------------------------
+   * Calm Route: sectors
+   *
+   * Each district has a centroid. We assign every station within ~2.5 km of
+   * that centroid to the sector and average their PM2.5 (preferred) or PM10.
+   * ------------------------------------------------------ */
+
+  const SECTORS = [
+    { id: 'sodermalm',   name: 'Södermalm',   lat: 59.316, lon: 18.072 },
+    { id: 'ostermalm',   name: 'Östermalm',   lat: 59.340, lon: 18.085 },
+    { id: 'kungsholmen', name: 'Kungsholmen', lat: 59.330, lon: 18.030 },
+    { id: 'vasastan',    name: 'Vasastan',    lat: 59.346, lon: 18.055 },
+    { id: 'norrmalm',    name: 'Norrmalm',    lat: 59.335, lon: 18.065 },
+    { id: 'gamla_stan',  name: 'Gamla Stan',  lat: 59.323, lon: 18.071 },
+    { id: 'djurgarden',  name: 'Djurgården',  lat: 59.334, lon: 18.110 }
+  ];
+
+  const SECTOR_RADIUS_DEG = 0.025; // ~2.5 km
+
+  function distanceDeg(lat1, lon1, lat2, lon2) {
+    const dx = lat1 - lat2;
+    const dy = (lon1 - lon2) * Math.cos(lat1 * Math.PI / 180);
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function pmValueFromStation(s) {
+    if (!s || !Array.isArray(s.pollutants)) return null;
+    const pm25 = s.pollutants.find(p => p.metric === 'pm2.5' || p.metric === 'pm25');
+    if (pm25 && typeof pm25.value === 'number') return { value: pm25.value, metric: 'PM2.5' };
+    const pm10 = s.pollutants.find(p => p.metric === 'pm10');
+    if (pm10 && typeof pm10.value === 'number') return { value: pm10.value, metric: 'PM10' };
+    return null;
+  }
+
+  function aggregateSectors() {
+    const out = SECTORS.map(sec => ({ id: sec.id, name: sec.name, lat: sec.lat, lon: sec.lon, value: null, metric: null, count: 0 }));
+    if (!integrationData || !Array.isArray(integrationData.stations)) return out;
+
+    integrationData.stations.forEach(st => {
+      if (typeof st.lat !== 'number' || typeof st.lon !== 'number') return;
+      const pm = pmValueFromStation(st);
+      if (!pm) return;
+      let bestIdx = -1, bestD = Infinity;
+      out.forEach((sec, i) => {
+        const d = distanceDeg(sec.lat, sec.lon, st.lat, st.lon);
+        if (d < bestD) { bestD = d; bestIdx = i; }
+      });
+      if (bestIdx === -1 || bestD > SECTOR_RADIUS_DEG) return;
+      const sec = out[bestIdx];
+      const prevSum = (sec.value || 0) * sec.count;
+      sec.count += 1;
+      sec.value = (prevSum + pm.value) / sec.count;
+      sec.metric = pm.metric;
+    });
+
+    out.forEach(sec => {
+      if (sec.count === 0) {
+        sec.value = null;
+      } else {
+        sec.value = Math.round(sec.value * 10) / 10;
+      }
+    });
+    return out;
+  }
+
+  function sectorAirClass(value) {
+    if (value == null) return 'sector-none';
+    if (value <= 15) return 'sector-good';
+    if (value <= 35) return 'sector-mod';
+    return 'sector-poor';
+  }
+
+  /* --------------------------------------------------------
+   * Calm Route: destination picker, animation, result
+   * ------------------------------------------------------ */
+
+  let selectedSectorId = null;
+
+  function renderSectorPicker() {
+    const host = document.getElementById('sector-picker');
+    if (!host) return;
+    host.innerHTML = SECTORS.map(s => (
+      `<button class="sector-pill" data-sector="${s.id}" role="option" aria-selected="false">${escapeHtml(s.name)}</button>`
+    )).join('');
+    host.querySelectorAll('.sector-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedSectorId = btn.dataset.sector;
+        host.querySelectorAll('.sector-pill').forEach(b => {
+          const on = b.dataset.sector === selectedSectorId;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        const go = document.getElementById('calm-go-btn');
+        const hint = document.getElementById('calm-hint');
+        if (go) go.disabled = false;
+        if (hint) hint.textContent = 'Ready to compute on this device.';
+      });
+    });
+  }
+
+  function setNarration(text) {
+    const el = document.getElementById('anim-narration');
+    if (el) el.textContent = text;
+  }
+
+  function renderSectorGridInitial() {
+    const grid = document.getElementById('sector-grid');
+    if (!grid) return;
+    grid.innerHTML = SECTORS.map(s => (
+      `<div class="sector-square sector-loading" data-sector="${s.id}">
+        <div class="sector-square-name">${escapeHtml(s.name)}</div>
+        <div class="sector-square-value">…</div>
+      </div>`
+    )).join('');
+  }
+
+  function fillSectorSquare(sector) {
+    const grid = document.getElementById('sector-grid');
+    if (!grid) return;
+    const cell = grid.querySelector(`[data-sector="${sector.id}"]`);
+    if (!cell) return;
+    cell.classList.remove('sector-loading');
+    cell.classList.add(sectorAirClass(sector.value));
+    const v = cell.querySelector('.sector-square-value');
+    if (v) {
+      if (sector.value == null) {
+        v.textContent = 'no data';
+      } else {
+        v.innerHTML = `<strong>${sector.value}</strong> <span class="sector-square-unit">${sector.metric || 'PM2.5'} µg/m³</span>`;
+      }
+    }
+  }
+
+  function runCalmAnimation(sectors, onDone) {
+    const animBox = document.getElementById('calm-animation');
+    const results = document.getElementById('calm-results');
+    if (animBox) animBox.hidden = false;
+    if (results) results.hidden = true;
+    renderSectorGridInitial();
+    setNarration('Requesting air data for 7 sectors…');
+
+    sectors.forEach((sec, i) => {
+      setTimeout(() => fillSectorSquare(sec), 150 + i * 200);
+    });
+    setTimeout(() => setNarration('Computing your route on this device…'), 150 + sectors.length * 200);
+    setTimeout(() => setNarration('Sector IDs sent · no identity · no origin · no destination.'),
+      450 + sectors.length * 200);
+    setTimeout(() => {
+      if (typeof onDone === 'function') onDone();
+    }, 700 + sectors.length * 200);
+  }
+
+  function computeCalmRoute(sectors) {
+    const weights = getEffectiveWeights();
+    const known = sectors.filter(s => s.value != null);
+    let avg = 0;
+    if (known.length > 0) {
+      const sum = known.reduce((a, s) => a + s.value, 0);
+      avg = sum / known.length;
+    }
+    // Map 0 µg/m³ → 0, 75 µg/m³ → 100 (clamp at 100).
+    const airScore = Math.max(0, Math.min(100, (avg / 75) * 100));
+    const noiseScore = 50;
+    const crowdScore = 50;
+    const wSum = weights.air + weights.noise + weights.crowd;
+    const score = wSum > 0
+      ? Math.round((weights.air * airScore + weights.noise * noiseScore + weights.crowd * crowdScore) / wSum)
+      : Math.round(airScore);
+    const extraMin = 4 + Math.round(score / 20);
+    return { score, airScore: Math.round(airScore), noiseScore, crowdScore, weights, extraMin, sectorsWithData: known.length };
+  }
+
+  function renderCalmResult(result) {
+    const results = document.getElementById('calm-results');
+    if (!results) return;
+    results.hidden = false;
+
+    const numEl = document.getElementById('calm-score');
+    const barEl = document.getElementById('calm-bar');
+    const etaEl = document.getElementById('calm-eta');
+    const breakEl = document.getElementById('calm-break');
+
+    if (numEl) numEl.textContent = result.score;
+    if (barEl) barEl.style.width = result.score + '%';
+    if (etaEl) etaEl.textContent = '+' + result.extraMin + ' min vs fastest';
+
+    if (breakEl) {
+      const boosts = [];
+      if (result.weights.airBoost > 0) {
+        boosts.push(`<span class="break-pill break-boost">+${result.weights.airBoost} air (conditions)</span>`);
+      }
+      breakEl.innerHTML = `
+        <span class="break-pill">Air <em>real</em> · ${result.airScore}</span>
+        <span class="break-pill">Noise <em>sim</em> · ${result.noiseScore}</span>
+        <span class="break-pill">Crowd <em>sim</em> · ${result.crowdScore}</span>
+        <span class="break-pill">+${result.extraMin} min vs fastest</span>
+        ${boosts.join('')}
+      `;
+    }
+  }
+
+  function initCalmRoute() {
+    renderSeasonBanner();
+    renderSectorPicker();
+
+    const goBtn = document.getElementById('calm-go-btn');
+    if (goBtn) {
+      goBtn.addEventListener('click', () => {
+        if (!selectedSectorId) return;
+        const sectors = aggregateSectors();
+        runCalmAnimation(sectors, () => {
+          const result = computeCalmRoute(sectors);
+          renderCalmResult(result);
+          const receipt = document.getElementById('receipt-requests');
+          if (receipt) receipt.textContent = String(sectors.length);
+        });
+      });
+    }
+  }
+
+  /* --------------------------------------------------------
    * Boot
    * ------------------------------------------------------ */
 
@@ -631,6 +1027,8 @@
     loadStations();
     loadIntegrationLayer();
     loadCams();
+    initPrefControls();
+    initCalmRoute();
   }
 
   if (document.readyState === 'loading') {
