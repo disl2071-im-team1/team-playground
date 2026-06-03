@@ -89,7 +89,7 @@
     return 'Very high';
   }
 
-  let leafletMap, stationsLayer, camsLayer, integrationLayer;
+  let leafletMap, stationsLayer, camsLayer, integrationLayer, greenAreasLayer;
 
   function initMap() {
     if (typeof L === 'undefined') {
@@ -109,6 +109,12 @@
       maxZoom: 18,
       attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(leafletMap);
+
+    // Green areas pane sits below the default overlayPane (z 400) so parks
+    // never obscure routes or station markers.
+    leafletMap.createPane('greenAreas');
+    leafletMap.getPane('greenAreas').style.zIndex = '350';
+    greenAreasLayer = L.layerGroup().addTo(leafletMap);
 
     // Routes
     Object.entries(ROUTES).forEach(([key, r]) => {
@@ -155,6 +161,8 @@
         <div><span class="swatch" style="background:#fff;border:3px solid #534AB7"></span>SMHI (official µg/m³)</div>
         <div><span class="swatch" style="background:#fff;border:3px solid #E07B00"></span>WAQI (AQI index)</div>
         <div><span class="swatch" style="background:#fff;border:3px solid #0F6E56"></span>luftdaten (community)</div>
+        <strong style="margin-top:6px">Green spaces</strong>
+        <div><span class="swatch" style="background:#bbf7d0;border:1px solid #4ade80"></span>Parks &amp; gardens</div>
         <strong style="margin-top:6px">Routes</strong>
         <div><span class="line" style="background:#E24B4A"></span>Fastest</div>
         <div><span class="line" style="background:#0F6E56"></span>Cleanest</div>
@@ -623,11 +631,50 @@
   }
 
   /* --------------------------------------------------------
+   * Green areas: parks and gardens from OpenStreetMap via Overpass
+   * ------------------------------------------------------ */
+
+  async function loadGreenAreas() {
+    if (!greenAreasLayer) return;
+    const bbox = '59.29,18.03,59.36,18.12';
+    const q = `[out:json][timeout:25];`
+      + `(way["leisure"="park"](${bbox});`
+      + `way["leisure"="garden"](${bbox});`
+      + `way["landuse"="recreation_ground"](${bbox});`
+      + `way["leisure"="nature_reserve"](${bbox});`
+      + `);out geom;`;
+    try {
+      const res = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(q)
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      data.elements.forEach(el => {
+        if (el.type !== 'way' || !el.geometry || el.geometry.length < 3) return;
+        const coords = el.geometry.map(p => [p.lat, p.lon]);
+        const name = (el.tags && el.tags.name) ? escapeHtml(el.tags.name) : 'Park';
+        L.polygon(coords, {
+          pane: 'greenAreas',
+          color: '#4ade80',
+          weight: 1,
+          opacity: 0.6,
+          fillColor: '#bbf7d0',
+          fillOpacity: 0.35
+        }).bindTooltip(name, { sticky: true }).addTo(greenAreasLayer);
+      });
+    } catch (_) {
+      // Green areas are decorative; fail silently if Overpass is unavailable.
+    }
+  }
+
+  /* --------------------------------------------------------
    * Boot
    * ------------------------------------------------------ */
 
   function boot() {
     initMap();
+    loadGreenAreas();
     loadStations();
     loadIntegrationLayer();
     loadCams();
