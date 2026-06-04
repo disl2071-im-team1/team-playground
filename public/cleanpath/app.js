@@ -110,8 +110,20 @@
       attribution: '&copy; OpenStreetMap &copy; CARTO'
     }).addTo(leafletMap);
 
-    // Routes
-    Object.entries(ROUTES).forEach(([key, r]) => {
+    // Routes: glow halo drawn first so it sits behind the main line
+    Object.entries(ROUTES).forEach(([, r]) => {
+      L.polyline(r.coords, {
+        color: r.color,
+        weight: 22,
+        opacity: 0.08,
+        lineCap: 'round',
+        lineJoin: 'round',
+        interactive: false
+      }).addTo(leafletMap);
+    });
+
+    // Routes: main line
+    Object.entries(ROUTES).forEach(([, r]) => {
       L.polyline(r.coords, {
         color: r.color,
         weight: 5,
@@ -162,6 +174,39 @@
       return div;
     };
     legend.addTo(leafletMap);
+
+    // Layer toggle control
+    const overlayCtrl = L.control({ position: 'topleft' });
+    overlayCtrl.onAdd = function () {
+      const div = L.DomUtil.create('div', 'map-legend overlay-select');
+      div.innerHTML = `
+        <strong>Layers</strong>
+        <button class="src-btn active" data-layer="cams">
+          <span class="src-dot" style="background:rgba(226,75,74,0.65)"></span>CAMS forecast
+        </button>
+        <button class="src-btn active" data-layer="integration">
+          <span class="src-dot" style="background:#534AB7"></span>Integration layer
+        </button>
+        <button class="src-btn active" data-layer="stations">
+          <span class="src-dot" style="background:#1D9E75"></span>WAQI stations
+        </button>
+      `;
+      L.DomEvent.disableClickPropagation(div);
+      L.DomEvent.disableScrollPropagation(div);
+      return div;
+    };
+    overlayCtrl.addTo(leafletMap);
+
+    const layerByKey = { stations: stationsLayer, integration: integrationLayer, cams: camsLayer };
+    overlayCtrl.getContainer().querySelectorAll('.src-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lyr = layerByKey[btn.dataset.layer];
+        if (!lyr) return;
+        const isOn = leafletMap.hasLayer(lyr);
+        btn.classList.toggle('active', !isOn);
+        if (isOn) lyr.remove(); else lyr.addTo(leafletMap);
+      });
+    });
   }
 
   /* --------------------------------------------------------
@@ -249,6 +294,17 @@
       integrationLayer.clearLayers();
       data.stations.forEach(s => {
         const color = SOURCE_COLORS[s.source] || '#5F5E5A';
+
+        // Area influence zone: soft coloured circle showing the station's reach
+        L.circle([s.lat, s.lon], {
+          radius: 450,
+          fillColor: color,
+          color: color,
+          weight: 0,
+          fillOpacity: 0.1,
+          interactive: false
+        }).addTo(integrationLayer);
+
         const marker = L.circleMarker([s.lat, s.lon], {
           radius: 7,
           fillColor: '#FFFFFF',
