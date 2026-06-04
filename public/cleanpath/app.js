@@ -678,6 +678,156 @@
     }[c]));
   }
 
+
+  // === Pablo Santos — Forecast Tab ===
+
+  const POLLUTANTS = ['PM2.5', 'PM10', 'NO₂'];
+  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  function aqiColor(v) {
+    if (v <= 33) return '#1D9E75';
+    if (v <= 66) return '#EF9F27';
+    return '#E24B4A';
+  }
+
+  // Deterministic seeded RNG (xmur3 + mulberry32)
+  function seededRand(seed) {
+    let h = seed ^ 0xdeadbeef;
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h ^= h >>> 16;
+    return (h >>> 0) / 0xffffffff;
+  }
+
+  // Generate 7-day forecast seeded on date so values are stable per day
+  function generateForecast() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      const dow = d.getDay(); // 0=Sun
+      const seed = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate());
+      const r = seededRand(seed);
+      // Weekend bias: lower AQI
+      const base = (dow === 0 || dow === 6) ? 22 : 45;
+      const variance = Math.round(r * 30 - 10);
+      const aqi = Math.min(95, Math.max(10, base + variance));
+      // Dominant pollutant cycles by day
+      const pollutant = POLLUTANTS[seed % POLLUTANTS.length];
+      // 24-hour profile: peaks at rush hours (08, 17-18)
+      const hourly = Array.from({ length: 24 }, (_, h) => {
+        const hr = seededRand(seed + h + 1);
+        let hourBase = aqi * 0.7;
+        if (h >= 7 && h <= 9) hourBase = aqi * 1.2;
+        else if (h >= 16 && h <= 19) hourBase = aqi * 1.1;
+        else if (h < 5 || h > 22) hourBase = aqi * 0.4;
+        return Math.min(100, Math.max(5, Math.round(hourBase + hr * 15 - 7)));
+      });
+      days.push({ date: d, dow, aqi, pollutant, hourly });
+    }
+    return days;
+  }
+
+  let forecastData = [];
+  let selectedForecastDay = 0;
+
+  function renderForecastWeek(days) {
+    const grid = document.getElementById('forecast-week-grid');
+    if (!grid) return;
+    const todayLabel = new Date();
+    grid.innerHTML = days.map((d, i) => {
+      const isToday = i === 0;
+      const label = isToday ? 'Today' : DAY_NAMES[d.dow];
+      const pct = (d.aqi / 100) * 100;
+      return `
+        <div class="forecast-day-col${i === selectedForecastDay ? ' selected' : ''}" data-day="${i}" role="button" tabindex="0" aria-label="${label} AQI ${d.aqi}">
+          <div class="forecast-day-label${isToday ? ' today' : ''}">${label}</div>
+          <div class="forecast-bar-wrap">
+            <div class="forecast-bar" style="height:${Math.max(6, pct * 0.8)}%;background:${aqiColor(d.aqi)}"></div>
+          </div>
+          <div class="forecast-day-value" style="color:${aqiColor(d.aqi)}">${d.aqi}</div>
+          <div class="forecast-day-pollutant">${d.pollutant}</div>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('.forecast-day-col').forEach(el => {
+      el.addEventListener('click', () => {
+        selectedForecastDay = parseInt(el.dataset.day, 10);
+        renderForecastWeek(forecastData);
+        renderForecastDetail(forecastData[selectedForecastDay]);
+      });
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') el.click();
+      });
+    });
+  }
+
+  function renderForecastDetail(day) {
+    const title = document.getElementById('forecast-detail-title');
+    const bars = document.getElementById('forecast-hourly-bars');
+    if (!title || !bars || !day) return;
+    const isToday = selectedForecastDay === 0;
+    const label = isToday ? 'Today' : DAY_NAMES[day.dow] + ' ' + day.date.toLocaleDateString('en-SE', { day: 'numeric', month: 'short' });
+    title.textContent = label + ' · hour by hour';
+    const max = Math.max(...day.hourly);
+    bars.innerHTML = day.hourly.map((v, h) =>
+      `<div class="forecast-hbar" style="height:${Math.max(3, (v / max) * 100)}%;background:${aqiColor(v)}" title="${String(h).padStart(2,'0')}:00 · AQI ${v}"></div>`
+    ).join('');
+  }
+
+  function renderForecastSummary(days) {
+    const body = document.getElementById('forecast-summary-body');
+    if (!body || !days.length) return;
+    const best = days.slice(0, 7).reduce((a, b) => a.aqi < b.aqi ? a : b);
+    const worst = days.slice(0, 7).reduce((a, b) => a.aqi > b.aqi ? a : b);
+    const tomorrow = days[1];
+    // Best travel window: find lowest 2-hour block in today's hourly
+    const today = days[0];
+    let bestHour = 0, bestSum = Infinity;
+    for (let h = 0; h < 22; h++) {
+      const s = today.hourly[h] + today.hourly[h + 1];
+      if (s < bestSum) { bestSum = s; bestHour = h; }
+    }
+    const bestHourStr = `${String(bestHour).padStart(2,'0')}:00–${String(bestHour + 2).padStart(2,'0')}:00`;
+    const worstHours = today.hourly[8] > today.hourly[17] ? '07:00–09:00' : '16:00–19:00';
+    const tomorrowRoute = tomorrow && tomorrow.aqi < 45 ? 'Either route is fine' : 'Take the Söder Mälarstrand route';
+    body.innerHTML = `
+      <div class="forecast-summary-row">
+        <span class="forecast-summary-tag">Best window</span>
+        <span class="forecast-summary-text">Today's cleanest air is around <strong>${bestHourStr}</strong>. Good time for a run or a low-exposure commute.</span>
+      </div>
+      <div class="forecast-summary-row">
+        <span class="forecast-summary-tag">Avoid</span>
+        <span class="forecast-summary-text">Peak exposure today is <strong>${worstHours}</strong> — rush hour traffic pushes AQI⁺ up to ~${Math.round(today.aqi * 1.2)}.</span>
+      </div>
+      <div class="forecast-summary-row">
+        <span class="forecast-summary-tag">Tomorrow</span>
+        <span class="forecast-summary-text"><strong>${tomorrowRoute}</strong>. Forecast AQI⁺ is ${tomorrow ? tomorrow.aqi : '—'}.</span>
+      </div>
+      <div class="forecast-summary-row">
+        <span class="forecast-summary-tag">Best day</span>
+        <span class="forecast-summary-text"><strong>${DAY_NAMES[best.dow]}</strong> looks cleanest this week (AQI⁺ ${best.aqi}). Consider scheduling outdoor activity then.</span>
+      </div>`;
+  }
+
+  function loadForecast() {
+    forecastData = generateForecast();
+    const dot = document.getElementById('forecast-status-dot');
+    const label = document.getElementById('forecast-source-label');
+    const updated = document.getElementById('forecast-updated');
+    const now = new Date();
+    if (dot) { dot.classList.remove('pending'); dot.style.background = 'var(--green)'; }
+    if (label) label.textContent = 'Simulated · updated hourly';
+    if (updated) updated.textContent = 'Based on ' + now.toLocaleTimeString('en-SE', { hour: '2-digit', minute: '2-digit' });
+    renderForecastWeek(forecastData);
+    renderForecastDetail(forecastData[0]);
+    renderForecastSummary(forecastData);
+  }
+
+  // === end Forecast Tab ===
+
   /* --------------------------------------------------------
    * Calm Route: profile preferences (Profile tab sub-card)
    *
@@ -1083,6 +1233,7 @@
     loadStations();
     loadIntegrationLayer();
     loadCams();
+    loadForecast();
     initPrefControls();
     initCalmRoute();
   }
