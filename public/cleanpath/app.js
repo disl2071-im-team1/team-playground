@@ -33,8 +33,10 @@
   const advice = document.getElementById('advice');
   const rfScore = document.querySelector('.rf-score');
   const rcScore = document.querySelector('.rc-score');
+  const rgScore = document.querySelector('.rg-score');
   const rfBar = document.querySelector('.rf-bar');
   const rcBar = document.querySelector('.rc-bar');
+  const rgBar = document.querySelector('.rg-bar');
 
   function bucket(h) {
     if (h < 6) return 'Night';
@@ -71,6 +73,21 @@
         [59.3233, 18.0530], // Riddarholmen
         [59.3185, 18.0560], // Söder Mälarstrand
         [59.3120, 18.0660], // Zinkensdamm
+        [59.3076, 18.0786]  // Skanstull
+      ]
+    },
+    green: {
+      name: 'Greenest via Kungsträdgården & Tantolunden',
+      color: '#5DB346',
+      coords: [
+        [59.3306, 18.0586], // Centralstation
+        [59.3318, 18.0700], // Kungsträdgården (west entry)
+        [59.3327, 18.0733], // Kungsträdgården (north)
+        [59.3260, 18.0700], // Gamla Stan
+        [59.3190, 18.0665], // Slussen north
+        [59.3169, 18.0634], // Mariatorget
+        [59.3110, 18.0640], // Tantolunden north
+        [59.3093, 18.0656], // Tantolunden
         [59.3076, 18.0786]  // Skanstull
       ]
     }
@@ -177,10 +194,11 @@
         <div><span class="swatch" style="background:#fff;border:3px solid #E07B00"></span>WAQI (AQI index)</div>
         <div><span class="swatch" style="background:#fff;border:3px solid #0F6E56"></span>luftdaten (community)</div>
         <strong style="margin-top:6px">Green spaces</strong>
-        <div><span class="swatch" style="background:#bbf7d0;border:1px solid #4ade80"></span>Parks &amp; gardens</div>
+        <div><span class="swatch" style="background:#4ade80;border:1px solid #16a34a"></span>Parks &amp; gardens</div>
         <strong style="margin-top:6px">Routes</strong>
         <div><span class="line" style="background:#E24B4A"></span>Fastest</div>
         <div><span class="line" style="background:#0F6E56"></span>Cleanest</div>
+        <div><span class="line" style="background:#5DB346"></span>Greenest</div>
       `;
       return div;
     };
@@ -537,6 +555,7 @@
     if (!airData || !airData.stations) return;
     const fast = routeExposureScore(ROUTES.fast, airData.stations);
     const clean = routeExposureScore(ROUTES.clean, airData.stations);
+    const green = routeExposureScore(ROUTES.green, airData.stations);
     if (fast != null && rfScore && rfBar) {
       rfScore.textContent = fast;
       rfBar.style.width = fast + '%';
@@ -544,6 +563,10 @@
     if (clean != null && rcScore && rcBar) {
       rcScore.textContent = clean;
       rcBar.style.width = clean + '%';
+    }
+    if (green != null && rgScore && rgBar) {
+      rgScore.textContent = green;
+      rgBar.style.width = green + '%';
     }
     if (fast != null && clean != null && advice) {
       const diff = fast - clean;
@@ -606,6 +629,12 @@
       title: 'Cleanest route via Söder Mälarstrand',
       body: `<p>This route hugs the water past Riddarholmen and Söder Mälarstrand, away from the main traffic arteries, then climbs to Skanstull through quieter Södermalm streets.</p>
              <p>The score is sampled from the same network of WAQI sites as the fastest route, so the comparison is apples-to-apples.</p>`
+    },
+    green: {
+      eyebrow: 'Route detail',
+      title: 'Greenest route via Kungsträdgården & Tantolunden',
+      body: `<p>This route passes through two of Stockholm's largest central parks. Kungsträdgården sits right in the heart of the city. Tantolunden is a wide hillside park in southern Södermalm, a few minutes from Skanstull.</p>
+             <p>Parks have measurably lower PM2.5: less traffic, more vegetation, and open sky instead of a street canyon all reduce exposure. The route adds about 12 minutes but is also the coolest option on hot days, making it useful as a heat refuge map as well as an air quality one.</p>`
     },
     'arch-sources': {
       eyebrow: 'Data reality',
@@ -1366,11 +1395,11 @@
         const name = (el.tags && el.tags.name) ? escapeHtml(el.tags.name) : 'Park';
         L.polygon(coords, {
           pane: 'greenAreas',
-          color: '#4ade80',
-          weight: 1,
-          opacity: 0.6,
-          fillColor: '#bbf7d0',
-          fillOpacity: 0.35
+          color: '#16a34a',
+          weight: 1.5,
+          opacity: 0.8,
+          fillColor: '#4ade80',
+          fillOpacity: 0.55
         }).bindTooltip(name, { sticky: true }).addTo(greenAreasLayer);
       });
     } catch (_) {

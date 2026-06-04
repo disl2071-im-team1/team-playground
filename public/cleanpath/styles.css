@@ -13,6 +13,9 @@
   --green: #1D9E75;
   --green-dark: #0F6E56;
   --green-soft: #E1F5EE;
+  --green-grass: #5DB346;
+  --green-grass-dark: #3D7A1E;
+  --green-grass-soft: #D6EEC8;
   --red: #E24B4A;
   --red-dark: #A32D2D;
   --red-darker: #501313;
@@ -553,6 +556,10 @@ body {
   border: 2px solid var(--green);
 }
 
+.route-card.route-green {
+  border: 1.5px solid var(--green-grass);
+}
+
 .route-card-head {
   display: flex;
   align-items: center;
@@ -567,6 +574,7 @@ body {
 
 .route-card-label.red { color: var(--red-dark); }
 .route-card-label.green { color: var(--green-dark); }
+.route-card-label.grass { color: var(--green-grass-dark); }
 
 .route-card-meta {
   font-size: 10px;
@@ -598,9 +606,11 @@ body {
 
 .red-track { background: var(--red-soft); }
 .green-track { background: #EAF3DE; }
+.grass-track { background: var(--green-grass-soft); }
 
 .rf-bar { height: 100%; background: var(--red); transition: width 0.3s; }
 .rc-bar { height: 100%; background: var(--green); transition: width 0.3s; }
+.rg-bar { height: 100%; background: var(--green-grass); transition: width 0.3s; }
 
 .route-card-via {
   font-size: 9px;
