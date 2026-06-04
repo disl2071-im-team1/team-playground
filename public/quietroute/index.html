@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiet Route · Stockholm</title>
+  <meta name="description" content="Navigate Stockholm by noise, not just time. A prototype that finds the quietest path through the city." />
+  <meta property="og:title" content="Quiet Route · Stockholm" />
+  <meta property="og:description" content="Navigate by noise, not just time." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231B6FDB'/%3E%3Cpath d='M30 50 Q42 38 54 50 T78 42' stroke='white' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3Cpath d='M22 62 Q34 54 46 62 T70 56' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.5'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+</head>
+<body>
+  <main class="app">
+
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12 Q8 6 13 10 T21 8"/>
+            <path d="M3 17 Q8 13 13 16 T21 14"/>
+            <line x1="3" y1="21" x2="5" y2="21" opacity="0.4"/>
+            <line x1="8" y1="21" x2="10" y2="21" opacity="0.4"/>
+            <line x1="13" y1="21" x2="15" y2="21" opacity="0.4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">Quiet Route</div>
+          <div class="brand-sub">Stockholm · prototype v0.1</div>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-screen="map" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+          Map
+        </button>
+        <button class="tab" data-screen="data" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Data
+        </button>
+        <button class="tab" data-screen="settings" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+      </nav>
+    </header>
+
+    <!-- MAP SCREEN -->
+    <section class="screen active" id="screen-map" role="tabpanel">
+
+      <div class="screen-head">
+        <div>
+          <div class="eyebrow">Today's route</div>
+          <h2>Navigate by noise, not just time</h2>
+        </div>
+        <button class="demo-alert-btn" id="demo-alert-btn" title="Simulate entering an 80 dB zone">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Demo 80 dB alert
+        </button>
+      </div>
+
+      <div class="map-grid">
+
+        <div class="card map-card">
+          <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Stockholm noise map with three routes from Slussen to Odenplan"></div>
+
+          <div class="map-status">
+            <div class="map-status-item">
+              <span class="status-dot ok"></span>
+              <span class="status-label">Bullerkartan 2022</span>
+              <span class="status-detail">road · rail · air · <span id="noise-zone-count">12</span> zones loaded</span>
+            </div>
+            <div class="map-status-item">
+              <span class="status-dot" id="live-dot" style="background: var(--blue);"></span>
+              <span class="status-label">Live dB</span>
+              <span class="status-detail"><span id="live-db">68</span> dB at your location</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="route-panel">
+          <div class="route-meta">
+            <div class="route-meta-label">Route</div>
+            <div class="route-meta-name">Slussen → Odenplan</div>
+            <div class="mode-toggle" role="group" aria-label="Transport mode">
+              <button class="mode-btn active" data-mode="cycling">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg>
+                Cycling
+              </button>
+              <button class="mode-btn" data-mode="walking">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><path d="M9 20l1-5 2 2 2-4"/><path d="M6.5 16l1.5-4.5L12 13l2-4"/></svg>
+                Walking
+              </button>
+            </div>
+          </div>
+
+          <button class="route-card route-fast" id="route-fast" data-route="fast">
+            <div class="route-card-head">
+              <span class="route-card-label red">Fastest</span>
+              <span class="route-card-meta" id="fast-time">22 min</span>
+            </div>
+            <div class="route-card-score">
+              <span class="rf-db">76</span>
+              <span class="route-card-unit">dB avg</span>
+            </div>
+            <div class="bar-track red-track"><div class="rf-bar" style="width: 76%;"></div></div>
+            <div class="route-card-via">via Sveavägen</div>
+          </button>
+
+          <button class="route-card route-clean" id="route-clean" data-route="clean">
+            <div class="route-card-head">
+              <span class="route-card-label green">Cleanest</span>
+              <span class="route-card-meta" id="clean-time">27 min · +5</span>
+            </div>
+            <div class="route-card-score">
+              <span class="rc-db">65</span>
+              <span class="route-card-unit">dB avg</span>
+            </div>
+            <div class="bar-track amber-track"><div class="rc-bar" style="width: 65%;"></div></div>
+            <div class="route-card-via">via Kungsholmen</div>
+          </button>
+
+          <button class="route-card route-quiet selected" id="route-quiet" data-route="quiet">
+            <div class="route-card-head">
+              <span class="route-card-label blue">Quietest</span>
+              <span class="route-card-meta" id="quiet-time">30 min · +8</span>
+            </div>
+            <div class="route-card-score">
+              <span class="rq-db">55</span>
+              <span class="route-card-unit">dB avg</span>
+            </div>
+            <div class="bar-track blue-track"><div class="rq-bar" style="width: 55%;"></div></div>
+            <div class="route-card-quiet-meta">
+              <span class="reduction-badge" id="reduction-badge">22% quieter</span>
+              <span class="route-card-via">via Kungsträdgården</span>
+            </div>
+          </button>
+
+          <div class="advice-box">
+            <div class="advice-label">For you</div>
+            <div id="advice">The quietest route reduces your decibel exposure by 22% compared to other routes. Enjoy the peace and quiet.</div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- DATA SCREEN -->
+    <section class="screen" id="screen-data" role="tabpanel">
+
+      <div class="screen-head">
+        <div>
+          <div class="eyebrow">Noise data</div>
+          <h2>Where the numbers come from</h2>
+        </div>
+        <div class="pill blue-pill">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Open data
+        </div>
+      </div>
+
+      <div class="card dataset-card">
+        <div class="dataset-head">
+          <div class="dataset-badge">Bullerkartan 2022</div>
+          <div class="dataset-meta">Stockholm Stad · via ArcGIS REST API</div>
+        </div>
+        <p class="dataset-desc">
+          Stockholm's official noise map, published by the city and updated annually. It models sound levels from road traffic, rail, and air traffic across every street segment. Quiet Route uses this to score each route and flag zones above 80 dB.
+        </p>
+        <div class="dataset-stats">
+          <div class="ds-stat">
+            <div class="ds-stat-value">2022</div>
+            <div class="ds-stat-label">Dataset year</div>
+          </div>
+          <div class="ds-stat">
+            <div class="ds-stat-value">Monthly</div>
+            <div class="ds-stat-label">Update schedule</div>
+          </div>
+          <div class="ds-stat">
+            <div class="ds-stat-value">3 sources</div>
+            <div class="ds-stat-label">Road · Rail · Air</div>
+          </div>
+        </div>
+        <div class="update-note">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.68-3.86"/></svg>
+          Data refreshes automatically on the 1st of each month when a newer dataset is published
+        </div>
+      </div>
+
+      <div class="section-label">Noise sources · equally weighted</div>
+      <div class="flow-grid">
+        <div class="flow-card">
+          <div class="flow-head" style="color: #374151;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Road traffic
+          </div>
+          <div class="flow-body">Cars, buses, and trucks. The dominant source in central Stockholm, peaking during rush hours.</div>
+        </div>
+        <div class="flow-card">
+          <div class="flow-head" style="color: #374151;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+            Rail traffic
+          </div>
+          <div class="flow-body">T-bana, commuter trains, and trams. Concentrated near stations and along rail corridors.</div>
+        </div>
+        <div class="flow-card">
+          <div class="flow-head" style="color: #374151;">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 4c-1 0-2 1-2 1l-3.5 3.5L5.8 6.2c-.5-.1-1 .1-1.3.5l-.1.1c-.3.4-.2 1 .1 1.3l4.4 3.4-2 2H3l-1 1 3 2 2 3 1-1v-3.1l2-2 3.4 4.4c.3.4.8.5 1.3.1l.1-.1c.5-.3.6-.8.5-1.3z"/></svg>
+            Air traffic
+          </div>
+          <div class="flow-body">Flight paths over the city, mainly affecting northern Stockholm near Arlanda approach routes.</div>
+        </div>
+      </div>
+
+      <div class="section-label">Decibel reference scale</div>
+      <div class="card db-scale-card">
+        <div class="db-scale">
+          <div class="db-row">
+            <div class="db-bar-wrap">
+              <div class="db-fill" style="width: 45%; background: #1D9E75;"></div>
+            </div>
+            <div class="db-label"><strong>Below 55 dB</strong> — Quiet streets, parks, residential paths</div>
+          </div>
+          <div class="db-row">
+            <div class="db-bar-wrap">
+              <div class="db-fill" style="width: 62%; background: #97C459;"></div>
+            </div>
+            <div class="db-label"><strong>55–65 dB</strong> — Normal conversation level, moderate roads</div>
+          </div>
+          <div class="db-row">
+            <div class="db-bar-wrap">
+              <div class="db-fill" style="width: 72%; background: #EF9F27;"></div>
+            </div>
+            <div class="db-label"><strong>65–75 dB</strong> — Busy streets, near tram stops</div>
+          </div>
+          <div class="db-row">
+            <div class="db-bar-wrap">
+              <div class="db-fill" style="width: 78%; background: #E86835;"></div>
+            </div>
+            <div class="db-label"><strong>75–80 dB</strong> — Heavy traffic corridors</div>
+          </div>
+          <div class="db-row threshold-row">
+            <div class="db-bar-wrap">
+              <div class="db-fill" style="width: 88%; background: #E24B4A;"></div>
+            </div>
+            <div class="db-label"><strong>Above 80 dB</strong> — Threshold. Reroute alert fires here.</div>
+          </div>
+        </div>
+        <div class="db-note">
+          The 80 dB threshold is the level at which prolonged exposure begins to carry risk. WHO guidelines recommend keeping environmental noise below 53 dB (daytime) for residential areas.
+        </div>
+      </div>
+
+      <div class="section-label">% noise reduction · how it's calculated</div>
+      <div class="card formula-card">
+        <div class="formula">
+          <div class="formula-line">Reference dB = average of Fastest and Cleanest route dB</div>
+          <div class="formula-line formula-eq">Reduction = (Reference dB − Quietest dB) ÷ Reference dB × 100</div>
+          <div class="formula-example">Example: (76 + 65) ÷ 2 = 70.5 → (70.5 − 55) ÷ 70.5 = <strong>22% quieter</strong></div>
+        </div>
+        <p class="dataset-desc" style="margin-top: 10px;">The comparison is always dynamic. If you change transport mode or the underlying data updates, the percentage recalculates automatically.</p>
+      </div>
+    </section>
+
+    <!-- SETTINGS SCREEN -->
+    <section class="screen" id="screen-settings" role="tabpanel">
+
+      <div class="screen-head">
+        <div>
+          <div class="eyebrow">General settings</div>
+          <h2>Alerts and preferences</h2>
+        </div>
+      </div>
+
+      <div class="card settings-card">
+        <div class="settings-group">
+          <div class="settings-label">Warning lead distance</div>
+          <div class="settings-desc">How far in advance to alert you before entering an 80 dB zone. A longer lead gives you more time to choose an alternative.</div>
+          <div class="radio-group" id="lead-distance-group">
+            <label class="radio-label">
+              <input type="radio" name="lead" value="50" />
+              <span class="radio-body">
+                <span class="radio-title">50 m</span>
+                <span class="radio-sub">Tighter. Good for slow cycling or walking.</span>
+              </span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="lead" value="100" checked />
+              <span class="radio-body">
+                <span class="radio-title">100 m <span class="radio-recommended">Recommended</span></span>
+                <span class="radio-sub">Enough time to react at normal cycling speed.</span>
+              </span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="lead" value="150" />
+              <span class="radio-body">
+                <span class="radio-title">150 m</span>
+                <span class="radio-sub">Earlier warning. Useful on fast e-bike or busy routes.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-group">
+          <div class="settings-label">Alert channels</div>
+          <div class="settings-desc">When you approach an 80 dB zone, all three channels fire simultaneously.</div>
+          <div class="alert-channels">
+            <div class="alert-channel">
+              <div class="channel-icon blue-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              </div>
+              <div class="channel-body">
+                <div class="channel-title">App notification</div>
+                <div class="channel-desc">Full-screen prompt with reroute options.</div>
+              </div>
+              <div class="channel-status">On</div>
+            </div>
+            <div class="alert-channel">
+              <div class="channel-icon blue-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div class="channel-body">
+                <div class="channel-title">Bracelet haptic</div>
+                <div class="channel-desc">Short · Long · Short pulse pattern.</div>
+              </div>
+              <div class="channel-status">On</div>
+            </div>
+            <div class="alert-channel">
+              <div class="channel-icon blue-icon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </div>
+              <div class="channel-body">
+                <div class="channel-title">Audio cue</div>
+                <div class="channel-desc">Gentle tone when the alert fires.</div>
+              </div>
+              <div class="channel-status">On</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-group">
+          <div class="settings-label">About</div>
+          <div class="settings-desc">Quiet Route is open source and requires no account. Your location and route history stay on your device. Nothing is sent to any server.</div>
+          <div class="about-chips">
+            <span class="chip chip-blue">Open source</span>
+            <span class="chip chip-grey">No account</span>
+            <span class="chip chip-grey">On-device only</span>
+            <span class="chip chip-grey">Stockholm first</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      Quiet Route · Stockholm · Noise data: Bullerkartan 2022, Stockholm Stad. Prototype built with Claude Code.
+    </footer>
+  </main>
+
+  <!-- 80 dB ALERT OVERLAY -->
+  <div id="alert-overlay" class="alert-overlay" role="alertdialog" aria-modal="true" aria-hidden="true" aria-label="High noise zone ahead">
+    <div class="alert-panel">
+
+      <div class="alert-header">
+        <div class="alert-icon-wrap">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div>
+          <div class="alert-eyebrow">80 dB zone ahead</div>
+          <div class="alert-zone-name">Sveavägen / Hötorget intersection</div>
+        </div>
+        <div class="alert-db-badge">82 dB</div>
+      </div>
+
+      <div class="alert-haptic">
+        <div class="haptic-label">Bracelet pattern</div>
+        <div class="haptic-pulses">
+          <div class="haptic-pulse short" id="hp1"></div>
+          <div class="haptic-pulse long" id="hp2"></div>
+          <div class="haptic-pulse short" id="hp3"></div>
+        </div>
+        <div class="haptic-desc">Short · Long · Short</div>
+      </div>
+
+      <div class="reroute-label">Choose a quieter alternative — all below 80 dB</div>
+
+      <div class="reroute-options" id="reroute-options">
+        <button class="reroute-option" data-reroute="a">
+          <div class="reroute-option-head">
+            <span class="reroute-name">Via Kungsträdgården</span>
+            <span class="reroute-db quiet-db">55 dB</span>
+          </div>
+          <div class="reroute-meta">+8 min · parks and side streets</div>
+          <div class="reroute-bar-track"><div class="reroute-bar" style="width: 55%; background: #1B6FDB;"></div></div>
+        </button>
+        <button class="reroute-option" data-reroute="b">
+          <div class="reroute-option-head">
+            <span class="reroute-name">Via Adolf Fredriks kyrka</span>
+            <span class="reroute-db moderate-db">62 dB</span>
+          </div>
+          <div class="reroute-meta">+4 min · quieter parallel streets</div>
+          <div class="reroute-bar-track"><div class="reroute-bar" style="width: 62%; background: #97C459;"></div></div>
+        </button>
+        <button class="reroute-option" data-reroute="c">
+          <div class="reroute-option-head">
+            <span class="reroute-name">Via Vasagatan</span>
+            <span class="reroute-db loud-db">69 dB</span>
+          </div>
+          <div class="reroute-meta">+2 min · still below threshold</div>
+          <div class="reroute-bar-track"><div class="reroute-bar" style="width: 69%; background: #EF9F27;"></div></div>
+        </button>
+      </div>
+
+      <button class="continue-btn" id="alert-dismiss">Continue on current route anyway</button>
+    </div>
+  </div>
+
+  <!-- MODAL (additional info) -->
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+      <button class="modal-close" data-close aria-label="Close">×</button>
+      <div class="modal-eyebrow" id="modal-eyebrow"></div>
+      <h3 class="modal-title" id="modal-title"></h3>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
