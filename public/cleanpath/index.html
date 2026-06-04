@@ -47,6 +47,10 @@
           <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           Forecast
         </button>
+        <button class="tab" data-screen="calm" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8 Q6 14 12 14 T18 16"/></svg>
+          Calm Route
+        </button>
       </nav>
     </header>
 
@@ -437,6 +441,58 @@
         </div>
       </div>
 
+      <div class="card calm-prefs-card">
+        <div class="card-head">
+          <span class="card-title">Calm Route preferences</span>
+          <span class="card-meta">on-device only</span>
+        </div>
+        <p class="calm-prefs-intro">Tell Clean Path what "calm" means for you. These weights shape every Calm Route you request.</p>
+
+        <div class="pref-row">
+          <div class="pref-label">
+            <span class="pref-name">Cleaner air</span>
+            <span class="pref-value" id="pref-air-val">70</span>
+          </div>
+          <input type="range" class="pref-slider" id="pref-air" min="0" max="100" step="1" value="70" aria-label="Cleaner air weight"/>
+          <div class="pref-foot">Driven by live PM readings from SMHI, WAQI and luftdaten.</div>
+        </div>
+
+        <div class="pref-row">
+          <div class="pref-label">
+            <span class="pref-name">Quieter streets <span class="sim-tag">simulated</span></span>
+            <span class="pref-value" id="pref-noise-val">50</span>
+          </div>
+          <input type="range" class="pref-slider" id="pref-noise" min="0" max="100" step="1" value="50" aria-label="Quieter streets weight"/>
+          <div class="pref-foot">No noise sensors wired in yet. Treated as a flat baseline.</div>
+        </div>
+
+        <div class="pref-row">
+          <div class="pref-label">
+            <span class="pref-name">Less crowding <span class="sim-tag">simulated</span></span>
+            <span class="pref-value" id="pref-crowd-val">30</span>
+          </div>
+          <input type="range" class="pref-slider" id="pref-crowd" min="0" max="100" step="1" value="30" aria-label="Less crowding weight"/>
+          <div class="pref-foot">No pedestrian counters wired in yet. Treated as a flat baseline.</div>
+        </div>
+
+        <div class="pref-conditions">
+          <div class="pref-conditions-label">Conditions (optional, stays on device)</div>
+          <label class="pref-toggle">
+            <input type="checkbox" id="pref-asthma"/>
+            <span>Asthma <span class="pref-toggle-note">+30 to air weight</span></span>
+          </label>
+          <label class="pref-toggle">
+            <input type="checkbox" id="pref-pollen"/>
+            <span>Pollen allergy <span class="pref-toggle-note">+20 to air weight</span></span>
+          </label>
+        </div>
+
+        <div class="pref-privacy">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 v3"/></svg>
+          Stays on this device. Never uploaded.
+        </div>
+      </div>
+
       <div class="gentle-note">
         <strong>Gentle note.</strong> These numbers show what the air around you was like — not a diagnosis. One bad commute won't hurt you. The point is patterns, not anxiety.
       </div>
@@ -454,6 +510,98 @@
           <div class="action-title">Share with GP ↗</div>
           <div class="action-sub">Export, don't sync</div>
         </button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-calm" role="tabpanel">
+
+      <div class="screen-head">
+        <div>
+          <div class="eyebrow">Calm Route</div>
+          <h2>A route shaped by your weights and the live air</h2>
+        </div>
+        <div class="status status-muted">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          Computed on your phone
+        </div>
+      </div>
+
+      <div class="season-banner" id="season-banner">
+        <span class="season-badge" id="season-badge">LIVE</span>
+        <span class="season-text" id="season-text">Loading season context…</span>
+      </div>
+
+      <div class="card calm-card">
+        <div class="card-head">
+          <span class="card-title">Where to?</span>
+          <span class="card-meta">from Centralstation</span>
+        </div>
+        <p class="calm-intro">Pick a district. We'll ask the integration layer for sector-level air and weigh it against your profile, on this device.</p>
+
+        <div class="sector-picker" id="sector-picker" role="listbox" aria-label="Choose destination district"></div>
+
+        <div class="calm-actions">
+          <button class="calm-go-btn" id="calm-go-btn" disabled>
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19"/><polyline points="13 6 19 12 13 18"/></svg>
+            Find calm route
+          </button>
+          <span class="calm-hint" id="calm-hint">Choose a destination to begin.</span>
+        </div>
+      </div>
+
+      <div class="calm-animation" id="calm-animation" hidden>
+        <div class="anim-narration" id="anim-narration"></div>
+        <div class="sector-grid" id="sector-grid"></div>
+      </div>
+
+      <div class="calm-results" id="calm-results" hidden>
+        <div class="section-label">Two routes, scored on your weights</div>
+        <div class="calm-results-grid">
+
+          <div class="card route-result route-result-calm">
+            <div class="route-result-head">
+              <span class="route-card-label green">Calm</span>
+              <span class="route-card-meta" id="calm-eta">+0 min vs fastest</span>
+            </div>
+            <div class="route-result-score">
+              <span class="route-result-num" id="calm-score">—</span>
+              <span class="route-card-unit">/100 calm cost (lower is calmer)</span>
+            </div>
+            <div class="bar-track green-track"><div class="rc-bar" id="calm-bar" style="width: 0%;"></div></div>
+            <div class="route-result-break" id="calm-break"></div>
+            <div class="route-result-foot">Computed on this device from your profile weights × sector values.</div>
+          </div>
+
+          <div class="card route-result route-result-fast">
+            <div class="route-result-head">
+              <span class="route-card-label red">Fastest</span>
+              <span class="route-card-meta">18 min</span>
+            </div>
+            <div class="route-result-score">
+              <span class="route-result-num">72</span>
+              <span class="route-card-unit">/100 calm cost</span>
+            </div>
+            <div class="bar-track red-track"><div class="rf-bar" style="width: 72%;"></div></div>
+            <div class="route-result-break">
+              <span class="break-pill">Air <em>real</em></span>
+              <span class="break-pill">Noise <em>sim</em></span>
+              <span class="break-pill">Crowd <em>sim</em></span>
+              <span class="break-pill">via Centralbron</span>
+            </div>
+            <div class="route-result-foot">Same fastest route as the map view.</div>
+          </div>
+        </div>
+
+        <div class="privacy-receipt">
+          <div class="privacy-receipt-head">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 v3"/></svg>
+            Privacy receipt
+          </div>
+          <div class="privacy-receipt-body">
+            <div><strong>Stored about you:</strong> nothing.</div>
+            <div><strong>The city saw:</strong> <span id="receipt-requests">7</span> sector requests · no identity · no origin · no destination.</div>
+          </div>
+        </div>
       </div>
     </section>
 
