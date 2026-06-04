@@ -233,6 +233,66 @@
       font-size: 11px;
       color: var(--text-tertiary);
     }
+
+    /* === Pablo Santos — Reset Section === */
+    .pablo-section {
+      margin-top: 20px;
+      padding: 20px 24px;
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .pablo-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+    }
+
+    .pablo-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-top: 2px;
+    }
+
+    .pablo-reset-btn {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 18px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease;
+    }
+
+    .pablo-reset-btn:hover {
+      background: var(--velvet-soft);
+      border-color: var(--velvet);
+      color: var(--velvet-dark);
+    }
+
+    .pablo-reset-btn:active {
+      background: var(--velvet-soft);
+      transform: translateY(1px);
+    }
+
+    .pablo-reset-btn:focus-visible {
+      outline: 2px solid var(--velvet);
+      outline-offset: 3px;
+    }
+    /* === end Pablo Santos === */
   </style>
 </head>
 <body>
@@ -271,6 +331,17 @@
 
     </section>
 
+
+    <!-- === Pablo Santos — Reset Section === -->
+    <section class="pablo-section" aria-label="Pablo Santos controls">
+      <div>
+        <div class="pablo-label">Added by</div>
+        <div class="pablo-name">Pablo Santos</div>
+      </div>
+      <button class="pablo-reset-btn" id="pablo-reset-btn" type="button">Reset Counter</button>
+    </section>
+    <!-- === end Pablo Santos === -->
+
     <footer class="app-footer">
       Counter Game · a tiny prototype.
     </footer>
@@ -305,6 +376,15 @@
       });
 
       render();
+
+      // === Pablo Santos — Reset Section ===
+      const pabloResetBtn = document.getElementById('pablo-reset-btn');
+      pabloResetBtn.addEventListener('click', function () {
+        count = 0;
+        render();
+      });
+      // === end Pablo Santos ===
+
     })();
   </script>
 </body>
