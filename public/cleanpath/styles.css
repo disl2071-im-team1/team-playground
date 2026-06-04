@@ -1555,11 +1555,103 @@ body {
   margin-bottom: 12px;
 }
 
-.calm-intro {
-  font-size: 12px;
+.calm-od {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.calm-od-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.calm-od-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.calm-od-divider {
+  display: flex;
+  align-items: center;
+  color: var(--text-tertiary);
+  padding-left: 4px;
+}
+
+.calm-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding-top: 12px;
+  border-top: 0.5px solid var(--border-tertiary);
+}
+
+.calm-filter-row {
+  display: grid;
+  grid-template-columns: 88px 1fr 26px;
+  align-items: center;
+  gap: 8px;
+}
+
+.calm-filter-name {
+  font-size: 11px;
   color: var(--text-secondary);
-  margin: 4px 0 12px;
-  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.calm-filter-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.calm-filter-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--green-dark);
+  cursor: pointer;
+}
+
+.calm-filter-slider::-moz-range-thumb {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--green-dark);
+  cursor: pointer;
+  border: none;
+}
+
+.calm-filter-val {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  text-align: right;
+}
+
+.calm-map-card {
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.calm-route-map {
+  height: 220px;
+  width: 100%;
+  border-radius: var(--radius-lg);
 }
 
 .sector-picker {

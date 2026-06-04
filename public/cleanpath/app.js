@@ -20,6 +20,9 @@
       if (t.dataset.screen === 'map' && window._leafletMap) {
         setTimeout(() => window._leafletMap.invalidateSize(), 50);
       }
+      if (t.dataset.screen === 'calm' && calmRouteMap) {
+        setTimeout(() => calmRouteMap.invalidateSize(), 50);
+      }
     });
   });
 
@@ -1081,6 +1084,108 @@
    * ------------------------------------------------------ */
 
   let selectedSectorId = null;
+  let selectedOriginId = 'norrmalm';
+  let calmRouteMap = null;
+
+  function renderOriginPicker() {
+    const host = document.getElementById('origin-picker');
+    if (!host) return;
+    host.innerHTML = SECTORS.map(s => (
+      `<button class="sector-pill${s.id === selectedOriginId ? ' active' : ''}" data-sector="${s.id}" role="option" aria-selected="${s.id === selectedOriginId ? 'true' : 'false'}">${escapeHtml(s.name)}</button>`
+    )).join('');
+    host.querySelectorAll('.sector-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedOriginId = btn.dataset.sector;
+        host.querySelectorAll('.sector-pill').forEach(b => {
+          const on = b.dataset.sector === selectedOriginId;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+      });
+    });
+  }
+
+  function initCalmFilters() {
+    const pairs = [
+      ['calm-pref-air', 'calm-pref-air-val', 'pref-air', 'pref-air-val', 'cp_w_air'],
+      ['calm-pref-noise', 'calm-pref-noise-val', 'pref-noise', 'pref-noise-val', 'cp_w_noise'],
+      ['calm-pref-crowd', 'calm-pref-crowd-val', 'pref-crowd', 'pref-crowd-val', 'cp_w_crowd']
+    ];
+    pairs.forEach(([cId, cLblId, pId, pLblId, key]) => {
+      const cSlider = document.getElementById(cId);
+      const cLabel = document.getElementById(cLblId);
+      if (!cSlider || !cLabel) return;
+      const current = loadPref(key);
+      cSlider.value = String(current);
+      cLabel.textContent = String(current);
+      cSlider.addEventListener('input', () => {
+        cLabel.textContent = cSlider.value;
+        savePref(key, cSlider.value);
+        const pSlider = document.getElementById(pId);
+        const pLabel = document.getElementById(pLblId);
+        if (pSlider) pSlider.value = cSlider.value;
+        if (pLabel) pLabel.textContent = cSlider.value;
+      });
+    });
+  }
+
+  function renderCalmRouteMap(originId, destId) {
+    if (typeof L === 'undefined') return;
+    const origin = SECTORS.find(s => s.id === originId);
+    const dest = SECTORS.find(s => s.id === destId);
+    if (!origin || !dest) return;
+
+    if (!calmRouteMap) {
+      calmRouteMap = L.map('calm-route-map', {
+        zoomControl: false,
+        attributionControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        touchZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false
+      });
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 15 }).addTo(calmRouteMap);
+    }
+
+    calmRouteMap.eachLayer(layer => {
+      if (!(layer instanceof L.TileLayer)) calmRouteMap.removeLayer(layer);
+    });
+
+    const midLat = (origin.lat + dest.lat) / 2;
+    const midLon = (origin.lon + dest.lon) / 2;
+    const dx = dest.lat - origin.lat;
+    const dy = dest.lon - origin.lon;
+
+    const fastCoords = [
+      [origin.lat, origin.lon],
+      [midLat + dy * 0.15, midLon + dx * 0.15],
+      [dest.lat, dest.lon]
+    ];
+    const calmCoords = [
+      [origin.lat, origin.lon],
+      [midLat - dy * 0.2, midLon - dx * 0.1],
+      [midLat - dy * 0.05, midLon + dx * 0.05],
+      [dest.lat, dest.lon]
+    ];
+
+    L.polyline(fastCoords, { color: '#E24B4A', weight: 4, opacity: 0.75, dashArray: '7 5' })
+      .bindTooltip('Fastest', { sticky: true }).addTo(calmRouteMap);
+    L.polyline(calmCoords, { color: '#0F6E56', weight: 4, opacity: 0.9 })
+      .bindTooltip('Calm route', { sticky: true }).addTo(calmRouteMap);
+
+    L.circleMarker([origin.lat, origin.lon], { radius: 7, fillColor: '#FFFFFF', color: '#2C2C2A', weight: 2, fillOpacity: 1 })
+      .bindTooltip(origin.name, { permanent: true, direction: 'top', offset: [0, -8], className: 'route-end-label' })
+      .addTo(calmRouteMap);
+    L.circleMarker([dest.lat, dest.lon], { radius: 7, fillColor: '#2C2C2A', color: '#2C2C2A', weight: 2, fillOpacity: 1 })
+      .bindTooltip(dest.name, { permanent: true, direction: 'top', offset: [0, -8], className: 'route-end-label' })
+      .addTo(calmRouteMap);
+
+    const bounds = L.latLngBounds([[origin.lat, origin.lon], [dest.lat, dest.lon]]);
+    calmRouteMap.fitBounds(bounds, { padding: [40, 40] });
+    setTimeout(() => calmRouteMap.invalidateSize(), 60);
+  }
 
   function renderSectorPicker() {
     const host = document.getElementById('sector-picker');
@@ -1207,7 +1312,9 @@
 
   function initCalmRoute() {
     renderSeasonBanner();
+    renderOriginPicker();
     renderSectorPicker();
+    initCalmFilters();
 
     const goBtn = document.getElementById('calm-go-btn');
     if (goBtn) {
@@ -1217,6 +1324,7 @@
         runCalmAnimation(sectors, () => {
           const result = computeCalmRoute(sectors);
           renderCalmResult(result);
+          renderCalmRouteMap(selectedOriginId, selectedSectorId);
           const receipt = document.getElementById('receipt-requests');
           if (receipt) receipt.textContent = String(sectors.length);
         });

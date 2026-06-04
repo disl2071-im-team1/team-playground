@@ -532,13 +532,37 @@
       </div>
 
       <div class="card calm-card">
-        <div class="card-head">
-          <span class="card-title">Where to?</span>
-          <span class="card-meta">from Centralstation</span>
+        <div class="calm-od">
+          <div class="calm-od-field">
+            <span class="calm-od-label">From</span>
+            <div class="sector-picker" id="origin-picker" role="listbox" aria-label="Choose starting district"></div>
+          </div>
+          <div class="calm-od-divider" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><polyline points="6 13 12 19 18 13"/></svg>
+          </div>
+          <div class="calm-od-field">
+            <span class="calm-od-label">To</span>
+            <div class="sector-picker" id="sector-picker" role="listbox" aria-label="Choose destination district"></div>
+          </div>
         </div>
-        <p class="calm-intro">Pick a district. We'll ask the integration layer for sector-level air and weigh it against your profile, on this device.</p>
 
-        <div class="sector-picker" id="sector-picker" role="listbox" aria-label="Choose destination district"></div>
+        <div class="calm-filters">
+          <div class="calm-filter-row">
+            <span class="calm-filter-name">Air quality</span>
+            <input type="range" class="calm-filter-slider" id="calm-pref-air" min="0" max="100" step="1" value="70" aria-label="Air quality weight"/>
+            <span class="calm-filter-val" id="calm-pref-air-val">70</span>
+          </div>
+          <div class="calm-filter-row">
+            <span class="calm-filter-name">Noise <span class="sim-tag">sim</span></span>
+            <input type="range" class="calm-filter-slider" id="calm-pref-noise" min="0" max="100" step="1" value="50" aria-label="Noise weight"/>
+            <span class="calm-filter-val" id="calm-pref-noise-val">50</span>
+          </div>
+          <div class="calm-filter-row">
+            <span class="calm-filter-name">Crowding <span class="sim-tag">sim</span></span>
+            <input type="range" class="calm-filter-slider" id="calm-pref-crowd" min="0" max="100" step="1" value="30" aria-label="Crowding weight"/>
+            <span class="calm-filter-val" id="calm-pref-crowd-val">30</span>
+          </div>
+        </div>
 
         <div class="calm-actions">
           <button class="calm-go-btn" id="calm-go-btn" disabled>
@@ -590,6 +614,10 @@
             </div>
             <div class="route-result-foot">Same fastest route as the map view.</div>
           </div>
+        </div>
+
+        <div class="card calm-map-card">
+          <div id="calm-route-map" class="calm-route-map" role="img" aria-label="Route map from origin to destination"></div>
         </div>
 
         <div class="privacy-receipt">
