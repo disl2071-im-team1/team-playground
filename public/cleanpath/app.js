@@ -73,8 +73,30 @@
         [59.3120, 18.0660], // Zinkensdamm
         [59.3076, 18.0786]  // Skanstull
       ]
+    },
+    quiet: {
+      name: 'Quietest via Långholmen',
+      color: '#1B6FDB',
+      avgDb: 54,
+      coords: [
+        [59.3306, 18.0586], // Centralstation
+        [59.3283, 18.0528], // Klara sjö west
+        [59.3238, 18.0478], // Rådhuset
+        [59.3185, 18.0498], // Långholmen (park)
+        [59.3145, 18.0570], // Liljeholmen east
+        [59.3100, 18.0690], // Hornstull
+        [59.3076, 18.0786]  // Skanstull
+      ]
     }
   };
+
+  // dB averages for noise reduction % calculation
+  const ROUTE_DB = { fast: 76, clean: 65, quiet: 54 };
+
+  function calcNoiseReduction() {
+    const ref = (ROUTE_DB.fast + ROUTE_DB.clean) / 2;
+    return Math.round(((ref - ROUTE_DB.quiet) / ref) * 100);
+  }
 
   function indexToColor(idx) {
     if (idx == null) return '#9CA3AF';
@@ -181,6 +203,7 @@
         <strong style="margin-top:6px">Routes</strong>
         <div><span class="line" style="background:#E24B4A"></span>Fastest</div>
         <div><span class="line" style="background:#0F6E56"></span>Cleanest</div>
+        <div><span class="line" style="background:#1B6FDB"></span>Quietest</div>
       `;
       return div;
     };
@@ -606,6 +629,12 @@
       title: 'Cleanest route via Söder Mälarstrand',
       body: `<p>This route hugs the water past Riddarholmen and Söder Mälarstrand, away from the main traffic arteries, then climbs to Skanstull through quieter Södermalm streets.</p>
              <p>The score is sampled from the same network of WAQI sites as the fastest route, so the comparison is apples-to-apples.</p>`
+    },
+    quiet: {
+      eyebrow: 'Route detail',
+      title: 'Quietest route via Långholmen',
+      body: `<p>This route goes west from Centralstation, through Rådhuset, across to Långholmen — a park island with almost no motor traffic — then east through Hornstull to Skanstull. Average noise along this path is around 54 dB, well below the 80 dB alert threshold.</p>
+             <p>Ten extra minutes compared to the fastest, but the only option that avoids both Centralbron and Götgatan entirely. Noise data is modelled from Bullerkartan 2022 (Stockholm Stad open data), covering road, rail, and air traffic sources equally.</p>`
     },
     'arch-sources': {
       eyebrow: 'Data reality',
@@ -1382,6 +1411,48 @@
    * Boot
    * ------------------------------------------------------ */
 
+  /* --------------------------------------------------------
+   * Quiet Route — 80 dB alert overlay
+   * ------------------------------------------------------ */
+
+  function initQuietRoute() {
+    const pct = calcNoiseReduction();
+    const badge = document.getElementById('quiet-reduction-badge');
+    const adviceQuiet = document.getElementById('quiet-advice');
+    if (badge) badge.textContent = pct + '% quieter';
+    if (adviceQuiet) {
+      adviceQuiet.textContent = `The quietest route reduces your decibel exposure by ${pct}% compared to the other routes. It avoids Centralbron and Götgatan entirely.`;
+    }
+
+    const overlay = document.getElementById('alert-overlay');
+    const demoBtn = document.getElementById('demo-alert-btn');
+    const dismissBtn = document.getElementById('alert-dismiss');
+
+    if (!overlay) return;
+
+    function openAlert() {
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAlert(reroute) {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      if (reroute) {
+        const card = document.getElementById('route-quiet');
+        document.querySelectorAll('.route-card').forEach(c => c.classList.remove('route-clean'));
+        if (card) card.classList.add('route-clean');
+      }
+    }
+
+    if (demoBtn) demoBtn.addEventListener('click', openAlert);
+    if (dismissBtn) dismissBtn.addEventListener('click', () => closeAlert(false));
+
+    document.querySelectorAll('.reroute-option').forEach(opt => {
+      opt.addEventListener('click', () => closeAlert(true));
+    });
+  }
+
   function boot() {
     initMap();
     loadGreenAreas();
@@ -1391,6 +1462,7 @@
     loadForecast();
     initPrefControls();
     initCalmRoute();
+    initQuietRoute();
   }
 
   if (document.readyState === 'loading') {

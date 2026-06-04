@@ -598,9 +598,33 @@ body {
 
 .red-track { background: var(--red-soft); }
 .green-track { background: #EAF3DE; }
+.blue-track { background: var(--blue-soft); }
 
 .rf-bar { height: 100%; background: var(--red); transition: width 0.3s; }
 .rc-bar { height: 100%; background: var(--green); transition: width 0.3s; }
+.rq-bar { height: 100%; background: var(--blue); transition: width 0.3s; }
+
+.route-card-label.blue { color: #1453A8; }
+
+.route-card-quiet-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 5px;
+}
+
+.reduction-badge {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: #1453A8;
+}
+
+.alert-overlay.open {
+  display: flex !important;
+}
 
 .route-card-via {
   font-size: 9px;

@@ -61,9 +61,15 @@
           <div class="eyebrow">Today's route</div>
           <h2>Map your route by air, not just by time</h2>
         </div>
-        <div class="status">
-          <span class="status-dot"></span>
-          Live · <span id="time-label">14:32</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div class="status">
+            <span class="status-dot"></span>
+            Live · <span id="time-label">14:32</span>
+          </div>
+          <button id="demo-alert-btn" style="display:flex;align-items:center;gap:5px;font-size:11px;padding:5px 10px;border-radius:5px;border:1px solid rgba(226,75,74,0.35);background:#FCEBEB;color:#A32D2D;cursor:pointer;font-family:inherit;" title="Simulate entering an 80 dB noise zone">
+            <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Demo 80 dB alert
+          </button>
         </div>
       </div>
 
@@ -130,9 +136,26 @@
             <div class="route-card-via">via Riddarholmen, Söder Mälarstrand</div>
           </button>
 
+          <button class="route-card route-quiet" id="route-quiet" data-info="quiet">
+            <div class="route-card-head">
+              <span class="route-card-label blue">Quietest</span>
+              <span class="route-card-meta">28 min · +10</span>
+            </div>
+            <div class="route-card-score">
+              <span class="rq-db">54</span>
+              <span class="route-card-unit">dB avg</span>
+            </div>
+            <div class="bar-track blue-track"><div class="rq-bar" style="width: 54%;"></div></div>
+            <div class="route-card-quiet-footer">
+              <span class="reduction-badge" id="quiet-reduction-badge">23% quieter</span>
+              <span class="route-card-via">via Långholmen</span>
+            </div>
+          </button>
+
           <div class="advice-box">
             <div class="advice-label">For you</div>
             <div id="advice">The cleanest route avoids the Centralbron traffic peak and cuts your exposure by more than half. Worth the extra 5 minutes.</div>
+            <div id="quiet-advice" style="margin-top:6px; font-size:11px; color:#5F5E5A; line-height:1.5;"></div>
           </div>
         </aside>
       </div>
@@ -637,6 +660,51 @@
       Clean Path · A privacy-first prototype. Sensors read the environment, not you. Computed on-device.
     </footer>
   </main>
+
+  <!-- 80 dB ALERT OVERLAY -->
+  <div id="alert-overlay" role="alertdialog" aria-modal="true" aria-hidden="true" aria-label="High noise zone ahead" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;padding:20px;background:rgba(20,20,18,0.6);backdrop-filter:blur(3px);">
+    <div style="background:#fff;border-radius:12px;max-width:400px;width:100%;padding:20px;box-shadow:0 24px 80px rgba(0,0,0,0.3);border:1px solid rgba(226,75,74,0.2);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:40px;height:40px;background:#A32D2D;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#A32D2D;margin-bottom:2px;">80 dB zone ahead</div>
+          <div style="font-size:13px;font-weight:500;">Centralbron / Slussen</div>
+        </div>
+        <div style="font-size:20px;font-weight:600;color:#A32D2D;background:#FCEBEB;padding:4px 10px;border-radius:6px;">82 dB</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#F1EFE8;border-radius:6px;margin-bottom:14px;font-size:10px;color:#87857F;">
+        <span style="font-weight:500;color:#5F5E5A;min-width:90px;">Bracelet haptic</span>
+        <span style="display:flex;gap:4px;align-items:center;">
+          <span style="width:8px;height:10px;background:#185FA5;border-radius:2px;opacity:.6;"></span>
+          <span style="width:20px;height:10px;background:#185FA5;border-radius:2px;opacity:.6;"></span>
+          <span style="width:8px;height:10px;background:#185FA5;border-radius:2px;opacity:.6;"></span>
+        </span>
+        <span>Short · Long · Short</span>
+      </div>
+      <div style="font-size:11px;font-weight:500;margin-bottom:8px;">Choose a quieter alternative — all below 80 dB</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <button class="reroute-option" style="text-align:left;padding:10px 12px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:#fff;cursor:pointer;font-family:inherit;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+            <span style="font-size:12px;font-weight:500;">Via Långholmen (Quietest)</span>
+            <span style="font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:#E8F1FB;color:#1453A8;">54 dB</span>
+          </div>
+          <div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">+10 min · park paths, no main roads</div>
+          <div style="height:3px;background:#E8F1FB;border-radius:2px;overflow:hidden;"><div style="width:54%;height:100%;background:#185FA5;border-radius:2px;"></div></div>
+        </button>
+        <button class="reroute-option" style="text-align:left;padding:10px 12px;border-radius:6px;border:1px solid rgba(0,0,0,0.06);background:#fff;cursor:pointer;font-family:inherit;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+            <span style="font-size:12px;font-weight:500;">Via Söder Mälarstrand</span>
+            <span style="font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:#E1F5EE;color:#0F6E56;">65 dB</span>
+          </div>
+          <div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">+5 min · riverside, below threshold</div>
+          <div style="height:3px;background:#E1F5EE;border-radius:2px;overflow:hidden;"><div style="width:65%;height:100%;background:#1D9E75;border-radius:2px;"></div></div>
+        </button>
+      </div>
+      <button id="alert-dismiss" style="width:100%;padding:9px;font-size:12px;border-radius:6px;border:.5px solid rgba(0,0,0,0.08);background:transparent;color:#5F5E5A;cursor:pointer;font-family:inherit;">Continue on current route anyway</button>
+    </div>
+  </div>
 
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
     <div class="modal-backdrop" data-close></div>
