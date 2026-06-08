@@ -92,7 +92,7 @@
     return 'Very high';
   }
 
-  let leafletMap, stationsLayer, camsLayer, integrationLayer, greenAreasLayer;
+  let leafletMap, stationsLayer, camsLayer, integrationLayer, greenAreasLayer, coffeeLayer;
 
   function initMap() {
     if (typeof L === 'undefined') {
@@ -118,6 +118,7 @@
     leafletMap.createPane('greenAreas');
     leafletMap.getPane('greenAreas').style.zIndex = '350';
     greenAreasLayer = L.layerGroup().addTo(leafletMap);
+    coffeeLayer = L.layerGroup().addTo(leafletMap);
 
     // Routes: glow halo drawn first so it sits behind the main line
     Object.entries(ROUTES).forEach(([, r]) => {
@@ -178,6 +179,8 @@
         <div><span class="swatch" style="background:#fff;border:3px solid #0F6E56"></span>luftdaten (community)</div>
         <strong style="margin-top:6px">Green spaces</strong>
         <div><span class="swatch" style="background:#bbf7d0;border:1px solid #4ade80"></span>Parks &amp; gardens</div>
+        <strong style="margin-top:6px">Coffee places</strong>
+        <div><span class="swatch" style="background:#fff;border:2px solid #6F4E37"></span>Café / coffee shop</div>
         <strong style="margin-top:6px">Routes</strong>
         <div><span class="line" style="background:#E24B4A"></span>Fastest</div>
         <div><span class="line" style="background:#0F6E56"></span>Cleanest</div>
@@ -201,6 +204,9 @@
         <button class="src-btn active" data-layer="stations">
           <span class="src-dot" style="background:#1D9E75"></span>WAQI stations
         </button>
+        <button class="src-btn active" data-layer="coffee">
+          <span class="src-dot" style="background:#6F4E37"></span>Coffee places
+        </button>
       `;
       L.DomEvent.disableClickPropagation(div);
       L.DomEvent.disableScrollPropagation(div);
@@ -208,7 +214,7 @@
     };
     overlayCtrl.addTo(leafletMap);
 
-    const layerByKey = { stations: stationsLayer, integration: integrationLayer, cams: camsLayer };
+    const layerByKey = { stations: stationsLayer, integration: integrationLayer, cams: camsLayer, coffee: coffeeLayer };
     overlayCtrl.getContainer().querySelectorAll('.src-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const lyr = layerByKey[btn.dataset.layer];
@@ -1379,12 +1385,52 @@
   }
 
   /* --------------------------------------------------------
+   * Coffee places: cafés from OpenStreetMap via Overpass
+   * ------------------------------------------------------ */
+
+  async function loadCoffeePlaces() {
+    if (!coffeeLayer) return;
+    const bbox = '59.29,18.03,59.36,18.12';
+    const q = `[out:json][timeout:25];`
+      + `(node["amenity"="cafe"](${bbox});`
+      + `node["amenity"="coffee_shop"](${bbox});`
+      + `);out;`;
+    try {
+      const res = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(q)
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      data.elements.forEach(el => {
+        if (typeof el.lat !== 'number' || typeof el.lon !== 'number') return;
+        const name = (el.tags && el.tags.name) ? escapeHtml(el.tags.name) : 'Coffee place';
+        L.circleMarker([el.lat, el.lon], {
+          radius: 5,
+          fillColor: '#6F4E37',
+          color: '#FFFFFF',
+          weight: 1.5,
+          fillOpacity: 0.9
+        }).bindPopup(`
+          <div class="station-popup">
+            <strong>${name}</strong>
+            <div class="station-meta">Café / coffee shop</div>
+          </div>
+        `).addTo(coffeeLayer);
+      });
+    } catch (_) {
+      // Coffee places are optional; fail silently if Overpass is unavailable.
+    }
+  }
+
+  /* --------------------------------------------------------
    * Boot
    * ------------------------------------------------------ */
 
   function boot() {
     initMap();
     loadGreenAreas();
+    loadCoffeePlaces();
     loadStations();
     loadIntegrationLayer();
     loadCams();
