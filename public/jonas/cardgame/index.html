@@ -462,6 +462,36 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 }
 .hand-flash { animation: hand-flash 0.55s ease; }
 
+/* ── Shielded ward ── */
+.area-slot.shielded {
+  cursor: pointer;
+}
+.area-slot.shielded:hover:not(.cracked) {
+  transform: scale(1.02);
+}
+.shield-indicator {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c9a227;
+  text-shadow: 0 0 8px rgba(201,162,39,0.6);
+  text-align: center;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(201,162,39,0.3);
+  border-radius: 4px;
+  background: rgba(201,162,39,0.06);
+}
+@keyframes shield-shatter {
+  0%   { transform: scale(1); filter: brightness(1); }
+  25%  { transform: scale(1.06); filter: brightness(2); }
+  60%  { transform: scale(0.97); filter: brightness(0.85); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+.area-slot.shield-shatter {
+  animation: shield-shatter 0.55s ease;
+}
+
 </style>
 </head>
 <body>
@@ -565,7 +595,11 @@ function buildDeck() {
 }
 
 function initAreas() {
-  return STAVE_DATA.map(s => ({...s, channeled: 0, cracked: false, channeledCards: []}));
+  const areas = STAVE_DATA.map(s => ({...s, channeled: 0, cracked: false, channeledCards: [], shielded: false, shieldClicks: 0}));
+  // Randomly shield 2 of the 6 wards at the start of each game
+  const indices = shuffle([0,1,2,3,4,5]).slice(0, 2);
+  for (const i of indices) areas[i].shielded = true;
+  return areas;
 }
 
 function drawN(deck, n) {
@@ -632,8 +666,34 @@ function selectCard(uid) {
     if (!card) return;
     const area = G.areas.find(a => a.id === card.area);
     if (area && area.cracked) return;
+    if (area && area.shielded) {
+      G.msg = `The ${card.area} ward is shielded. Click the ward itself three times to break it.`;
+      render();
+      return;
+    }
   }
   G.sel.has(uid) ? G.sel.delete(uid) : G.sel.add(uid);
+  render();
+}
+
+function clickArea(areaId) {
+  if (G.done) return;
+  const area = G.areas.find(a => a.id === areaId);
+  if (!area || area.cracked || !area.shielded) return;
+  area.shieldClicks++;
+  if (area.shieldClicks >= 3) {
+    area.shielded = false;
+    G.msg = `The ${areaId} shield shatters! The ward is now vulnerable.`;
+    setTimeout(() => {
+      const el = document.querySelector(`[data-area="${areaId}"]`);
+      if (el) {
+        el.classList.add('shield-shatter');
+        setTimeout(() => el.classList.remove('shield-shatter'), 580);
+      }
+    }, 20);
+  } else {
+    G.msg = `The ${areaId} shield cracks... ${area.shieldClicks} / 3`;
+  }
   render();
 }
 
@@ -896,9 +956,11 @@ function renderStave() {
       `<span class="ch-glyph" title="${c.name} +${c.value}" style="color:${t.color}">${c.rune}</span>`
     ).join('');
 
-    return `<div class="area-slot${area.cracked ? ' cracked' : ''}"
+    const shieldGlow = area.shielded ? `;box-shadow:0 0 16px ${t.color}66,inset 0 0 10px ${t.color}22` : '';
+    return `<div class="area-slot${area.cracked ? ' cracked' : ''}${area.shielded ? ' shielded' : ''}"
                  data-area="${area.id}"
-                 style="border-color:${t.border};background:${t.bg}">
+                 style="border-color:${t.border};background:${t.bg}${shieldGlow}"
+                 onclick="clickArea('${area.id}')">
       <div class="area-top">
         <span class="area-name" style="color:${t.color}">${area.id}</span>
         <span class="area-theme">${area.theme}</span>
@@ -907,6 +969,7 @@ function renderStave() {
       <div class="area-bar"><div class="area-fill" style="width:${pct}%;background:${t.color}"></div></div>
       <div class="area-rune-list">${runeList}</div>
       ${glyphs ? `<div class="area-channeled">${glyphs}</div>` : ''}
+      ${area.shielded ? `<div class="shield-indicator">🛡 ${area.shieldClicks} / 3 — click to break</div>` : ''}
       ${area.cracked ? '<div class="cracked-label">✦ cracked ✦</div>' : ''}
     </div>`;
   }).join('');
@@ -928,7 +991,7 @@ function renderHand() {
   handEl.className = 'hand-cards' + (G.discardMode ? ' discard-mode' : '');
   handEl.innerHTML = G.hand.map((c, i) => {
     const area = G.areas.find(a => a.id === c.area);
-    const dead = !G.discardMode && area && area.cracked;
+    const dead = !G.discardMode && area && (area.cracked || area.shielded);
     const sel = G.sel.has(c.uid);
     const t = THEME[c.area];
     const stave = STAVE_DATA.find(s => s.id === c.area);
