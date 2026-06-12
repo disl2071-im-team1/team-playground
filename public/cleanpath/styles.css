@@ -263,17 +263,6 @@ body {
   vertical-align: middle;
 }
 
-.overlay-legend {
-  max-width: 180px;
-}
-
-.overlay-legend .legend-note {
-  margin-top: 5px;
-  font-size: 9px;
-  opacity: 0.75;
-  line-height: 1.4;
-}
-
 .overlay-select .src-btn {
   display: flex;
   align-items: center;
