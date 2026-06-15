@@ -1922,3 +1922,146 @@ body {
   color: var(--text-primary);
   font-weight: 500;
 }
+
+/* ============================================================
+ * Municipal monitoring shell (v0.4) — shared shell + per-hazard
+ * decision surface. Reuses base tokens, .tab, .map-legend,
+ * .overlay-select, .station-popup, .slider-row from above.
+ * ========================================================== */
+
+.shell-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 820px) {
+  .shell-grid { grid-template-columns: 1fr; }
+}
+
+.source-line {
+  margin-top: 10px;
+  padding: 0 2px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.provenance-bar {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.provenance-bar .prov-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.provenance-bar .prov-text { flex: 1; min-width: 180px; }
+
+.prov-flag {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  color: #5C3A06;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.prov-confidence {
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+.conf-high { background: var(--green-soft); color: var(--green-dark); }
+.conf-mixed { background: var(--blue-soft); color: var(--blue); }
+.conf-thin { background: var(--amber-soft); color: #5C3A06; }
+.conf-modelled { background: var(--red-soft); color: var(--red-dark); }
+
+.placeholder-banner {
+  background: var(--amber-soft);
+  color: #5C3A06;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  border: 0.5px solid #E6B450;
+}
+
+/* Decision panel */
+.decision-panel { display: flex; flex-direction: column; gap: 4px; }
+.decision-panel h3 { margin: 2px 0 10px; font-size: 15px; font-weight: 500; }
+
+.decision-fields { display: flex; flex-direction: column; gap: 10px; }
+.dp-field { display: flex; flex-direction: column; gap: 4px; }
+.dp-field-label {
+  font-size: 10px; font-weight: 500; color: var(--text-secondary);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.dp-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  box-sizing: border-box;
+}
+textarea.dp-input { resize: vertical; }
+.dp-draw {
+  font-size: 11px; color: var(--text-tertiary);
+  border: 1px dashed var(--border); border-radius: var(--radius-sm);
+  padding: 8px; text-align: center;
+}
+
+.decision-actions { display: flex; gap: 8px; margin-top: 14px; }
+.dp-btn {
+  flex: 1; padding: 8px 10px; font-size: 12px; font-weight: 500;
+  font-family: inherit; border-radius: var(--radius-md); cursor: pointer;
+  border: 0.5px solid var(--border);
+}
+.dp-btn-primary { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+.dp-btn-primary:hover { filter: brightness(1.08); }
+.dp-btn-secondary { background: var(--bg-primary); color: var(--text-secondary); }
+.dp-btn-secondary:hover { background: var(--bg-secondary); }
+
+.dp-export {
+  margin-top: 10px; width: 100%; padding: 8px 10px;
+  font-size: 11px; font-family: inherit; cursor: pointer;
+  color: var(--text-secondary); background: var(--bg-secondary);
+  border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-md);
+}
+.dp-export:hover { color: var(--text-primary); }
+
+.dp-receipt {
+  margin-top: 8px; font-size: 11px; color: var(--green-dark);
+  min-height: 14px; line-height: 1.4;
+}
+
+/* Vulnerable-site pin (heat) */
+.vuln-pin {
+  color: #A32D2D;
+  font-size: 15px;
+  line-height: 18px;
+  text-align: center;
+  text-shadow: 0 0 3px #fff, 0 0 3px #fff;
+}
