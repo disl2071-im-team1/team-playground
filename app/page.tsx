@@ -67,6 +67,18 @@ export default function Home() {
             </li>
             <li>
               <a
+                href="/natalie/air-pollution/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Air Quality Monitor
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · real-time AQI across Stockholm, for city officers
+              </span>
+            </li>
+            <li>
+              <a
                 href="/jonas/cardgame/index.html"
                 className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
               >

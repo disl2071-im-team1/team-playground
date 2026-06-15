@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Quality Monitor — Stockholm</title>
+
+  <!-- Geist font to match the Next.js app -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff;
+      color: #171717;
+      min-height: 100vh;
+    }
+
+    /* ── Alert banner ── */
+    #alert-banner {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    #alert-banner.show { display: flex; }
+    #alert-banner.level-high    { background: #fef3c7; color: #92400e; border-bottom: 1px solid #fcd34d; }
+    #alert-banner.level-very-high { background: #fee2e2; color: #991b1b; border-bottom: 1px solid #fca5a5; }
+    #alert-banner .alert-icon { font-size: 1.1rem; }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid #e5e5e5;
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    header p {
+      font-size: 0.8rem;
+      color: #737373;
+      margin-top: 2px;
+    }
+    #updated-at {
+      font-size: 0.75rem;
+      color: #a3a3a3;
+      white-space: nowrap;
+    }
+
+    /* ── Main layout ── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 720px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* ── Cards ── */
+    .card {
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .card-label {
+      font-size: 0.7rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #a3a3a3;
+      margin-bottom: 16px;
+    }
+
+    /* ── AQI display ── */
+    #aqi-value {
+      font-size: 5rem;
+      font-weight: 300;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 4px;
+      transition: color 0.4s;
+    }
+    #aqi-band {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 20px;
+    }
+    .aqi-scale {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 20px;
+    }
+    .aqi-scale-bar {
+      height: 6px;
+      flex: 1;
+      border-radius: 999px;
+      opacity: 0.35;
+      transition: opacity 0.3s;
+    }
+    .aqi-scale-bar.active { opacity: 1; }
+    .bar-low      { background: #22c55e; }
+    .bar-moderate { background: #f59e0b; }
+    .bar-high     { background: #f97316; }
+    .bar-veryhigh { background: #ef4444; }
+
+    /* AQI color states */
+    .color-low      { color: #16a34a; }
+    .color-moderate { color: #d97706; }
+    .color-high     { color: #ea580c; }
+    .color-veryhigh { color: #dc2626; }
+
+    .stations-summary {
+      font-size: 0.8rem;
+      color: #737373;
+      line-height: 1.6;
+    }
+    .stations-summary strong { color: #171717; font-weight: 500; }
+
+    /* Station list */
+    #station-list {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .station-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: #fafafa;
+      border: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .station-row:hover { background: #f5f5f5; }
+    .station-name { color: #404040; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+    .station-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .badge-low      { background: #dcfce7; color: #166534; }
+    .badge-moderate { background: #fef3c7; color: #92400e; }
+    .badge-high     { background: #ffedd5; color: #9a3412; }
+    .badge-veryhigh { background: #fee2e2; color: #991b1b; }
+    .badge-unknown  { background: #f5f5f5; color: #737373; }
+
+    /* ── Map ── */
+    #map {
+      height: 480px;
+      border-radius: 12px;
+      border: 1px solid #e5e5e5;
+      overflow: hidden;
+    }
+
+    /* ── Loading / error states ── */
+    .state-msg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100px;
+      font-size: 0.85rem;
+      color: #a3a3a3;
+    }
+
+    /* ── Leaflet popup override ── */
+    .leaflet-popup-content-wrapper {
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+      font-family: 'Geist', sans-serif !important;
+      font-size: 0.8rem !important;
+    }
+    .popup-title { font-weight: 600; margin-bottom: 4px; font-size: 0.85rem; }
+    .popup-row { color: #737373; margin-top: 2px; }
+    .popup-aqi { font-size: 1.2rem; font-weight: 300; margin: 6px 0 2px; }
+  </style>
+</head>
+<body>
+
+  <!-- Alert banner (shown when AQI is high) -->
+  <div id="alert-banner">
+    <span class="alert-icon">⚠️</span>
+    <span id="alert-text"></span>
+  </div>
+
+  <header>
+    <div>
+      <h1>Air Quality Monitor</h1>
+      <p>Stockholm municipality — real-time AQI</p>
+    </div>
+    <div id="updated-at">Loading…</div>
+  </header>
+
+  <main>
+    <!-- Left panel: AQI summary + station list -->
+    <div>
+      <div class="card">
+        <div class="card-label">Current AQI</div>
+        <div id="aqi-value">—</div>
+        <div id="aqi-band" style="color:#a3a3a3">Loading…</div>
+
+        <div class="aqi-scale">
+          <div class="aqi-scale-bar bar-low"      id="bar-low"></div>
+          <div class="aqi-scale-bar bar-moderate"  id="bar-moderate"></div>
+          <div class="aqi-scale-bar bar-high"      id="bar-high"></div>
+          <div class="aqi-scale-bar bar-veryhigh"  id="bar-veryhigh"></div>
+        </div>
+
+        <div class="stations-summary" id="stations-summary">Fetching station data…</div>
+
+        <div id="station-list"></div>
+      </div>
+    </div>
+
+    <!-- Right panel: map -->
+    <div id="map"></div>
+  </main>
+
+  <script>
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function bandFromIndex(idx) {
+      if (idx <= 3) return 'Low';
+      if (idx <= 6) return 'Moderate';
+      if (idx <= 9) return 'High';
+      return 'Very high';
+    }
+
+    function colorClass(band) {
+      if (band === 'Low')       return 'color-low';
+      if (band === 'Moderate')  return 'color-moderate';
+      if (band === 'High')      return 'color-high';
+      return 'color-veryhigh';
+    }
+
+    function badgeClass(band) {
+      if (band === 'Low')       return 'badge-low';
+      if (band === 'Moderate')  return 'badge-moderate';
+      if (band === 'High')      return 'badge-high';
+      if (band === 'Very high') return 'badge-veryhigh';
+      return 'badge-unknown';
+    }
+
+    function markerColor(band) {
+      if (band === 'Low')       return '#22c55e';
+      if (band === 'Moderate')  return '#f59e0b';
+      if (band === 'High')      return '#f97316';
+      if (band === 'Very high') return '#ef4444';
+      return '#a3a3a3';
+    }
+
+    function circleMarker(latlng, color, label) {
+      return L.circleMarker(latlng, {
+        radius: 9,
+        fillColor: color,
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.85,
+      });
+    }
+
+    function formatTime(iso) {
+      if (!iso) return null;
+      try {
+        return new Date(iso).toLocaleString('en-SE', {
+          month: 'short', day: 'numeric',
+          hour: '2-digit', minute: '2-digit',
+        });
+      } catch { return iso; }
+    }
+
+    // ── Map setup ────────────────────────────────────────────────────────────
+
+    const map = L.map('map').setView([59.33, 18.07], 11);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '© OpenStreetMap contributors © CARTO',
+      subdomains: 'abcd',
+      maxZoom: 18,
+    }).addTo(map);
+
+    // ── Fetch & render ────────────────────────────────────────────────────────
+
+    async function load() {
+      try {
+        const res = await fetch('/api/air-quality');
+        const data = await res.json();
+
+        if (!data.ok) {
+          // API not configured — use mock data so the UI still shows
+          renderMock();
+          return;
+        }
+
+        render(data);
+      } catch (e) {
+        renderMock();
+      }
+    }
+
+    function render(data) {
+      const stations = data.stations || [];
+      const withReading = stations.filter(s => s.pm25);
+
+      // Pick the highest AQI across all stations for the headline figure
+      let worstIndex = 0;
+      let worstBand = 'Low';
+      for (const s of withReading) {
+        if (s.pm25.index > worstIndex) {
+          worstIndex = s.pm25.index;
+          worstBand = s.pm25.band;
+        }
+      }
+
+      // Update headline AQI
+      const aqiEl = document.getElementById('aqi-value');
+      aqiEl.textContent = worstIndex || '—';
+      aqiEl.className = worstIndex ? colorClass(worstBand) : '';
+
+      document.getElementById('aqi-band').textContent = worstBand;
+      document.getElementById('aqi-band').className = worstIndex ? colorClass(worstBand) : '';
+
+      // Scale bars
+      ['low','moderate','high','veryhigh'].forEach(b => {
+        document.getElementById('bar-' + b).classList.remove('active');
+      });
+      if (worstBand === 'Low')       document.getElementById('bar-low').classList.add('active');
+      if (worstBand === 'Moderate')  document.getElementById('bar-moderate').classList.add('active');
+      if (worstBand === 'High')      document.getElementById('bar-high').classList.add('active');
+      if (worstBand === 'Very high') document.getElementById('bar-veryhigh').classList.add('active');
+
+      // Alert banner
+      if (worstBand === 'High' || worstBand === 'Very high') {
+        const banner = document.getElementById('alert-banner');
+        banner.classList.add('show');
+        banner.classList.add(worstBand === 'Very high' ? 'level-very-high' : 'level-high');
+        document.getElementById('alert-text').textContent =
+          `Air quality is ${worstBand.toLowerCase()} in parts of Stockholm. City officers should consider issuing a public advisory.`;
+      }
+
+      // Updated timestamp
+      document.getElementById('updated-at').textContent =
+        data.updated ? 'Updated ' + formatTime(data.updated) : '';
+
+      // Summary
+      document.getElementById('stations-summary').innerHTML =
+        `<strong>${withReading.length}</strong> of ${stations.length} stations reporting · source: ${data.source || 'WAQI'}`;
+
+      // Station list
+      const listEl = document.getElementById('station-list');
+      listEl.innerHTML = '';
+      const sorted = [...withReading].sort((a,b) => b.pm25.index - a.pm25.index);
+      for (const s of sorted.slice(0, 20)) {
+        const row = document.createElement('div');
+        row.className = 'station-row';
+        row.innerHTML = `
+          <span class="station-name" title="${s.name}">${s.name}</span>
+          <span class="station-badge ${badgeClass(s.pm25.band)}">${s.pm25.band} · ${s.pm25.index}</span>
+        `;
+        row.addEventListener('click', () => map.setView([s.lat, s.lon], 14));
+        listEl.appendChild(row);
+      }
+
+      // Map markers
+      for (const s of stations) {
+        if (!s.lat || !s.lon) continue;
+        const band = s.pm25?.band || null;
+        const color = markerColor(band);
+        const marker = circleMarker([s.lat, s.lon], color);
+        marker.addTo(map);
+        marker.bindPopup(`
+          <div class="popup-title">${s.name}</div>
+          ${band
+            ? `<div class="popup-aqi ${colorClass(band)}">${s.pm25.index}</div>
+               <div class="popup-row">AQI band: <strong>${band}</strong></div>`
+            : '<div class="popup-row" style="color:#a3a3a3">No current reading</div>'
+          }
+          ${s.bulletin ? `<div class="popup-row" style="margin-top:6px">Updated: ${formatTime(s.bulletin)}</div>` : ''}
+        `);
+      }
+    }
+
+    // Mock data shown when the API token isn't configured
+    function renderMock() {
+      const MOCK = [
+        { name: 'Hornsgatan',   lat: 59.317, lon: 18.054, index: 4, band: 'Moderate' },
+        { name: 'E4/E20 Lunda', lat: 59.373, lon: 17.893, index: 7, band: 'High' },
+        { name: 'Torkel K.',    lat: 59.318, lon: 18.063, index: 3, band: 'Low' },
+        { name: 'Södermalm',    lat: 59.314, lon: 18.073, index: 2, band: 'Low' },
+        { name: 'Norrtull',     lat: 59.349, lon: 18.044, index: 5, band: 'Moderate' },
+        { name: 'Farsta',       lat: 59.242, lon: 18.091, index: 8, band: 'High' },
+      ];
+
+      const worst = MOCK.reduce((a,b) => b.index > a.index ? b : a);
+
+      document.getElementById('aqi-value').textContent = worst.index;
+      document.getElementById('aqi-value').className = colorClass(worst.band);
+      document.getElementById('aqi-band').textContent = worst.band + ' (demo data)';
+      document.getElementById('aqi-band').className = colorClass(worst.band);
+      document.getElementById('bar-high').classList.add('active');
+      document.getElementById('updated-at').textContent = 'Demo mode — add WAQI_TOKEN to see live data';
+      document.getElementById('stations-summary').innerHTML =
+        `<strong>${MOCK.length}</strong> stations · demo data`;
+
+      if (worst.band === 'High' || worst.band === 'Very high') {
+        const banner = document.getElementById('alert-banner');
+        banner.classList.add('show', 'level-high');
+        document.getElementById('alert-text').textContent =
+          `Air quality is ${worst.band.toLowerCase()} near ${worst.name}. City officers should consider issuing a public advisory.`;
+      }
+
+      const listEl = document.getElementById('station-list');
+      listEl.innerHTML = '';
+      for (const s of [...MOCK].sort((a,b) => b.index - a.index)) {
+        const row = document.createElement('div');
+        row.className = 'station-row';
+        row.innerHTML = `
+          <span class="station-name">${s.name}</span>
+          <span class="station-badge ${badgeClass(s.band)}">${s.band} · ${s.index}</span>
+        `;
+        row.addEventListener('click', () => map.setView([s.lat, s.lon], 14));
+        listEl.appendChild(row);
+      }
+
+      for (const s of MOCK) {
+        const marker = circleMarker([s.lat, s.lon], markerColor(s.band));
+        marker.addTo(map);
+        marker.bindPopup(`
+          <div class="popup-title">${s.name}</div>
+          <div class="popup-aqi ${colorClass(s.band)}">${s.index}</div>
+          <div class="popup-row">AQI band: <strong>${s.band}</strong></div>
+        `);
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
