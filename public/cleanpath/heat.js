@@ -106,19 +106,6 @@
   const careCount = (id) => facsIn(id).filter((f) => f.type === "care").length;
   const preCount = (id) => facsIn(id).filter((f) => f.type === "preschool").length;
 
-  function priorities(idx) {
-    const scored = DISTRICTS.map((d) => {
-      const temp = districtTemp(d, idx);
-      const tempNorm = Math.max(0, Math.min(1, (temp - 20) / (33 - 20)));
-      const vuln = careCount(d.id) * 2 + preCount(d.id);
-      return { d, temp, raw: tempNorm * vuln };
-    });
-    const max = Math.max(...scored.map((s) => s.raw)) || 1;
-    return scored
-      .map((s) => ({ ...s, score: Math.round((s.raw / max) * 100) }))
-      .sort((a, b) => b.score - a.score);
-  }
-
   /* ---- Map (lazy) ---- */
   let map = null, heatLayer = null, careLayer = null, preLayer = null;
   const visible = { heat: true, care: true, preschool: true };
@@ -261,27 +248,29 @@
     renderPriorities();
   }
 
-  /* ---- Priority list ---- */
+  /* ---- Priority list: districts ordered coolest → warmest ---- */
   function renderPriorities() {
     const list = $("vv-priority-list");
     list.innerHTML = "";
-    priorities(selectedIdx).forEach((p, idx) => {
-      const li = document.createElement("li");
-      li.className = "priority-item";
-      li.innerHTML =
-        `<span class="prio-rank">${idx + 1}</span>
-         <div class="prio-mid">
-           <div class="prio-name">${p.d.name}</div>
-           <div class="prio-fac">${careCount(p.d.id)} care · ${preCount(p.d.id)} preschool</div>
-           <div class="prio-bar-track"><div class="prio-bar" style="width:${p.score}%;background:${heatColor(p.temp)}"></div></div>
-         </div>
-         <div class="prio-right">
-           <div class="prio-temp">${p.temp}°</div>
-           <div class="prio-band" style="color:${heatColor(p.temp)}">${heatBand(p.temp)}</div>
-         </div>`;
-      li.addEventListener("click", () => flyToDistrict(p.d.id));
-      list.appendChild(li);
-    });
+    DISTRICTS
+      .map((d) => ({ d, temp: districtTemp(d, selectedIdx) }))
+      .sort((a, b) => a.temp - b.temp)
+      .forEach(({ d, temp }) => {
+        const li = document.createElement("li");
+        li.className = "priority-item";
+        li.innerHTML =
+          `<span class="prio-dot" style="background:${heatColor(temp)}"></span>
+           <div class="prio-mid">
+             <div class="prio-name">${d.name}</div>
+             <div class="prio-fac">${careCount(d.id)} care · ${preCount(d.id)} preschool</div>
+           </div>
+           <div class="prio-right">
+             <div class="prio-temp">${temp}°</div>
+             <div class="prio-band" style="color:${heatColor(temp)}">${heatBand(temp)}</div>
+           </div>`;
+        li.addEventListener("click", () => flyToDistrict(d.id));
+        list.appendChild(li);
+      });
   }
 
   /* ---- Legend (shown in the Info pop-up) ---- */

@@ -669,52 +669,52 @@
             <div class="trigger-actby" id="vv-trigger-actby"></div>
           </section>
 
-          <section class="vv-card">
-            <div class="vv-card-head">
-              <div>
-                <div class="vv-eyebrow">Forecast heat · <span id="vv-map-day-label">—</span></div>
-                <h2 class="vv-card-title">Where the heat lands</h2>
-              </div>
-              <button class="vv-icon-btn" data-vv-info="legend" aria-label="How to read the map" title="How to read the map">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/></svg>
-              </button>
-            </div>
+          <div class="vv-grid">
 
-            <div id="vv-map" class="leaflet-map" role="img" aria-label="Map of Stockholm districts coloured by forecast temperature, with care homes and preschools marked"></div>
-
-            <div class="layer-row" id="vv-layer-row">
-              <button class="layer-toggle on" data-layer="heat"><span class="layer-name">🌡 Heat</span><span class="chip chip-measured">measured</span></button>
-              <button class="layer-toggle on" data-layer="care"><span class="layer-name">🏡 Care homes</span><span class="chip chip-measured">located</span></button>
-              <button class="layer-toggle on" data-layer="preschool"><span class="layer-name">🧸 Preschools</span><span class="chip chip-measured">located</span></button>
-              <button class="layer-toggle off disabled" data-layer="algae" disabled><span class="layer-name">🦠 Algae</span><span class="chip chip-modelled">modelled · soon</span></button>
-              <button class="layer-toggle off disabled" data-layer="fire" disabled><span class="layer-name">🔥 Wildfire</span><span class="chip chip-modelled">modelled · soon</span></button>
-            </div>
-
-            <div class="vv-slider">
-              <div class="vv-slider-top">
-                <span class="timeline-label">7-day outlook — slide to the peak</span>
-                <span class="vv-slider-readout">
-                  <span id="vv-slider-day">—</span>
-                  <strong id="vv-slider-temp">—</strong>
-                  <span id="vv-slider-tag"></span>
-                </span>
-              </div>
-              <input type="range" id="vv-slider" min="0" max="6" step="1" value="0" aria-label="Forecast day" />
-              <div class="vv-slider-ticks" id="vv-slider-ticks"></div>
-            </div>
-          </section>
-
-          <section class="vv-card">
-            <div class="vv-card-head">
-              <div>
-                <div class="vv-eyebrow">Reach these first</div>
+            <aside class="vv-panel">
+              <div class="vv-panel-head">
+                <div class="vv-eyebrow">Coolest → warmest</div>
                 <h2 class="vv-card-title">Priority areas</h2>
+                <p class="priority-intro">Districts by forecast temperature, <span id="vv-priority-day">on the peak day</span>.</p>
               </div>
-              <span class="vv-card-meta" id="vv-priority-day">on the peak day</span>
-            </div>
-            <p class="priority-intro">Ranked by forecast heat weighted against vulnerable facilities. Elderly care counts double.</p>
-            <ol class="priority-list" id="vv-priority-list"></ol>
-          </section>
+              <ul class="priority-list" id="vv-priority-list"></ul>
+            </aside>
+
+            <section class="vv-card">
+              <div class="vv-card-head">
+                <div>
+                  <div class="vv-eyebrow">Forecast heat · <span id="vv-map-day-label">—</span></div>
+                  <h2 class="vv-card-title">Where the heat lands</h2>
+                </div>
+                <button class="vv-icon-btn" data-vv-info="legend" aria-label="How to read the map" title="How to read the map">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/></svg>
+                </button>
+              </div>
+
+              <div id="vv-map" class="leaflet-map" role="img" aria-label="Map of Stockholm districts coloured by forecast temperature, with care homes and preschools marked"></div>
+
+              <div class="layer-row" id="vv-layer-row">
+                <button class="layer-toggle on" data-layer="heat"><span class="layer-name">🌡 Heat</span><span class="chip chip-measured">measured</span></button>
+                <button class="layer-toggle on" data-layer="care"><span class="layer-name">🏡 Care homes</span><span class="chip chip-measured">located</span></button>
+                <button class="layer-toggle on" data-layer="preschool"><span class="layer-name">🧸 Preschools</span><span class="chip chip-measured">located</span></button>
+                <button class="layer-toggle off disabled" data-layer="algae" disabled><span class="layer-name">🦠 Algae</span><span class="chip chip-modelled">modelled · soon</span></button>
+                <button class="layer-toggle off disabled" data-layer="fire" disabled><span class="layer-name">🔥 Wildfire</span><span class="chip chip-modelled">modelled · soon</span></button>
+              </div>
+
+              <div class="vv-slider">
+                <div class="vv-slider-top">
+                  <span class="timeline-label">7-day outlook — slide to the peak</span>
+                  <span class="vv-slider-readout">
+                    <span id="vv-slider-day">—</span>
+                    <strong id="vv-slider-temp">—</strong>
+                    <span id="vv-slider-tag"></span>
+                  </span>
+                </div>
+                <input type="range" id="vv-slider" min="0" max="6" step="1" value="0" aria-label="Forecast day" />
+                <div class="vv-slider-ticks" id="vv-slider-ticks"></div>
+              </div>
+            </section>
+          </div>
 
           <div class="vv-foot">
             <span>Värmevakt · a Nimbus Väder tool for municipal preparedness.</span>
