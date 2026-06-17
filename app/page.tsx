@@ -19,6 +19,18 @@ export default function Home() {
           <ul className="mt-3 space-y-2 text-lg">
             <li>
               <a
+                href="/varmevakt/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Värmevakt
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · a municipal heat-plan tool, timing relief before the peak
+              </span>
+            </li>
+            <li>
+              <a
                 href="/cleanpath/index.html"
                 className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
               >
