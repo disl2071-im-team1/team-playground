@@ -2,7 +2,7 @@
 
 A privacy-first navigation prototype that helps people choose routes by air quality, not just by time. Two data sources, both real:
 
-> **Heat tab.** Clean Path also carries a **Heat** tab, which embeds [Värmevakt](../varmevakt/README.md), a municipal heat-planning module for city officers. Where Clean Path serves a resident, Värmevakt serves a preparedness coordinator: forecast heat against vulnerable facilities, timed before the peak. It runs as its own app under `public/varmevakt/` and is shown here in an iframe so the two design systems stay separate.
+> **Heat tab.** Clean Path also carries a **Heat** tab: **Värmevakt**, a municipal heat-planning module for city officers (framed as a tool from a meteorological station). Where Clean Path serves a resident, Värmevakt serves a preparedness coordinator: forecast heat against vulnerable facilities, timed before the peak. It is built against [HEAT-MODULE-REQUIREMENTS.md](./HEAT-MODULE-REQUIREMENTS.md). The module is inlined directly into the tab — markup in `index.html` (under `#screen-heat`), logic in `heat.js`, and 80's-styled CSS scoped under `.vv` in `styles.css`. Everything is namespaced (`vv-` ids, `data-vv-*` hooks) so it never collides with Clean Path, and it reuses the Leaflet that Clean Path already loads. Its map lazy-initialises the first time the tab is opened.
 
 
 - **World Air Quality Index (WAQI / aqicn.org)** for ground-station readings across the Stockholm area, refreshed hourly. Requires a free API token.
