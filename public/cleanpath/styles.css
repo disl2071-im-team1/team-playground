@@ -1941,12 +1941,13 @@ body {
 .vv .vv-eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.4px; color: var(--purple); }
 .vv .vv-card-title { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; margin: 5px 0 0; }
 .vv .vv-card-meta { font-size: 12px; font-weight: 500; color: var(--muted); }
-.vv .vv-icon-btn {
-  flex: none; width: 32px; height: 32px; display: grid; place-items: center;
+.vv .vv-text-btn {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; font-size: 12px; font-weight: 500; white-space: nowrap;
   border: 1px solid var(--line-strong); background: var(--paper); color: var(--muted);
-  border-radius: 50%; cursor: pointer;
+  border-radius: 999px; padding: 6px 13px; cursor: pointer;
 }
-.vv .vv-icon-btn:hover { border-color: var(--ink); color: var(--ink); }
+.vv .vv-text-btn:hover { border-color: var(--ink); color: var(--ink); }
 
 /* map — full width, half height */
 .vv .leaflet-map { height: 320px; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
