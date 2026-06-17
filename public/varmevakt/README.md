@@ -1,6 +1,6 @@
 # Värmevakt · municipal heat planning
 
-A heatwave preparedness prototype for a municipal officer, not a consumer. The framing is that a meteorological station (Nimbus Väder) built it and offers it to municipalities. Built against [HEAT-MODULE-REQUIREMENTS.md](../cleanpath/HEAT-MODULE-REQUIREMENTS.md).
+A heatwave preparedness prototype for a municipal officer, not a consumer. The framing is that a meteorological station (Nimbus Väder) built it and offers it to municipalities. Built against [REQUIREMENTS.md](./REQUIREMENTS.md).
 
 ## Who it serves
 

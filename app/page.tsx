@@ -31,18 +31,6 @@ export default function Home() {
             </li>
             <li>
               <a
-                href="/cleanpath/index.html"
-                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
-              >
-                Clean Path
-              </a>
-              <span className="text-zinc-500">
-                {" "}
-                · routing Stockholm by air quality, not just time
-              </span>
-            </li>
-            <li>
-              <a
                 href="/pelle/index.html"
                 className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
               >
