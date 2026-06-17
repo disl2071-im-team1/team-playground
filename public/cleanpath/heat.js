@@ -212,29 +212,42 @@
     }
   }
 
-  /* ---- Timeline ---- */
-  function renderTimeline() {
-    const tl = $("vv-timeline");
-    tl.innerHTML = "";
-    FORECAST.forEach((d, i) => {
-      const chip = document.createElement("button");
-      chip.className = "day-chip" + (i === selectedIdx ? " selected" : "");
-      chip.setAttribute("role", "tab");
-      chip.setAttribute("aria-selected", i === selectedIdx);
+  /* ---- Slider (replaces the day-chip timeline) ---- */
+  function renderSlider() {
+    const slider = $("vv-slider");
+    slider.value = selectedIdx;
+    slider.addEventListener("input", () => selectDay(+slider.value));
 
-      let tag = "";
-      if (i === F.peakIdx) tag = `<span class="dc-tag tag-peak">Peak</span>`;
-      else if (i === F.actByIdx) tag = `<span class="dc-tag tag-actby">Act by</span>`;
-      else if (i === TODAY_IDX) tag = `<span class="dc-tag tag-today">Today</span>`;
+    const ticks = $("vv-slider-ticks");
+    ticks.innerHTML = FORECAST.map((d, i) => {
+      let cls = "vv-tick";
+      if (i === F.peakIdx) cls += " is-peak";
+      else if (i === F.actByIdx) cls += " is-actby";
+      else if (i === TODAY_IDX) cls += " is-today";
+      return `<button class="${cls}" data-idx="${i}" type="button">${d.dow}</button>`;
+    }).join("");
+    ticks.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-idx]");
+      if (b) selectDay(+b.dataset.idx);
+    });
+  }
 
-      chip.innerHTML =
-        `${tag}
-         <span class="dc-dow">${d.dow}</span>
-         <span class="dc-date">${d.date}</span>
-         <span class="dc-temp">${d.highC}°</span>
-         <span class="dc-swatch" style="background:${heatColor(d.highC)}"></span>`;
-      chip.addEventListener("click", () => selectDay(i));
-      tl.appendChild(chip);
+  function updateSlider() {
+    const d = FORECAST[selectedIdx];
+    $("vv-slider").value = selectedIdx;
+    $("vv-slider-day").textContent = `${d.dow} ${d.date}`;
+    const tEl = $("vv-slider-temp");
+    tEl.textContent = `${d.highC}°`;
+    tEl.style.color = heatColor(d.highC);
+
+    const tag = $("vv-slider-tag");
+    if (selectedIdx === F.peakIdx) { tag.className = "dc-tag tag-peak"; tag.textContent = "Peak"; }
+    else if (selectedIdx === F.actByIdx) { tag.className = "dc-tag tag-actby"; tag.textContent = "Act by"; }
+    else if (selectedIdx === TODAY_IDX) { tag.className = "dc-tag tag-today"; tag.textContent = "Today"; }
+    else { tag.className = "dc-tag-empty"; tag.textContent = ""; }
+
+    $("vv-slider-ticks").querySelectorAll("[data-idx]").forEach((b) => {
+      b.classList.toggle("active", +b.dataset.idx === selectedIdx);
     });
   }
 
@@ -244,7 +257,7 @@
     $("vv-priority-day").textContent =
       i === F.peakIdx ? "on the peak day" : `on ${FORECAST[i].dow} ${FORECAST[i].date}`;
     drawHeat();
-    renderTimeline();
+    updateSlider();
     renderPriorities();
   }
 
@@ -271,8 +284,8 @@
     });
   }
 
-  /* ---- Heat legend ---- */
-  function renderLegend() {
+  /* ---- Legend (shown in the Info pop-up) ---- */
+  function legendBody() {
     const steps = [
       { c: "#00C2CB", l: "<21" },
       { c: "#2EC4B6", l: "21" },
@@ -281,9 +294,17 @@
       { c: "#FF4D6D", l: "27" },
       { c: "#F72585", l: "29+" },
     ];
-    $("vv-heat-legend").innerHTML = steps
+    const scale = steps
       .map((s) => `<div class="hl-step"><div class="hl-swatch" style="background:${s.c}"></div><div class="hl-label">${s.l}°</div></div>`)
       .join("");
+    return `
+      <p>Districts are coloured by forecast daily-max temperature.</p>
+      <div class="heat-legend">${scale}</div>
+      <div class="fac-legend">
+        <span class="fac-key"><span class="fac-dot fac-care">🏡</span> Care home</span>
+        <span class="fac-key"><span class="fac-dot fac-preschool">🧸</span> Preschool</span>
+      </div>
+      <p>Temperature is <strong>measured</strong> at SMHI stations, so this is the layer you can lean on. The algae and wildfire layers are <strong>modelled</strong>, inferred rather than observed, and stay off until that is built.</p>`;
   }
 
   /* ---- Layer toggles ---- */
@@ -310,12 +331,10 @@
       body: `<p>The temperatures here are demo data, shaped like what SMHI publishes. There are no live API calls in this prototype.</p>
              <p>In production, Värmevakt reads measured temperature from SMHI stations and forecasts on the same grid the warnings use.</p>`,
     },
-    confidence: {
-      eyebrow: "Why it matters",
-      title: "Measured vs modelled",
-      body: `<p><strong>Temperature is measured.</strong> It comes from SMHI stations, so it is the layer you can act on with confidence.</p>
-             <p><strong>Algae and wildfire are modelled.</strong> They are inferred rather than observed, so they carry more uncertainty. They stay switched off here, marked clearly, until that layer is built.</p>
-             <p>The contrast is the point: an officer should always know how much weight a layer can bear.</p>`,
+    legend: {
+      eyebrow: "Map legend",
+      title: "How to read the map",
+      body: legendBody(),
     },
   };
   function openModal(key) {
@@ -343,11 +362,10 @@
   function boot() {
     if (!$("vv-root")) return;
     renderBanner();
-    renderLegend();
-    renderTimeline();
+    renderSlider();
     wireLayers();
     wireModal();
-    selectDay(selectedIdx); // labels + priorities; drawHeat no-ops until map exists
+    selectDay(selectedIdx); // labels + slider + priorities; drawHeat no-ops until map exists
 
     const heatTab = document.querySelector('.tab[data-screen="heat"]');
     if (!heatTab) return;
