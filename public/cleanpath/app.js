@@ -267,12 +267,12 @@
    * ========================================================== */
 
   const POLLEN_DEMO = [
-    { name: 'Grass',   sv: 'Gräs',    count: 92,  season: true  },
-    { name: 'Mugwort', sv: 'Gråbo',   count: 38,  season: true  },
-    { name: 'Birch',   sv: 'Björk',   count: 6,   season: false },
-    { name: 'Hazel',   sv: 'Hassel',  count: 2,   season: false },
-    { name: 'Alder',   sv: 'Al',      count: 1,   season: false },
-    { name: 'Nettle',  sv: 'Nässla',  count: 14,  season: true  }
+    { name: 'Grass',   sv: 'Gräs',    count: 92,  icon: '🌾' },
+    { name: 'Mugwort', sv: 'Gråbo',   count: 38,  icon: '🌿' },
+    { name: 'Nettle',  sv: 'Nässla',  count: 14,  icon: '🍃' },
+    { name: 'Birch',   sv: 'Björk',   count: 6,   icon: '🌳' },
+    { name: 'Hazel',   sv: 'Hassel',  count: 2,   icon: '🌰' },
+    { name: 'Alder',   sv: 'Al',      count: 1,   icon: '🌱' }
   ];
 
   function pollenBand(count) {
@@ -295,12 +295,14 @@
     grid.innerHTML = types.map(t => {
       const band = pollenBand(t.count);
       const pct  = Math.round((t.count / max) * 100);
+      const icon = t.icon || '🌿';
       return `<div class="pollen-card">
-        <div class="pollen-name">${escapeHtml(t.name)} <span class="pollen-name-sv">${escapeHtml(t.sv)}</span></div>
-        <div class="pollen-level-row">
-          <span class="pollen-count" style="color:${band.color}">${t.count}</span>
-          <span class="pollen-badge ${band.cls}">${band.label}</span>
-        </div>
+        <div class="pollen-card-glow" style="background:radial-gradient(circle at 20% 80%, ${band.color}, transparent 70%)"></div>
+        <span class="pollen-icon">${icon}</span>
+        <div class="pollen-name">${escapeHtml(t.name)}</div>
+        <span class="pollen-name-sv">${escapeHtml(t.sv)}</span>
+        <span class="pollen-count" style="color:${band.color}">${t.count}</span>
+        <span class="pollen-badge ${band.cls}">${band.label}</span>
         <div class="pollen-bar-track">
           <div class="pollen-bar-fill" style="width:${pct}%;background:${band.color}"></div>
         </div>
