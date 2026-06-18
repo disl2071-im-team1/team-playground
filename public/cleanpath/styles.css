@@ -2057,6 +2057,104 @@ textarea.dp-input { resize: vertical; }
   min-height: 14px; line-height: 1.4;
 }
 
+/* Pollen strip */
+.pollen-strip {
+  margin-top: 12px;
+}
+
+.pollen-strip-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.pollen-strip-sub {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+.pollen-source-link {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.pollen-source-link:hover {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.pollen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.pollen-card {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.pollen-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.pollen-name-sv {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.pollen-level-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.pollen-count {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.pollen-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.pollen-badge-none    { background: var(--bg-primary); color: var(--text-tertiary); }
+.pollen-badge-low     { background: var(--green-soft); color: var(--green-dark); }
+.pollen-badge-mod     { background: #FFF4E2; color: #8A560B; }
+.pollen-badge-high    { background: var(--red-soft); color: var(--red-dark); }
+.pollen-badge-vhigh   { background: #501313; color: #FDE8E8; }
+
+.pollen-bar-track {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.pollen-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
 /* Vulnerable-site pin (heat) */
 .vuln-pin {
   color: #A32D2D;
