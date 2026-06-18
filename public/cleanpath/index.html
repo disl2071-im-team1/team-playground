@@ -50,23 +50,35 @@
       </div>
     </div>
 
+    <!-- Air quality situation hero — visible only on Air tab -->
+    <div class="aq-hero card" id="aq-hero" style="display:none">
+      <div class="aq-hero-left">
+        <div class="aq-hero-level" id="aq-hero-level">—</div>
+        <div class="aq-hero-headline" id="aq-hero-headline">Loading air quality data…</div>
+        <div class="aq-hero-breakdown" id="aq-hero-breakdown"></div>
+      </div>
+      <div class="aq-hero-right">
+        <div class="aq-hero-verdict" id="aq-hero-verdict"></div>
+      </div>
+    </div>
+
     <div class="shell-grid">
 
       <!-- Map shell (dominant). Legend + layers panel are Leaflet controls added in JS. -->
       <section class="card map-card">
         <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Stockholm hazard map"></div>
 
-        <div class="source-line" id="source-line">Sources: —</div>
-
-        <!-- Provenance & confidence: the measured/modelled mix for this hazard -->
-        <div class="provenance-bar" id="provenance-bar">
-          <span class="prov-label">Provenance</span>
-          <span class="prov-text" id="provenance-text">—</span>
-          <span class="prov-confidence" id="provenance-confidence">—</span>
-        </div>
-
-        <!-- Live source status (air uses these; others show their layer status) -->
-        <div class="map-status" id="layer-status"></div>
+        <!-- Collapsible technical details -->
+        <details class="map-details">
+          <summary>Data sources &amp; provenance</summary>
+          <div class="source-line" id="source-line">Sources: —</div>
+          <div class="provenance-bar" id="provenance-bar">
+            <span class="prov-label">Provenance</span>
+            <span class="prov-text" id="provenance-text">—</span>
+            <span class="prov-confidence" id="provenance-confidence">—</span>
+          </div>
+          <div class="map-status" id="layer-status"></div>
+        </details>
 
         <div class="slider-row">
           <span class="slider-time">14:00</span>
@@ -89,6 +101,18 @@
       </aside>
 
     </div>
+
+    <!-- Pollen strip — Air tab only, hidden for other hazards -->
+    <section class="pollen-strip" id="pollen-strip" style="display:none">
+      <div class="pollen-strip-head">
+        <div>
+          <div class="pollen-strip-title">Pollen · Stockholm</div>
+          <div class="pollen-strip-sub" id="pollen-updated">demo data</div>
+        </div>
+        <a class="pollen-source-link" href="https://www.pollenrapporten.se" target="_blank" rel="noopener">pollenrapporten.se ↗</a>
+      </div>
+      <div class="pollen-scroll" id="pollen-grid"></div>
+    </section>
 
     <footer class="app-footer">
       Clean Path · municipal monitoring shell. One shell, four hazards. Every reading is source-tagged; modelled and placeholder data are labelled, never shown as measurement.
