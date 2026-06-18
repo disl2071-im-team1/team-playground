@@ -3,16 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clean Path · Stockholm</title>
-  <meta name="description" content="Map your route by air, not just by time. A privacy-first navigation prototype for Stockholm, built on a mesh of environmental sensors." />
-  <meta property="og:title" content="Clean Path · Stockholm" />
-  <meta property="og:description" content="Map your route by air, not just by time." />
+  <title>Clean Path · Stockholm municipal monitor</title>
+  <meta name="description" content="Municipal multi-hazard monitoring shell for Stockholm: air, algae, fire and heat decision surfaces, each source-tagged and honest about provenance." />
+  <meta property="og:title" content="Clean Path · Stockholm municipal monitor" />
   <meta property="og:type" content="website" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230F6E56'/%3E%3Cpath d='M25 55 Q40 35 55 50 T80 45' stroke='white' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" defer></script>
@@ -20,6 +16,7 @@
 <body>
   <main class="app">
 
+    <!-- Shared shell header: brand + tab bar + live status. Identical on every hazard. -->
     <header class="app-header">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">
@@ -30,727 +27,74 @@
         </div>
         <div>
           <div class="brand-name">Clean Path</div>
-          <div class="brand-sub">Stockholm · prototype v0.3</div>
+          <div class="brand-sub">Stockholm · municipal monitor</div>
         </div>
       </div>
-      <nav class="tabs" role="tablist">
-        <button class="tab active" data-screen="map" role="tab" aria-selected="true">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
-          Map
-        </button>
-        <button class="tab" data-screen="heat" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0z"/></svg>
-          Heat
-        </button>
-        <button class="tab" data-screen="mesh" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="6" y2="17"/><line x1="12" y1="7" x2="18" y2="17"/><line x1="7" y1="19" x2="17" y2="19"/></svg>
-          Network
-        </button>
-        <button class="tab" data-screen="profile" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19 a6 6 0 0 1 11 0"/></svg>
-          Profile
-        </button>
-        <button class="tab" data-screen="forecast" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Forecast
-        </button>
-        <button class="tab" data-screen="calm" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M6 8 Q6 14 12 14 T18 16"/></svg>
-          Calm Route
-        </button>
+      <nav class="tabs" id="hazard-tabs" role="tablist">
+        <button class="tab active" data-hazard="air" role="tab" aria-selected="true">Air</button>
+        <button class="tab" data-hazard="algae" role="tab" aria-selected="false">Algae</button>
+        <button class="tab" data-hazard="fire" role="tab" aria-selected="false">Fire</button>
+        <button class="tab" data-hazard="heat" role="tab" aria-selected="false">Heat</button>
       </nav>
     </header>
 
-    <section class="screen active" id="screen-map" role="tabpanel">
-
-      <div class="screen-head">
-        <div>
-          <div class="eyebrow">Today's route</div>
-          <h2>Map your route by air, not just by time</h2>
-        </div>
-        <div class="status">
-          <span class="status-dot"></span>
-          Live · <span id="time-label">14:32</span>
-        </div>
+    <!-- Decision-verb title + live status (verb swaps per hazard) -->
+    <div class="screen-head">
+      <div>
+        <div class="eyebrow" id="hazard-eyebrow">Decision surface</div>
+        <h2 id="hazard-verb">—</h2>
       </div>
-
-      <div class="map-grid">
-
-        <div class="card map-card">
-          <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Central Stockholm air quality map with route from Centralstation to Skanstull"></div>
-
-          <div class="map-status">
-            <div class="map-status-item" id="status-stations">
-              <span class="status-dot pending"></span>
-              <span class="status-label">WAQI stations</span>
-              <span class="status-detail" id="status-stations-detail">loading…</span>
-            </div>
-            <div class="map-status-item" id="status-integration">
-              <span class="status-dot pending"></span>
-              <span class="status-label">Integration layer</span>
-              <span class="status-detail" id="status-integration-detail">loading…</span>
-            </div>
-            <div class="map-status-item" id="status-cams">
-              <span class="status-dot pending"></span>
-              <span class="status-label">Copernicus CAMS</span>
-              <span class="status-detail" id="status-cams-detail">loading…</span>
-            </div>
-          </div>
-
-          <div class="slider-row">
-            <span class="slider-time" id="slider-time">14:00</span>
-            <input type="range" id="time-slider" min="0" max="23" value="14" step="1" aria-label="Forecast hour"/>
-            <span class="slider-period" id="period-label">Afternoon</span>
-          </div>
-        </div>
-
-        <aside class="route-panel">
-          <div class="route-meta">
-            <div class="route-meta-label">Route</div>
-            <div class="route-meta-name">Centralstation → Skanstull</div>
-            <div class="route-meta-sub">Cycling · via Söder Mälarstrand</div>
-          </div>
-
-          <button class="route-card route-fast" id="route-fast" data-info="fast">
-            <div class="route-card-head">
-              <span class="route-card-label red">Fastest</span>
-              <span class="route-card-meta">18 min</span>
-            </div>
-            <div class="route-card-score">
-              <span class="rf-score">72</span>
-              <span class="route-card-unit">/100 exposure</span>
-            </div>
-            <div class="bar-track red-track"><div class="rf-bar" style="width: 72%;"></div></div>
-            <div class="route-card-via">via Centralbron, Götgatan</div>
-          </button>
-
-          <button class="route-card route-clean" id="route-clean" data-info="clean">
-            <div class="route-card-head">
-              <span class="route-card-label green">Cleanest</span>
-              <span class="route-card-meta">23 min · +5</span>
-            </div>
-            <div class="route-card-score">
-              <span class="rc-score">31</span>
-              <span class="route-card-unit">/100 exposure</span>
-            </div>
-            <div class="bar-track green-track"><div class="rc-bar" style="width: 31%;"></div></div>
-            <div class="route-card-via">via Riddarholmen, Söder Mälarstrand</div>
-          </button>
-
-          <div class="advice-box">
-            <div class="advice-label">For you</div>
-            <div id="advice">The cleanest route avoids the Centralbron traffic peak and cuts your exposure by more than half. Worth the extra 5 minutes.</div>
-          </div>
-        </aside>
+      <div class="status">
+        <span class="status-dot"></span>
+        Live · <span id="shell-clock">14:00</span>
       </div>
-    </section>
+    </div>
 
-    <section class="screen" id="screen-mesh" role="tabpanel">
+    <div class="shell-grid">
 
-      <div class="screen-head">
-        <div>
-          <div class="eyebrow">Architecture</div>
-          <h2>Sensors read the air. The mesh reads itself.</h2>
-        </div>
-        <div class="pill green-pill">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L20 6 V12 a8 8 0 0 1 -8 8 a8 8 0 0 1 -8 -8 V6 Z"/><polyline points="9 12 11 14 15 10"/></svg>
-          Zero personal data
-        </div>
-      </div>
+      <!-- Map shell (dominant). Legend + layers panel are Leaflet controls added in JS. -->
+      <section class="card map-card">
+        <div id="leaflet-map" class="leaflet-map" role="img" aria-label="Stockholm hazard map"></div>
 
-      <!-- Data-reality layer: the same air, measured three ways -->
-      <div class="section-label">The same air, measured three ways</div>
-      <div class="card">
-        <p class="dr-intro">PM10 in central Stockholm, the most recent reading from three independent sources. Look at the numbers before you read why.</p>
-        <div class="dr-cards" id="data-reality-cards">
-          <div class="dr-empty">Loading live readings…</div>
-        </div>
-        <div class="dr-notes" id="data-reality-notes"></div>
-        <p class="dr-takeaway">
-          Three readings of the same air, and they don't agree, one isn't even a concentration.
-          There is no single true air-quality number: who measured it, with what instrument, and on what scale all change the answer.
-          An AQI index is not µg/m³, so you can't read these as one figure or compare them directly. The source matters as much as the number.
-        </p>
-      </div>
+        <div class="source-line" id="source-line">Sources: —</div>
 
-      <div class="section-label">How the data moves</div>
-
-      <div class="card">
-        <svg class="mesh-svg" viewBox="0 0 656 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three air-quality sources are polled hourly by the integration layer, normalised into one append-only store, and served through a read API to this app">
-          <defs>
-            <pattern id="me-dotgrid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="0.6" fill="rgba(0,0,0,0.06)"/>
-            </pattern>
-            <marker id="me-arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path d="M0 0 L10 5 L0 10 z" fill="#5F5E5A"/>
-            </marker>
-          </defs>
-
-          <rect width="656" height="340" fill="url(#me-dotgrid)"/>
-
-          <!-- Three real sources (left), colored by source -->
-          <g font-size="11">
-            <g>
-              <rect x="20" y="70" width="156" height="48" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.1)"/>
-              <rect x="20" y="70" width="5" height="48" rx="2" fill="#534AB7"/>
-              <text x="36" y="92" font-weight="600" fill="#534AB7">SMHI</text>
-              <text x="36" y="107" font-size="9" fill="#5F5E5A">official agency · 5 stations</text>
-            </g>
-            <g>
-              <rect x="20" y="146" width="156" height="48" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.1)"/>
-              <rect x="20" y="146" width="5" height="48" rx="2" fill="#E07B00"/>
-              <text x="36" y="168" font-weight="600" fill="#E07B00">WAQI</text>
-              <text x="36" y="183" font-size="9" fill="#5F5E5A">aggregator · 1 station</text>
-            </g>
-            <g>
-              <rect x="20" y="222" width="156" height="48" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.1)"/>
-              <rect x="20" y="222" width="5" height="48" rx="2" fill="#0F6E56"/>
-              <text x="36" y="244" font-weight="600" fill="#0F6E56">luftdaten</text>
-              <text x="36" y="259" font-size="9" fill="#5F5E5A">citizen · 17 sensors</text>
-            </g>
-          </g>
-
-          <!-- Sources are polled by the integration layer (arrows converge) -->
-          <g stroke="#5F5E5A" stroke-width="1.5" fill="none" opacity="0.75">
-            <path d="M176 94 C 214 94, 218 150, 250 166" marker-end="url(#me-arr)"/>
-            <path d="M176 170 L 246 170" marker-end="url(#me-arr)"/>
-            <path d="M176 246 C 214 246, 218 190, 250 176" marker-end="url(#me-arr)"/>
-          </g>
-          <text x="182" y="50" font-size="9" fill="#87857F">polled hourly over the internet</text>
-
-          <!-- Integration layer: central, in the path -->
-          <g>
-            <rect x="250" y="138" width="162" height="66" rx="8" fill="#F1EFE8" stroke="#2C2C2A" stroke-width="2"/>
-            <text x="331" y="161" text-anchor="middle" font-size="12" font-weight="600" fill="#2C2C2A">Integration layer</text>
-            <text x="331" y="177" text-anchor="middle" font-size="9" fill="#5F5E5A">poll → normalise → append</text>
-            <text x="331" y="191" text-anchor="middle" font-size="8" fill="#A32D2D">central server · in the path</text>
-          </g>
-
-          <!-- Integration layer -> append-only store -->
-          <line x1="412" y1="171" x2="442" y2="171" stroke="#5F5E5A" stroke-width="1.5" opacity="0.75" marker-end="url(#me-arr)"/>
-
-          <g>
-            <rect x="444" y="144" width="124" height="54" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.12)"/>
-            <text x="506" y="166" text-anchor="middle" font-size="11" font-weight="600" fill="#2C2C2A">Append-only store</text>
-            <text x="506" y="181" text-anchor="middle" font-size="9" fill="#5F5E5A">data branch</text>
-          </g>
-
-          <!-- Store -> read API -> this app -->
-          <path d="M506 198 L 506 250" stroke="#5F5E5A" stroke-width="1.5" opacity="0.75" fill="none" marker-end="url(#me-arr)"/>
-          <g>
-            <rect x="430" y="252" width="152" height="50" rx="6" fill="#FFFFFF" stroke="rgba(0,0,0,0.12)"/>
-            <text x="506" y="272" text-anchor="middle" font-size="11" font-weight="600" fill="#2C2C2A">Read API</text>
-            <text x="506" y="287" text-anchor="middle" font-size="9" fill="#5F5E5A">→ Clean Path (this app)</text>
-          </g>
-        </svg>
-
-        <div class="mesh-caption">
-          Three independent sensor networks, SMHI (official), WAQI (commercial), and luftdaten (citizen), are polled over the internet once an hour by the integration layer. It normalises every reading to one schema, appends it to a shared append-only store (the data branch), and serves it through a read API that this app reads. The integration layer is a central server, and it is in the path: it is the core of the flow. There is no mesh, no phone, and no on-device routing in this prototype.
-        </div>
-      </div>
-
-      <div class="section-label">What flows where</div>
-      <div class="flow-grid">
-        <div class="flow-card">
-          <div class="flow-head green"><span class="dot dot-green"></span>Each reading carries</div>
-          <div class="flow-body">source, metric, value, unit, station, lat/lon, timestamp.</div>
-        </div>
-        <div class="flow-card">
-          <div class="flow-head purple"><span class="dot dot-purple"></span>The integration layer</div>
-          <div class="flow-body">Polls hourly, normalises to one schema, appends to the store. Keeps every reading.</div>
-        </div>
-        <div class="flow-card">
-          <div class="flow-head red"><span class="dot dot-red"></span>This app</div>
-          <div class="flow-body">Reads the API and shows the latest per station. No accounts, no phone, no trip history.</div>
-        </div>
-      </div>
-
-      <div class="section-label">Data quality &amp; limits · click to explore</div>
-      <div class="threat-grid">
-        <button class="threat-card" data-info="arch-sources">
-          <div class="threat-title">Three sources, three answers</div>
-          <div class="threat-sub">Different numbers, different units. ↗</div>
-        </button>
-        <button class="threat-card" data-info="arch-outliers">
-          <div class="threat-title">Outliers are kept, not hidden</div>
-          <div class="threat-sub">Flagged with a note, never auto-dropped. ↗</div>
-        </button>
-        <button class="threat-card" data-info="arch-prototype">
-          <div class="threat-title">A prototype, not a product</div>
-          <div class="threat-sub">Hourly polls of public APIs. ↗</div>
-        </button>
-      </div>
-    </section>
-
-    <!-- === Pablo Santos — Forecast Tab === -->
-    <section class="screen" id="screen-forecast" role="tabpanel">
-
-      <div class="screen-head">
-        <div>
-          <div class="eyebrow">7-day outlook</div>
-          <h2>Air quality forecast for your route</h2>
-        </div>
-        <div class="status">
-          <span class="status-dot" id="forecast-status-dot"></span>
-          <span id="forecast-source-label">Loading…</span>
-        </div>
-      </div>
-
-      <!-- Weekly bar chart -->
-      <div class="card forecast-week-card">
-        <div class="forecast-week-head">
-          <span class="card-title">Weekly AQI⁺ forecast</span>
-          <span class="card-meta" id="forecast-updated"></span>
-        </div>
-        <div class="forecast-week-grid" id="forecast-week-grid">
-          <!-- populated by JS -->
-        </div>
-        <div class="forecast-week-legend">
-          <span class="forecast-legend-item"><span class="forecast-legend-swatch" style="background:#1D9E75"></span>Low (0–33)</span>
-          <span class="forecast-legend-item"><span class="forecast-legend-swatch" style="background:#EF9F27"></span>Moderate (34–66)</span>
-          <span class="forecast-legend-item"><span class="forecast-legend-swatch" style="background:#E24B4A"></span>High (67–100)</span>
-        </div>
-      </div>
-
-      <!-- 24-hour detail panel -->
-      <div class="card forecast-detail-card" id="forecast-detail-card">
-        <div class="forecast-detail-head">
-          <span class="card-title" id="forecast-detail-title">Select a day</span>
-          <span class="card-meta">Hourly AQI⁺</span>
-        </div>
-        <div class="forecast-hourly-bars" id="forecast-hourly-bars">
-          <!-- populated by JS -->
-        </div>
-        <div class="forecast-hourly-axis">
-          <span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span>
-        </div>
-      </div>
-
-      <!-- Conditions summary -->
-      <div class="card forecast-summary-card" id="forecast-summary-card">
-        <div class="forecast-summary-head">
-          <span class="card-title">Conditions summary</span>
-        </div>
-        <div class="forecast-summary-body" id="forecast-summary-body">
-          <!-- populated by JS -->
-        </div>
-      </div>
-
-      <!-- Data source note -->
-      <div class="forecast-source-note">
-        Forecast derived from Copernicus CAMS and SMHI data via the integration layer · refreshed hourly · values are AQI⁺ (0–100 normalised index)
-      </div>
-
-    </section>
-    <!-- === end Forecast Tab === -->
-
-    <section class="screen" id="screen-profile" role="tabpanel">
-
-      <div class="screen-head">
-        <div>
-          <div class="eyebrow">My profile</div>
-          <h2>Your air, your patterns, your phone</h2>
-        </div>
-        <div class="status status-muted">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-          Computed on your phone
-        </div>
-      </div>
-
-      <div class="card profile-card">
-        <div class="avatar">SR</div>
-        <div class="profile-meta">
-          <div class="profile-name">Sam Reyes</div>
-          <div class="profile-sub">Södermalm · cycles to Skanstull · mild asthma</div>
-          <div class="chips">
-            <span class="chip chip-green">Prefers cleanest</span>
-            <span class="chip chip-blue">Cycling</span>
-            <span class="chip chip-grey">Anonymous ID</span>
-          </div>
-        </div>
-        <button class="edit-btn" data-info="profile-edit">Edit</button>
-      </div>
-
-      <div class="profile-grid">
-
-        <div class="card ring-card">
-          <div class="ring-date">Thursday, 14 May</div>
-          <svg class="ring-svg" width="140" height="140" viewBox="0 0 120 120" role="img" aria-label="Today's exposure ring at 38 of 100">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bg-secondary)" stroke-width="10"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#1D9E75" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="195" transform="rotate(-90 60 60)" class="ring-anim"/>
-            <text x="60" y="58" text-anchor="middle" font-size="26" font-weight="500" fill="var(--text-primary)">38</text>
-            <text x="60" y="74" text-anchor="middle" font-size="9" fill="var(--text-secondary)">of 100</text>
-          </svg>
-          <div class="ring-status">Below your average</div>
-          <div class="ring-note">You took Söder Mälarstrand<br/>instead of Centralbron.</div>
-          <div class="ring-stats">
-            <div>
-              <div class="stat-label">vs yesterday</div>
-              <div class="stat-value green">−24%</div>
-            </div>
-            <div>
-              <div class="stat-label">vs Stockholm</div>
-              <div class="stat-value green">−41%</div>
-            </div>
-          </div>
+        <!-- Provenance & confidence: the measured/modelled mix for this hazard -->
+        <div class="provenance-bar" id="provenance-bar">
+          <span class="prov-label">Provenance</span>
+          <span class="prov-text" id="provenance-text">—</span>
+          <span class="prov-confidence" id="provenance-confidence">—</span>
         </div>
 
-        <div class="card hourly-card">
-          <div class="card-head">
-            <span class="card-title">Today, hour by hour</span>
-            <span class="card-meta">PM2.5 µg/m³</span>
-          </div>
-          <div class="bars">
-            <div class="hbar" style="height: 18%; background: #97C459;" title="06:00 · home"></div>
-            <div class="hbar" style="height: 22%; background: #97C459;" title="07:00 · home"></div>
-            <div class="hbar" style="height: 75%; background: #E24B4A;" title="08:00 · Centralbron commute"></div>
-            <div class="hbar" style="height: 32%; background: #FAC775;" title="09:00 · Skanstull office"></div>
-            <div class="hbar" style="height: 28%; background: #FAC775;" title="10:00 · office"></div>
-            <div class="hbar" style="height: 26%; background: #FAC775;" title="11:00 · office"></div>
-            <div class="hbar" style="height: 30%; background: #FAC775;" title="12:00 · lunch walk"></div>
-            <div class="hbar" style="height: 42%; background: #EF9F27;" title="13:00 · Skanstull"></div>
-            <div class="hbar" style="height: 28%; background: #FAC775;" title="14:00 · office"></div>
-            <div class="hbar" style="height: 26%; background: #FAC775;" title="15:00 · office"></div>
-            <div class="hbar" style="height: 24%; background: #FAC775;" title="16:00 · office"></div>
-            <div class="hbar" style="height: 35%; background: #FAC775;" title="17:00 · office"></div>
-            <div class="hbar" style="height: 38%; background: #FAC775;" title="18:00 · Söder Mälarstrand route"></div>
-            <div class="hbar" style="height: 22%; background: #97C459;" title="19:00 · home"></div>
-            <div class="hbar" style="height: 18%; background: #97C459;" title="20:00 · home"></div>
-            <div class="hbar" style="height: 16%; background: #97C459;" title="21:00 · home"></div>
-          </div>
-          <div class="bars-axis">
-            <span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span>
-          </div>
-          <div class="hourly-alert">
-            <span class="alert-text"><strong>08:00 on Centralbron</strong> accounts for 41% of today. Leave 20 min earlier — the peak passes by 08:30.</span>
-          </div>
+        <!-- Live source status (air uses these; others show their layer status) -->
+        <div class="map-status" id="layer-status"></div>
+
+        <div class="slider-row">
+          <span class="slider-time">14:00</span>
+          <input type="range" id="time-slider" min="0" max="12" value="0" step="1" aria-label="Forecast lead hour"/>
+          <span class="slider-period" id="slider-period">now → forecast</span>
         </div>
-      </div>
+      </section>
 
-      <div class="card week-card">
-        <div class="card-head">
-          <span class="card-title">This week</span>
-          <button class="text-btn" data-info="trend">Explain this trend ↗</button>
+      <!-- Decision panel (per-hazard fields + two action verbs + export) -->
+      <aside class="card decision-panel">
+        <div class="eyebrow">Officer decision</div>
+        <h3 id="decision-title">—</h3>
+        <div id="decision-fields" class="decision-fields"></div>
+        <div class="decision-actions">
+          <button class="dp-btn dp-btn-primary" id="action-primary" type="button">—</button>
+          <button class="dp-btn dp-btn-secondary" id="action-secondary" type="button">—</button>
         </div>
-        <div class="week-grid">
-          <div class="day"><div class="day-label">Fri</div><div class="day-bar" style="background: #EF9F27;"><span>61</span></div></div>
-          <div class="day"><div class="day-label">Sat</div><div class="day-bar" style="background: #C0DD97;"><span>22</span></div></div>
-          <div class="day"><div class="day-label">Sun</div><div class="day-bar" style="background: #C0DD97;"><span>18</span></div></div>
-          <div class="day"><div class="day-label">Mon</div><div class="day-bar" style="background: #EF9F27;"><span>58</span></div></div>
-          <div class="day"><div class="day-label">Tue</div><div class="day-bar" style="background: #E24B4A;"><span>74</span></div></div>
-          <div class="day"><div class="day-label">Wed</div><div class="day-bar" style="background: #EF9F27;"><span>50</span></div></div>
-          <div class="day"><div class="day-label active">Thu</div><div class="day-bar active-bar" style="background: #97C459;"><span>38</span></div></div>
-        </div>
-        <div class="week-stats">
-          <div class="stat-pill"><div class="stat-pill-label">Weekly avg</div><div class="stat-pill-value">46</div></div>
-          <div class="stat-pill"><div class="stat-pill-label">Cleanest day</div><div class="stat-pill-value">Sunday</div></div>
-          <div class="stat-pill"><div class="stat-pill-label">Clean routes</div><div class="stat-pill-value">4 of 7</div></div>
-        </div>
-      </div>
+        <button class="dp-export" id="export-report" type="button">⤓ Export source-tagged report</button>
+        <div class="dp-receipt" id="decision-receipt" aria-live="polite"></div>
+      </aside>
 
-      <div class="card calm-prefs-card">
-        <div class="card-head">
-          <span class="card-title">Calm Route preferences</span>
-          <span class="card-meta">on-device only</span>
-        </div>
-        <p class="calm-prefs-intro">Tell Clean Path what "calm" means for you. These weights shape every Calm Route you request.</p>
-
-        <div class="pref-row">
-          <div class="pref-label">
-            <span class="pref-name">Cleaner air</span>
-            <span class="pref-value" id="pref-air-val">70</span>
-          </div>
-          <input type="range" class="pref-slider" id="pref-air" min="0" max="100" step="1" value="70" aria-label="Cleaner air weight"/>
-          <div class="pref-foot">Driven by live PM readings from SMHI, WAQI and luftdaten.</div>
-        </div>
-
-        <div class="pref-row">
-          <div class="pref-label">
-            <span class="pref-name">Quieter streets <span class="sim-tag">simulated</span></span>
-            <span class="pref-value" id="pref-noise-val">50</span>
-          </div>
-          <input type="range" class="pref-slider" id="pref-noise" min="0" max="100" step="1" value="50" aria-label="Quieter streets weight"/>
-          <div class="pref-foot">No noise sensors wired in yet. Treated as a flat baseline.</div>
-        </div>
-
-        <div class="pref-row">
-          <div class="pref-label">
-            <span class="pref-name">Less crowding <span class="sim-tag">simulated</span></span>
-            <span class="pref-value" id="pref-crowd-val">30</span>
-          </div>
-          <input type="range" class="pref-slider" id="pref-crowd" min="0" max="100" step="1" value="30" aria-label="Less crowding weight"/>
-          <div class="pref-foot">No pedestrian counters wired in yet. Treated as a flat baseline.</div>
-        </div>
-
-        <div class="pref-conditions">
-          <div class="pref-conditions-label">Conditions (optional, stays on device)</div>
-          <label class="pref-toggle">
-            <input type="checkbox" id="pref-asthma"/>
-            <span>Asthma <span class="pref-toggle-note">+30 to air weight</span></span>
-          </label>
-          <label class="pref-toggle">
-            <input type="checkbox" id="pref-pollen"/>
-            <span>Pollen allergy <span class="pref-toggle-note">+20 to air weight</span></span>
-          </label>
-        </div>
-
-        <div class="pref-privacy">
-          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 v3"/></svg>
-          Stays on this device. Never uploaded.
-        </div>
-      </div>
-
-      <div class="gentle-note">
-        <strong>Gentle note.</strong> These numbers show what the air around you was like — not a diagnosis. One bad commute won't hurt you. The point is patterns, not anxiety.
-      </div>
-
-      <div class="actions">
-        <button class="action-btn" data-info="context">
-          <div class="action-title">Compare to safe limits ↗</div>
-          <div class="action-sub">What does 38 mean?</div>
-        </button>
-        <button class="action-btn" data-info="improve">
-          <div class="action-title">How to lower this ↗</div>
-          <div class="action-sub">Realistic next steps</div>
-        </button>
-        <button class="action-btn" data-info="share">
-          <div class="action-title">Share with GP ↗</div>
-          <div class="action-sub">Export, don't sync</div>
-        </button>
-      </div>
-    </section>
-
-    <section class="screen" id="screen-calm" role="tabpanel">
-
-      <div class="screen-head">
-        <div>
-          <div class="eyebrow">Calm Route</div>
-          <h2>A route shaped by your weights and the live air</h2>
-        </div>
-        <div class="status status-muted">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-          Computed on your phone
-        </div>
-      </div>
-
-      <div class="season-banner" id="season-banner">
-        <span class="season-badge" id="season-badge">LIVE</span>
-        <span class="season-text" id="season-text">Loading season context…</span>
-      </div>
-
-      <div class="card calm-card">
-        <div class="card-head">
-          <span class="card-title">Where to?</span>
-          <span class="card-meta">from Centralstation</span>
-        </div>
-        <p class="calm-intro">Pick a district. We'll ask the integration layer for sector-level air and weigh it against your profile, on this device.</p>
-
-        <div class="sector-picker" id="sector-picker" role="listbox" aria-label="Choose destination district"></div>
-
-        <div class="calm-actions">
-          <button class="calm-go-btn" id="calm-go-btn" disabled>
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 H19"/><polyline points="13 6 19 12 13 18"/></svg>
-            Find calm route
-          </button>
-          <span class="calm-hint" id="calm-hint">Choose a destination to begin.</span>
-        </div>
-      </div>
-
-      <div class="calm-animation" id="calm-animation" hidden>
-        <div class="anim-narration" id="anim-narration"></div>
-        <div class="sector-grid" id="sector-grid"></div>
-      </div>
-
-      <div class="calm-results" id="calm-results" hidden>
-        <div class="section-label">Two routes, scored on your weights</div>
-        <div class="calm-results-grid">
-
-          <div class="card route-result route-result-calm">
-            <div class="route-result-head">
-              <span class="route-card-label green">Calm</span>
-              <span class="route-card-meta" id="calm-eta">+0 min vs fastest</span>
-            </div>
-            <div class="route-result-score">
-              <span class="route-result-num" id="calm-score">—</span>
-              <span class="route-card-unit">/100 calm cost (lower is calmer)</span>
-            </div>
-            <div class="bar-track green-track"><div class="rc-bar" id="calm-bar" style="width: 0%;"></div></div>
-            <div class="route-result-break" id="calm-break"></div>
-            <div class="route-result-foot">Computed on this device from your profile weights × sector values.</div>
-          </div>
-
-          <div class="card route-result route-result-fast">
-            <div class="route-result-head">
-              <span class="route-card-label red">Fastest</span>
-              <span class="route-card-meta">18 min</span>
-            </div>
-            <div class="route-result-score">
-              <span class="route-result-num">72</span>
-              <span class="route-card-unit">/100 calm cost</span>
-            </div>
-            <div class="bar-track red-track"><div class="rf-bar" style="width: 72%;"></div></div>
-            <div class="route-result-break">
-              <span class="break-pill">Air <em>real</em></span>
-              <span class="break-pill">Noise <em>sim</em></span>
-              <span class="break-pill">Crowd <em>sim</em></span>
-              <span class="break-pill">via Centralbron</span>
-            </div>
-            <div class="route-result-foot">Same fastest route as the map view.</div>
-          </div>
-        </div>
-
-        <div class="privacy-receipt">
-          <div class="privacy-receipt-head">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11 V8 a4 4 0 0 1 8 0 v3"/></svg>
-            Privacy receipt
-          </div>
-          <div class="privacy-receipt-body">
-            <div><strong>Stored about you:</strong> nothing.</div>
-            <div><strong>The city saw:</strong> <span id="receipt-requests">7</span> sector requests · no identity · no origin · no destination.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="screen" id="screen-heat" role="tabpanel">
-      <div class="screen-head">
-        <div>
-          <div class="eyebrow">Measured layer · high confidence</div>
-          <h2>Heat plan · for municipalities</h2>
-        </div>
-        <div class="status status-muted">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13.5V5a2 2 0 0 1 4 0v8.5a4 4 0 1 1-4 0z"/></svg>
-          Värmevakt by Nimbus Väder
-        </div>
-      </div>
-      <p class="heat-intro">Where Clean Path serves a resident, Värmevakt serves a city officer. Temperature is measured at SMHI stations, so this is the layer they can act on, a deliberate contrast to the modelled algae and fire layers.</p>
-
-      <div class="vv" id="vv-root">
-        <div class="vv-app">
-
-          <div class="vv-bar">
-            <div class="vv-brand">
-              <div class="vv-sun-mark" aria-hidden="true">
-                <svg viewBox="0 0 48 48" width="36" height="36">
-                  <circle cx="24" cy="26" r="11" fill="var(--yellow)"/>
-                  <g stroke="var(--orange)" stroke-width="3" stroke-linecap="round">
-                    <line x1="8" y1="40" x2="40" y2="40"/><line x1="13" y1="34" x2="35" y2="34"/>
-                  </g>
-                </svg>
-              </div>
-              <div>
-                <div class="vv-brand-name">VÄRMEVAKT</div>
-                <div class="vv-brand-sub">by Nimbus Väder · a meteorological station, for municipalities</div>
-              </div>
-            </div>
-            <div class="vv-brand" style="gap:8px">
-              <div class="vv-muni-pill">📍 Stockholm</div>
-              <div class="vv-demo-pill" data-vv-info="demo">demo data ⓘ</div>
-            </div>
-          </div>
-
-          <section class="trigger-banner" id="vv-trigger-banner" aria-live="polite">
-            <div class="trigger-sun" aria-hidden="true">
-              <svg viewBox="0 0 48 48" width="34" height="34">
-                <circle cx="24" cy="24" r="13" fill="var(--orange)"/>
-                <g stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round">
-                  <line x1="24" y1="3" x2="24" y2="9"/><line x1="24" y1="39" x2="24" y2="45"/>
-                  <line x1="3" y1="24" x2="9" y2="24"/><line x1="39" y1="24" x2="45" y2="24"/>
-                  <line x1="9" y1="9" x2="13" y2="13"/><line x1="35" y1="35" x2="39" y2="39"/>
-                  <line x1="39" y1="9" x2="35" y2="13"/><line x1="13" y1="35" x2="9" y2="39"/>
-                </g>
-              </svg>
-            </div>
-            <div class="trigger-text">
-              <div class="trigger-eyebrow" id="vv-trigger-eyebrow">SMHI värmebölja warning</div>
-              <div class="trigger-title" id="vv-trigger-title">Loading forecast…</div>
-              <div class="trigger-detail" id="vv-trigger-detail"></div>
-            </div>
-            <div class="trigger-actby" id="vv-trigger-actby"></div>
-          </section>
-
-          <div class="vv-grid">
-
-            <aside class="vv-panel">
-              <div class="vv-panel-head">
-                <div class="vv-eyebrow">Coolest → warmest</div>
-                <h2 class="vv-card-title">Priority areas</h2>
-                <p class="priority-intro">Districts by forecast temperature, <span id="vv-priority-day">on the peak day</span>.</p>
-              </div>
-              <ul class="priority-list" id="vv-priority-list"></ul>
-            </aside>
-
-            <section class="vv-card">
-              <div class="vv-card-head">
-                <div>
-                  <div class="vv-eyebrow">Forecast heat · <span id="vv-map-day-label">—</span></div>
-                  <h2 class="vv-card-title">Where the heat lands</h2>
-                </div>
-                <button class="vv-text-btn" data-vv-info="legend">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="8" r="0.6" fill="currentColor"/></svg>
-                  How to read the map
-                </button>
-              </div>
-
-              <div id="vv-map" class="leaflet-map" role="img" aria-label="Map of Stockholm districts coloured by forecast temperature, with care homes and preschools marked"></div>
-
-              <div class="layer-row" id="vv-layer-row">
-                <button class="layer-toggle on" data-layer="heat"><span class="layer-name">🌡 Heat</span><span class="chip chip-measured">measured</span></button>
-                <button class="layer-toggle on" data-layer="care"><span class="layer-name">🏡 Care homes</span><span class="chip chip-measured">located</span></button>
-                <button class="layer-toggle on" data-layer="preschool"><span class="layer-name">🧸 Preschools</span><span class="chip chip-measured">located</span></button>
-                <button class="layer-toggle off disabled" data-layer="algae" disabled><span class="layer-name">🦠 Algae</span><span class="chip chip-modelled">modelled · soon</span></button>
-                <button class="layer-toggle off disabled" data-layer="fire" disabled><span class="layer-name">🔥 Wildfire</span><span class="chip chip-modelled">modelled · soon</span></button>
-              </div>
-
-              <div class="vv-slider">
-                <div class="vv-slider-top">
-                  <span class="timeline-label">7-day outlook — slide to the peak</span>
-                  <span class="vv-slider-readout">
-                    <span id="vv-slider-day">—</span>
-                    <strong id="vv-slider-temp">—</strong>
-                    <span id="vv-slider-tag"></span>
-                  </span>
-                </div>
-                <input type="range" id="vv-slider" min="0" max="6" step="1" value="0" aria-label="Forecast day" />
-                <div class="vv-slider-ticks" id="vv-slider-ticks"></div>
-              </div>
-            </section>
-          </div>
-
-          <div class="vv-foot">
-            <span>Värmevakt · a Nimbus Väder tool for municipal preparedness.</span>
-            <span>Demo forecast shaped like SMHI data. The decision is yours; this tool only times it.</span>
-          </div>
-        </div>
-
-        <div class="vv-modal" id="vv-modal" role="dialog" aria-modal="true">
-          <div class="vv-modal-backdrop" data-vv-close></div>
-          <div class="vv-modal-panel">
-            <button class="vv-modal-close" data-vv-close aria-label="Close">×</button>
-            <div class="vv-modal-eyebrow" id="vv-modal-eyebrow"></div>
-            <h3 class="vv-modal-title" id="vv-modal-title"></h3>
-            <div class="vv-modal-body" id="vv-modal-body"></div>
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
 
     <footer class="app-footer">
-      Clean Path · A privacy-first prototype. Sensors read the environment, not you. Computed on-device.
+      Clean Path · municipal monitoring shell. One shell, four hazards. Every reading is source-tagged; modelled and placeholder data are labelled, never shown as measurement.
     </footer>
   </main>
 
-  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-panel">
-      <button class="modal-close" data-close aria-label="Close">×</button>
-      <div class="modal-eyebrow" id="modal-eyebrow"></div>
-      <h3 class="modal-title" id="modal-title"></h3>
-      <div class="modal-body" id="modal-body"></div>
-    </div>
-  </div>
-
   <script src="app.js"></script>
-  <script src="heat.js"></script>
 </body>
 </html>

@@ -90,6 +90,18 @@ export default function Home() {
                 · click the button, watch the number go up
               </span>
             </li>
+            <li>
+              <a
+                href="/quietroute/index.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Quiet Route
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · routing Stockholm by noise, not just time
+              </span>
+            </li>
           </ul>
         </div>
       </div>
