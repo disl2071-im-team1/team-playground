@@ -262,6 +262,73 @@
     setProvenance(text, 'mixed', false);
   }
 
+  /* ============================================================
+   * Pollen — Air tab only
+   * ========================================================== */
+
+  const POLLEN_DEMO = [
+    { name: 'Grass',   sv: 'Gräs',    count: 92,  icon: '🌾' },
+    { name: 'Mugwort', sv: 'Gråbo',   count: 38,  icon: '🌿' },
+    { name: 'Nettle',  sv: 'Nässla',  count: 14,  icon: '🍃' },
+    { name: 'Birch',   sv: 'Björk',   count: 6,   icon: '🌳' },
+    { name: 'Hazel',   sv: 'Hassel',  count: 2,   icon: '🌰' },
+    { name: 'Alder',   sv: 'Al',      count: 1,   icon: '🌱' }
+  ];
+
+  function pollenBand(count) {
+    if (count === 0) return { label: 'None',      cls: 'pollen-badge-none',  color: '#91A896' };
+    if (count <= 10) return { label: 'Low',       cls: 'pollen-badge-low',   color: '#2D8653' };
+    if (count <= 50) return { label: 'Moderate',  cls: 'pollen-badge-mod',   color: '#D4A042' };
+    if (count <= 100) return { label: 'High',     cls: 'pollen-badge-high',  color: '#C24F4F' };
+    return               { label: 'Very high',    cls: 'pollen-badge-vhigh', color: '#A03030' };
+  }
+
+  function renderPollen(types, updated) {
+    const strip = document.getElementById('pollen-strip');
+    const grid  = document.getElementById('pollen-grid');
+    const sub   = document.getElementById('pollen-updated');
+    if (!strip || !grid) return;
+
+    if (updated) sub.textContent = 'Updated ' + updated;
+
+    const max = Math.max(1, ...types.map(t => t.count));
+    grid.innerHTML = types.map(t => {
+      const band = pollenBand(t.count);
+      const pct  = Math.round((t.count / max) * 100);
+      const icon = t.icon || '🌿';
+      return `<div class="pollen-card">
+        <div class="pollen-card-glow" style="background:radial-gradient(circle at 20% 80%, ${band.color}, transparent 70%)"></div>
+        <span class="pollen-icon">${icon}</span>
+        <div class="pollen-name">${escapeHtml(t.name)}</div>
+        <span class="pollen-name-sv">${escapeHtml(t.sv)}</span>
+        <span class="pollen-count" style="color:${band.color}">${t.count}</span>
+        <span class="pollen-badge ${band.cls}">${band.label}</span>
+        <div class="pollen-bar-track">
+          <div class="pollen-bar-fill" style="width:${pct}%;background:${band.color}"></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    strip.style.display = 'block';
+  }
+
+  async function loadPollen() {
+    try {
+      const res = await fetch('/api/pollen', { cache: 'no-store' });
+      if (!res.ok) throw new Error('no endpoint');
+      const data = await res.json();
+      if (!data.ok || !data.types) throw new Error('no data');
+      renderPollen(data.types, data.updated);
+    } catch {
+      renderPollen(POLLEN_DEMO, 'demo · pollenrapporten.se not yet connected');
+    }
+  }
+
+  function hidePollen() {
+    const strip = document.getElementById('pollen-strip');
+    if (strip) strip.style.display = 'none';
+  }
+
   function activateAir(haz) {
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
@@ -272,6 +339,7 @@
     loadStations();
     loadIntegrationLayer();
     loadCams(currentLeadHour());
+    loadPollen();
   }
 
   /* ============================================================
@@ -281,6 +349,7 @@
   // Each placeholder draws a few sample shapes in the legend colours, all
   // marked "(sample)" in their tooltips, plus the topright PLACEHOLDER banner.
   function activatePlaceholder(haz) {
+    hidePollen();
     setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
