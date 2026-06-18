@@ -210,6 +210,7 @@
       const summary = Object.entries(data.bySource || {}).map(([k, v]) => `${v} ${k}`).join(' · ');
       setStatus('integration', 'ok', `${data.stations.length} stations · ${summary}`);
       updateAirProvenance();
+      updateAirHero();
     } catch (err) {
       setStatus('integration', 'offline', 'unavailable (' + err.message + ')');
     }
@@ -251,6 +252,88 @@
     });
     gHazard.addLayer(camsHeat);
   }
+
+  /* ============================================================
+   * Air quality situation hero — clear status for officers
+   * ========================================================== */
+
+  const BAND_META = {
+    low:    { label: 'Low',       cls: 'aq-level-low',   dot: '#2D8653', verdict: 'Air quality is good across Stockholm. No advisory needed right now.', verdictCls: '' },
+    mod:    { label: 'Moderate',  cls: 'aq-level-mod',   dot: '#D4A042', verdict: 'Air quality is elevated in some areas. Monitor closely and consider a precautionary advisory for sensitive groups.', verdictCls: 'verdict-warn' },
+    high:   { label: 'High',      cls: 'aq-level-high',  dot: '#C24F4F', verdict: 'Air quality is poor in multiple stations. Consider issuing an advisory, especially near affected districts.', verdictCls: 'verdict-alert' },
+    vhigh:  { label: 'Very high', cls: 'aq-level-vhigh', dot: '#8A1515', verdict: 'Air quality is very poor. An advisory should be issued immediately for affected areas.', verdictCls: 'verdict-alert' }
+  };
+
+  function pm25ToBand(pm25) {
+    if (pm25 == null) return null;
+    if (pm25 < 10) return 'low';
+    if (pm25 < 25) return 'mod';
+    if (pm25 < 50) return 'high';
+    return 'vhigh';
+  }
+
+  function updateAirHero() {
+    const hero = document.getElementById('aq-hero');
+    if (!hero) return;
+
+    if (!integrationData || !integrationData.stations || integrationData.stations.length === 0) {
+      hero.style.display = 'flex';
+      const lvl = document.getElementById('aq-hero-level');
+      const hl  = document.getElementById('aq-hero-headline');
+      if (lvl) { lvl.textContent = 'Loading'; lvl.className = 'aq-hero-level aq-level-loading'; }
+      if (hl)  hl.textContent = 'Waiting for station data…';
+      return;
+    }
+
+    // Count stations per band using PM2.5 values
+    const counts = { low: 0, mod: 0, high: 0, vhigh: 0 };
+    let worstBand = 'low';
+    const BAND_ORDER = ['low', 'mod', 'high', 'vhigh'];
+
+    integrationData.stations.forEach(s => {
+      const pm25entry = s.pollutants.find(p => p.metric === 'pm2.5' || p.metric === 'pm25');
+      const band = pm25entry ? pm25ToBand(pm25entry.value) : null;
+      if (band) {
+        counts[band]++;
+        if (BAND_ORDER.indexOf(band) > BAND_ORDER.indexOf(worstBand)) worstBand = band;
+      }
+    });
+
+    const total = integrationData.stations.length;
+    const meta  = BAND_META[worstBand];
+
+    // Headline
+    const headlines = {
+      low:   `Air quality is good across Stockholm`,
+      mod:   `Elevated levels detected in ${counts.mod + counts.high + counts.vhigh} station${counts.mod + counts.high + counts.vhigh !== 1 ? 's' : ''}`,
+      high:  `Poor air quality at ${counts.high + counts.vhigh} station${counts.high + counts.vhigh !== 1 ? 's' : ''}`,
+      vhigh: `Very poor air quality — immediate attention required`
+    };
+
+    const lvl  = document.getElementById('aq-hero-level');
+    const hl   = document.getElementById('aq-hero-headline');
+    const bkdn = document.getElementById('aq-hero-breakdown');
+    const verd = document.getElementById('aq-hero-verdict');
+
+    if (lvl) { lvl.textContent = meta.label; lvl.className = 'aq-hero-level ' + meta.cls; }
+    if (hl)  hl.textContent = headlines[worstBand];
+    if (bkdn) {
+      const items = BAND_ORDER.filter(b => counts[b] > 0).map(b => {
+        const m = BAND_META[b];
+        return `<span class="aq-breakdown-item">
+          <span class="aq-breakdown-dot" style="background:${m.dot}"></span>
+          ${counts[b]} ${m.label}
+        </span>`;
+      });
+      bkdn.innerHTML = items.join('') + `<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} stations total</span>`;
+    }
+    if (verd) { verd.textContent = meta.verdict; verd.className = 'aq-hero-verdict ' + meta.verdictCls; }
+
+    hero.style.display = 'flex';
+  }
+
+  function showAirHero()  { const h = document.getElementById('aq-hero'); if (h) h.style.display = 'flex'; }
+  function hideAirHero()  { const h = document.getElementById('aq-hero'); if (h) h.style.display = 'none'; }
 
   // Air provenance computed from the real data (honest counts), not hardcoded.
   function updateAirProvenance() {
@@ -336,6 +419,7 @@
       { id: 'cams', label: 'CAMS (modelled)' }
     ]);
     setProvenance('Measured: SMHI · WAQI · luftdaten. Modelled: CAMS grid (station = none).', 'mixed', false);
+    showAirHero();
     loadStations();
     loadIntegrationLayer();
     loadCams(currentLeadHour());
@@ -350,6 +434,7 @@
   // marked "(sample)" in their tooltips, plus the topright PLACEHOLDER banner.
   function activatePlaceholder(haz) {
     hidePollen();
+    hideAirHero();
     setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
