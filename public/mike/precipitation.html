@@ -47,6 +47,7 @@
     }
     .layer-btn:last-child { margin-bottom: 0; }
     .layer-btn.rain-active { border-color: #3b82f6; background: #eff6ff; }
+    .layer-btn.snow-active { border-color: #6366f1; background: #eef2ff; }
     .layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .layer-btn-text { flex: 1; }
     .layer-btn-name { font-size: 13px; font-weight: 500; color: #1a1a2e; }
@@ -61,7 +62,9 @@
       background: #fff; transition: transform 0.15s;
     }
     .layer-btn.rain-active .layer-toggle-indicator { background: #3b82f6; }
-    .layer-btn.rain-active .layer-toggle-indicator::after { transform: translateX(12px); }
+    .layer-btn.snow-active .layer-toggle-indicator { background: #6366f1; }
+    .layer-btn.rain-active .layer-toggle-indicator::after,
+    .layer-btn.snow-active .layer-toggle-indicator::after { transform: translateX(12px); }
     .stat-card {
       display: flex; flex-direction: column;
       padding: 10px 12px; border: 1px solid #e4e8ed;
@@ -79,10 +82,27 @@
     .dur-bar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; height: 14px; border-radius: 3px; margin-bottom: 3px; }
     .dur-hr { border-radius: 2px; background: #e5e7eb; }
     .dur-hr.on-rain { background: #3b82f6; }
+    .dur-hr.on-snow { background: #6366f1; }
     .dur-hr.dur-now { outline: 2px solid #1a1a2e; outline-offset: -1px; border-radius: 2px; }
     .dur-ticks { display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; padding: 0 1px; }
     .dur-peak { font-size: 11px; color: #374151; margin-bottom: 4px; }
     .dur-peak strong { font-weight: 600; }
+    .type-pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+    .type-pill {
+      font-size: 11px; font-weight: 600; padding: 3px 8px;
+      border-radius: 20px; display: flex; align-items: center; gap: 4px;
+    }
+    .pill-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .slr-track {
+      height: 6px; border-radius: 3px; margin: 6px 0 4px; position: relative;
+      background: linear-gradient(to right, #1e3a8a, #6366f1, #a5b4fc, #e0e7ff);
+    }
+    .slr-thumb {
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; border: 2px solid #6366f1;
+      position: absolute; top: -3px; transform: translateX(-50%);
+    }
+    .slr-labels { display: flex; justify-content: space-between; font-size: 10px; color: #9ca3af; }
     .status-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; }
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
     .status-dot.simulated { background: #f59e0b; }
@@ -99,6 +119,7 @@
     .precip-popup .metric-label { color: #6b7280; white-space: nowrap; }
     .precip-popup .metric-value { font-weight: 600; text-align: right; }
     .precip-popup .metric-sub   { font-size: 10px; color: #9ca3af; text-align: right; }
+    .type-badge { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
     .popup-dur { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; }
     .popup-dur-label { font-size: 10px; color: #9ca3af; margin-bottom: 3px; }
     .map-legend {
@@ -109,6 +130,7 @@
       display: block; font-size: 11px; font-weight: 600;
       letter-spacing: 0.04em; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;
     }
+    .map-legend strong + strong { margin-top: 8px; }
     .legend-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; color: #374151; }
     .legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
   </style>
@@ -131,6 +153,14 @@
         <span class="layer-btn-text">
           <div class="layer-btn-name">Rain</div>
           <div class="layer-btn-desc">Rainfall · dew point · humidity · duration</div>
+        </span>
+        <span class="layer-toggle-indicator"></span>
+      </button>
+      <button class="layer-btn snow-active" id="btn-snow">
+        <span class="layer-dot" style="background:#6366f1"></span>
+        <span class="layer-btn-text">
+          <div class="layer-btn-name">Snow</div>
+          <div class="layer-btn-desc">Type · accumulation · SLR · duration</div>
         </span>
         <span class="layer-toggle-indicator"></span>
       </button>
@@ -164,6 +194,38 @@
         <div class="dur-peak" id="rain-peak">—</div>
         <div class="dur-wrap">
           <div class="dur-bar" id="rain-agg-bar"></div>
+          <div class="dur-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section stats-panel visible" id="snow-stats">
+      <div class="sidebar-label">Area averages · Snow</div>
+      <div class="stat-card">
+        <div class="stat-card-label">Snow types present</div>
+        <div class="type-pill-row" id="snow-type-summary"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-card-label">Accumulation</div>
+          <div class="stat-card-value" id="avg-accum">—<span> cm/hr</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Total expected</div>
+          <div class="stat-card-value" id="avg-total">—<span> cm</span></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Avg snow-to-liquid ratio</div>
+        <div class="stat-card-value" id="avg-slr">—<span>:1</span></div>
+        <div class="slr-track"><div class="slr-thumb" id="slr-thumb"></div></div>
+        <div class="slr-labels"><span>5:1 Very dense</span><span>10:1 Normal</span><span>20:1 Very dry</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Precipitation window</div>
+        <div class="dur-peak" id="snow-peak">—</div>
+        <div class="dur-wrap">
+          <div class="dur-bar" id="snow-agg-bar"></div>
           <div class="dur-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
         </div>
       </div>
@@ -246,6 +308,7 @@
     return { html, peakLabel };
   }
 
+  /* ---- Rain (offsets 0–5) ---- */
   function generateRainData() {
     return DISTRICTS.map(d => ({
       ...d,
@@ -257,7 +320,6 @@
       durationHours:    Math.round(1  + seededRand(dSeed(d.id, 5)) * 7),
     }));
   }
-
   function rainfallColor(pct) {
     if (pct < 30) return '#bfdbfe';
     if (pct < 50) return '#60a5fa';
@@ -271,11 +333,57 @@
     return 'Very likely';
   }
 
+  /* ---- Snow (offsets 100–105) ---- */
+  const SNOW_TYPES = ['dry', 'wet', 'graupel'];
+  const SNOW_META = {
+    dry:     { label: 'Dry',     color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
+    wet:     { label: 'Wet',     color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
+    graupel: { label: 'Graupel', color: '#64748b', bg: '#f8fafc', border: '#cbd5e1' },
+  };
+  const TEMP_RANGE_BY_SNOW = { dry: [-8, -2], wet: [-2, 1], graupel: [-4, -1] };
+
+  function slrLabel(r) {
+    if (r <= 6)  return 'Very dense';
+    if (r <= 8)  return 'Dense';
+    if (r <= 12) return 'Normal';
+    if (r <= 16) return 'Light';
+    if (r <= 19) return 'Dry';
+    return 'Very dry';
+  }
+  function accumLabel(rate) {
+    if (rate < 0.1) return 'Trace';
+    if (rate < 0.5) return 'Light';
+    if (rate < 2.0) return 'Moderate';
+    return 'Heavy';
+  }
+
+  function generateSnowData() {
+    return DISTRICTS.map(d => {
+      const type = SNOW_TYPES[Math.floor(seededRand(dSeed(d.id, 100)) * 3)];
+      let slr;
+      if (type === 'dry')      slr = Math.round(12 + seededRand(dSeed(d.id, 101)) * 8);
+      else if (type === 'wet') slr = Math.round(5  + seededRand(dSeed(d.id, 101)) * 4);
+      else                     slr = Math.round(8  + seededRand(dSeed(d.id, 101)) * 6);
+      const [tMin, tMax] = TEMP_RANGE_BY_SNOW[type];
+      const tempC = Math.round((tMin + seededRand(dSeed(d.id, 106)) * (tMax - tMin)) * 10) / 10;
+      return {
+        ...d, type, slr, tempC,
+        accumRate:     Math.round((0.1 + seededRand(dSeed(d.id, 102)) * 3.4) * 10) / 10,
+        totalDepth:    Math.round(1   + seededRand(dSeed(d.id, 103)) * 29),
+        startHour:     Math.floor(     seededRand(dSeed(d.id, 104)) * 21),
+        durationHours: Math.round(1  + seededRand(dSeed(d.id, 105)) * 7),
+      };
+    });
+  }
+  function slrToPercent(slr) { return Math.min(100, Math.max(0, ((slr - 5) / 15) * 100)); }
+
+  /* ---- Map ---- */
   const map = L.map('map').setView([59.328, 18.065], 12);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 18, attribution: '&copy; OpenStreetMap &copy; CARTO'
   }).addTo(map);
 
+  /* ---- Rain layer ---- */
   const rainLayer = L.layerGroup().addTo(map);
 
   function buildRainLayer(data) {
@@ -298,18 +406,9 @@
               <div class="metric-sub">${rainfallLabel(d.rainfall)}</div>
             </div>
           </div>
-          <div class="metric-row">
-            <span class="metric-label">Total expected</span>
-            <span class="metric-value">${d.totalRainfall_mm} mm</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Dew point</span>
-            <span class="metric-value">${d.dewPoint} °C</span>
-          </div>
-          <div class="metric-row">
-            <span class="metric-label">Humidity</span>
-            <span class="metric-value">${d.humidity}%</span>
-          </div>
+          <div class="metric-row"><span class="metric-label">Total expected</span><span class="metric-value">${d.totalRainfall_mm} mm</span></div>
+          <div class="metric-row"><span class="metric-label">Dew point</span><span class="metric-value">${d.dewPoint} °C</span></div>
+          <div class="metric-row"><span class="metric-label">Humidity</span><span class="metric-value">${d.humidity}%</span></div>
           <div class="popup-dur">
             <div class="popup-dur-label">Duration · ${fmtHour(d.startHour)} – ${fmtHour(endHour)} (${d.durationHours} hr${d.durationHours > 1 ? 's' : ''})</div>
             <div class="dur-bar" style="gap:1px;height:12px">${durBarHtml(d.startHour, d.durationHours, 'on-rain')}</div>
@@ -330,13 +429,87 @@
     document.getElementById('rain-peak').innerHTML    = agg.peakLabel;
   }
 
-  document.getElementById('btn-rain').addEventListener('click', function () {
-    const nowOn = !map.hasLayer(rainLayer);
-    this.classList.toggle('rain-active', nowOn);
-    if (nowOn) rainLayer.addTo(map); else rainLayer.remove();
-    document.getElementById('rain-stats').classList.toggle('visible', nowOn);
-  });
+  /* ---- Snow layer ---- */
+  const snowLayer = L.layerGroup().addTo(map);
 
+  function buildSnowLayer(data) {
+    snowLayer.clearLayers();
+    data.forEach(d => {
+      const m       = SNOW_META[d.type];
+      const endHour = Math.min(23, d.startHour + d.durationHours);
+      L.circle([d.lat, d.lon], {
+        radius: 1800, color: m.color, weight: 0, fillColor: m.color, fillOpacity: 0.18, interactive: false,
+      }).addTo(snowLayer);
+      L.circleMarker([d.lat, d.lon], {
+        radius: 9, fillColor: m.color, color: '#fff', weight: 2.5, fillOpacity: 0.9,
+        dashArray: d.type === 'graupel' ? '3 3' : null,
+      }).bindPopup(`
+        <div class="precip-popup" style="min-width:220px">
+          <strong>${d.name}</strong>
+          <div class="metric-row">
+            <span class="metric-label">Snow type</span>
+            <span class="type-badge" style="background:${m.bg};color:${m.color};border:1px solid ${m.border}">${m.label}</span>
+          </div>
+          <div class="metric-row"><span class="metric-label">Temperature</span><span class="metric-value">${d.tempC} °C</span></div>
+          <div class="metric-row">
+            <span class="metric-label">Accumulation rate</span>
+            <div>
+              <div class="metric-value">${d.accumRate} cm/hr</div>
+              <div class="metric-sub">${accumLabel(d.accumRate)}</div>
+            </div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Snow-to-liquid ratio</span>
+            <div>
+              <div class="metric-value">${d.slr}:1</div>
+              <div class="metric-sub">${slrLabel(d.slr)}</div>
+            </div>
+          </div>
+          <div class="metric-row"><span class="metric-label">Total expected</span><span class="metric-value">${d.totalDepth} cm</span></div>
+          <div class="popup-dur">
+            <div class="popup-dur-label">Duration · ${fmtHour(d.startHour)} – ${fmtHour(endHour)} (${d.durationHours} hr${d.durationHours > 1 ? 's' : ''})</div>
+            <div class="dur-bar" style="gap:1px;height:12px">${durBarHtml(d.startHour, d.durationHours, 'on-snow')}</div>
+            <div class="dur-ticks" style="font-size:8px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+          </div>
+        </div>
+      `).addTo(snowLayer);
+    });
+  }
+
+  function updateSnowStats(data) {
+    document.getElementById('avg-accum').innerHTML = `${Math.round(mean(data.map(d => d.accumRate)) * 10) / 10}<span> cm/hr</span>`;
+    document.getElementById('avg-total').innerHTML = `${Math.round(mean(data.map(d => d.totalDepth)))}<span> cm</span>`;
+    const avgSlr = Math.round(mean(data.map(d => d.slr)));
+    document.getElementById('avg-slr').innerHTML   = `${avgSlr}<span>:1</span>`;
+    document.getElementById('slr-thumb').style.left = slrToPercent(avgSlr) + '%';
+    const counts = { dry: 0, wet: 0, graupel: 0 };
+    data.forEach(d => counts[d.type]++);
+    document.getElementById('snow-type-summary').innerHTML = SNOW_TYPES
+      .filter(t => counts[t] > 0)
+      .map(t => {
+        const m = SNOW_META[t];
+        return `<span class="type-pill" style="background:${m.bg};color:${m.color};border:1px solid ${m.border}">
+          <span class="pill-dot" style="background:${m.color}"></span>${m.label} (${counts[t]})
+        </span>`;
+      }).join('');
+    const agg = aggDurBar(data, 'on-snow');
+    document.getElementById('snow-agg-bar').innerHTML = agg.html;
+    document.getElementById('snow-peak').innerHTML    = agg.peakLabel;
+  }
+
+  /* ---- Layer toggles ---- */
+  function wireToggle(btnId, layer, activeClass, statsId) {
+    document.getElementById(btnId).addEventListener('click', function () {
+      const nowOn = !map.hasLayer(layer);
+      this.classList.toggle(activeClass, nowOn);
+      if (nowOn) layer.addTo(map); else layer.remove();
+      document.getElementById(statsId).classList.toggle('visible', nowOn);
+    });
+  }
+  wireToggle('btn-rain', rainLayer, 'rain-active', 'rain-stats');
+  wireToggle('btn-snow', snowLayer, 'snow-active', 'snow-stats');
+
+  /* ---- Legend ---- */
   const legend = L.control({ position: 'bottomright' });
   legend.onAdd = function () {
     const div = L.DomUtil.create('div', 'map-legend');
@@ -346,14 +519,22 @@
       <div class="legend-row"><span class="legend-swatch" style="background:#60a5fa"></span>Moderate (30–49%)</div>
       <div class="legend-row"><span class="legend-swatch" style="background:#2563eb"></span>Likely (50–64%)</div>
       <div class="legend-row"><span class="legend-swatch" style="background:#1e3a8a"></span>Very likely (65%+)</div>
+      <strong>Snow · Type</strong>
+      <div class="legend-row"><span class="legend-swatch" style="background:#6366f1"></span>Dry</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#0d9488"></span>Wet</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#64748b"></span>Graupel</div>
     `;
     return div;
   };
   legend.addTo(map);
 
+  /* ---- Boot ---- */
   const rainData = generateRainData();
+  const snowData = generateSnowData();
   buildRainLayer(rainData);
   updateRainStats(rainData);
+  buildSnowLayer(snowData);
+  updateSnowStats(snowData);
 
 })();
 </script>
