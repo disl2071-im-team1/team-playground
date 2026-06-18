@@ -4,69 +4,136 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Precipitation Monitor · Stockholm</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <style>
+    :root {
+      --bg: #FAF8F1;
+      --bg-primary: #FFFFFF;
+      --bg-secondary: #F1EFE8;
+      --text-primary: #2C2C2A;
+      --text-secondary: #5F5E5A;
+      --text-tertiary: #87857F;
+      --border: rgba(0,0,0,0.08);
+      --border-tertiary: rgba(0,0,0,0.06);
+      --radius-sm: 4px;
+      --radius-md: 6px;
+      --radius-lg: 8px;
+      --green: #1D9E75;
+      --green-dark: #0F6E56;
+      --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.03);
+    }
+
     *, *::before, *::after { box-sizing: border-box; }
-    html, body {
-      margin: 0; height: 100%;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f4f6f8; color: #1a1a2e;
+    html, body { margin: 0; height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 18px; background: #fff;
-      border-bottom: 1px solid #e4e8ed; position: relative; z-index: 1000;
+
+    /* ---- Header ---- */
+    .app-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 10px 18px;
+      background: var(--bg-primary);
+      border-bottom: 0.5px solid var(--border-tertiary);
+      position: relative; z-index: 1000;
     }
-    .header-back { font-size: 13px; color: #6b7280; text-decoration: none; }
-    .header-back:hover { color: #1a1a2e; }
-    .header-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
-    .header-sub { font-size: 13px; color: #6b7280; margin-left: auto; }
-    .provenance-badge {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
-      padding: 3px 8px; border-radius: 4px;
-      background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark {
+      width: 30px; height: 30px; background: #1d4ed8;
+      border-radius: 7px; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
     }
-    .layout { display: flex; height: calc(100vh - 49px); }
+    .brand-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+    .brand-sub  { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--text-secondary);
+    }
+    .status-dot {
+      display: inline-block; width: 6px; height: 6px;
+      border-radius: 50%; background: var(--green);
+    }
+    .prov-flag {
+      display: inline-block; padding: 1px 7px; border-radius: 999px;
+      background: #FAC775; color: #5C3A06;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.04em;
+    }
+    .header-back {
+      font-size: 11px; color: var(--text-tertiary);
+      text-decoration: none; transition: color 0.12s;
+    }
+    .header-back:hover { color: var(--text-primary); }
+
+    /* ---- Layout ---- */
+    .layout { display: flex; height: calc(100vh - 51px); }
+
+    /* ---- Sidebar ---- */
     .sidebar {
-      width: 296px; flex-shrink: 0; background: #fff;
-      border-right: 1px solid #e4e8ed; overflow-y: auto;
-      display: flex; flex-direction: column;
+      width: 284px; flex-shrink: 0;
+      background: var(--bg-primary);
+      border-right: 0.5px solid var(--border-tertiary);
+      overflow-y: auto; display: flex; flex-direction: column;
     }
-    .sidebar-section { padding: 16px; border-bottom: 1px solid #f0f2f5; }
+    .sidebar-section {
+      padding: 14px 16px;
+      border-bottom: 0.5px solid var(--border-tertiary);
+    }
     .sidebar-section:last-child { border-bottom: none; }
-    .sidebar-label {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
-      color: #9ca3af; text-transform: uppercase; margin-bottom: 10px;
+    .eyebrow {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 10px;
     }
+
+    /* ---- Layer buttons ---- */
     .layer-btn {
       display: flex; align-items: center; gap: 10px;
-      width: 100%; padding: 10px 12px;
-      border: 1px solid #e4e8ed; border-radius: 8px;
-      background: #fff; cursor: pointer; text-align: left;
-      margin-bottom: 8px; transition: border-color 0.15s, background 0.15s;
+      width: 100%; padding: 9px 11px;
+      border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-md);
+      background: var(--bg-primary); cursor: pointer; text-align: left;
+      margin-bottom: 6px; transition: border-color 0.15s, background 0.15s;
+      font-family: inherit;
     }
     .layer-btn:last-child { margin-bottom: 0; }
+    .layer-btn:hover { background: var(--bg-secondary); }
     .layer-btn.rain-active   { border-color: #3b82f6; background: #eff6ff; }
     .layer-btn.snow-active   { border-color: #6366f1; background: #eef2ff; }
     .layer-btn.severe-active { border-color: #ef4444; background: #fef2f2; }
     .layer-btn.mixed-active  { border-color: #7c3aed; background: #f5f3ff; }
-    .layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    .layer-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
     .layer-dot-split {
-      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
       background: linear-gradient(to right, #2563eb 50%, #6366f1 50%);
       border: 1px solid #c4b5fd;
     }
     .layer-btn-text { flex: 1; }
-    .layer-btn-name { font-size: 13px; font-weight: 500; color: #1a1a2e; display: flex; align-items: center; gap: 6px; }
-    .layer-btn-desc { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+    .layer-btn-name {
+      font-size: 12px; font-weight: 500; color: var(--text-primary);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .layer-btn-desc { font-size: 10px; color: var(--text-tertiary); margin-top: 1px; }
+
+    /* Toggle indicator */
     .layer-toggle-indicator {
-      width: 28px; height: 16px; border-radius: 8px;
-      background: #d1d5db; position: relative; flex-shrink: 0; transition: background 0.15s;
+      width: 26px; height: 14px; border-radius: 7px;
+      background: rgba(0,0,0,0.12); position: relative; flex-shrink: 0;
+      transition: background 0.15s;
     }
     .layer-toggle-indicator::after {
       content: ''; position: absolute; left: 2px; top: 2px;
-      width: 12px; height: 12px; border-radius: 50%;
+      width: 10px; height: 10px; border-radius: 50%;
       background: #fff; transition: transform 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.15);
     }
     .layer-btn.rain-active   .layer-toggle-indicator { background: #3b82f6; }
     .layer-btn.snow-active   .layer-toggle-indicator { background: #6366f1; }
@@ -76,152 +143,200 @@
     .layer-btn.snow-active   .layer-toggle-indicator::after,
     .layer-btn.severe-active .layer-toggle-indicator::after,
     .layer-btn.mixed-active  .layer-toggle-indicator::after { transform: translateX(12px); }
+
+    /* Alert badge */
     .alert-badge {
-      display: none; width: 8px; height: 8px; border-radius: 50%;
+      display: none; width: 6px; height: 6px; border-radius: 50%;
       background: #ef4444; flex-shrink: 0;
       animation: pulse-dot 1.4s ease-in-out infinite;
     }
     .alert-badge.visible { display: inline-block; }
-    .alert-badge.mixed { background: #7c3aed; }
+    .alert-badge.mixed   { background: #7c3aed; }
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%       { opacity: 0.4; transform: scale(0.7); }
     }
+
+    /* ---- Stat cards ---- */
     .stat-card {
-      display: flex; flex-direction: column;
-      padding: 10px 12px; border: 1px solid #e4e8ed;
-      border-radius: 8px; margin-bottom: 8px;
+      padding: 10px; border: 0.5px solid var(--border-tertiary);
+      border-radius: var(--radius-md); background: var(--bg-secondary);
+      margin-bottom: 6px;
     }
     .stat-card:last-child { margin-bottom: 0; }
-    .stat-card-label { font-size: 11px; color: #9ca3af; margin-bottom: 3px; }
-    .stat-card-value { font-size: 20px; font-weight: 700; color: #1a1a2e; line-height: 1.1; }
-    .stat-card-value span { font-size: 12px; font-weight: 400; color: #6b7280; }
-    .stat-card-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
-    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .stat-card-label { font-size: 10px; color: var(--text-tertiary); margin-bottom: 2px; }
+    .stat-card-value { font-size: 18px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+    .stat-card-value span { font-size: 11px; font-weight: 400; color: var(--text-secondary); }
+    .stat-card-sub { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
     .stat-row:last-child { margin-bottom: 0; }
     .stat-row .stat-card { margin-bottom: 0; }
+
+    /* ---- Duration bars ---- */
     .dur-wrap { margin-top: 4px; }
-    .dur-bar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; height: 14px; border-radius: 3px; margin-bottom: 3px; }
-    .dur-hr { border-radius: 2px; background: #e5e7eb; }
+    .dur-bar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 1px; height: 12px; border-radius: 3px; margin-bottom: 3px; }
+    .dur-hr { border-radius: 2px; background: var(--bg); }
     .dur-hr.on-rain { background: #3b82f6; }
     .dur-hr.on-snow { background: #6366f1; }
-    .dur-hr.dur-now { outline: 2px solid #1a1a2e; outline-offset: -1px; border-radius: 2px; }
-    .dur-ticks { display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; padding: 0 1px; }
-    .dur-peak { font-size: 11px; color: #374151; margin-bottom: 4px; }
-    .dur-peak strong { font-weight: 600; }
-    .type-pill-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+    .dur-hr.dur-now { outline: 2px solid var(--text-primary); outline-offset: -1px; border-radius: 2px; }
+    .dur-ticks { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-tertiary); padding: 0 1px; }
+    .dur-peak { font-size: 11px; color: var(--text-secondary); margin-bottom: 4px; }
+    .dur-peak strong { font-weight: 600; color: var(--text-primary); }
+
+    /* ---- Type pills ---- */
+    .type-pill-row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
     .type-pill {
-      font-size: 11px; font-weight: 600; padding: 3px 8px;
-      border-radius: 20px; display: flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 500; padding: 2px 7px;
+      border-radius: 999px; display: flex; align-items: center; gap: 4px;
     }
-    .pill-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; }
     .pill-dot.split {
       background: linear-gradient(to right, #2563eb 50%, #6366f1 50%);
       border: 1px solid #c4b5fd;
     }
+
+    /* ---- SLR track ---- */
     .slr-track {
-      height: 6px; border-radius: 3px; margin: 6px 0 4px; position: relative;
+      height: 5px; border-radius: 3px; margin: 6px 0 4px; position: relative;
       background: linear-gradient(to right, #1e3a8a, #6366f1, #a5b4fc, #e0e7ff);
     }
     .slr-thumb {
-      width: 12px; height: 12px; border-radius: 50%;
-      background: #fff; border: 2px solid #6366f1;
+      width: 11px; height: 11px; border-radius: 50%;
+      background: var(--bg-primary); border: 2px solid #6366f1;
       position: absolute; top: -3px; transform: translateX(-50%);
     }
-    .slr-labels { display: flex; justify-content: space-between; font-size: 10px; color: #9ca3af; }
+    .slr-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-tertiary); }
+
+    /* ---- Blowing snow card ---- */
     .blowing-snow-card {
-      border: 1px solid #c7d2fe; border-radius: 8px;
-      padding: 10px 12px; background: #eef2ff; margin-bottom: 8px;
+      border: 0.5px solid #c7d2fe; border-radius: var(--radius-md);
+      padding: 10px; background: #eef2ff; margin-bottom: 6px;
     }
     .blowing-snow-card:last-child { margin-bottom: 0; }
-    .blowing-snow-title { font-size: 12px; font-weight: 600; color: #4338ca; margin-bottom: 6px; }
+    .blowing-snow-title { font-size: 11px; font-weight: 600; color: #4338ca; margin-bottom: 5px; }
     .blowing-snow-row {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 11px; padding: 3px 0; border-top: 1px solid #e0e7ff; color: #374151;
+      font-size: 10px; padding: 2px 0; border-top: 0.5px solid #e0e7ff; color: var(--text-primary);
     }
     .blowing-snow-row:first-of-type { border-top: none; }
     .blowing-snow-val { font-weight: 600; color: #4338ca; }
+
+    /* ---- Mixed risk note ---- */
     .mixed-risk-note {
-      border: 1px solid #ddd6fe; border-radius: 8px;
-      padding: 10px 12px; background: #f5f3ff; font-size: 11px;
-      color: #5b21b6; line-height: 1.5; margin-bottom: 8px;
+      border: 0.5px solid #ddd6fe; border-radius: var(--radius-md);
+      padding: 10px; background: #f5f3ff; font-size: 11px;
+      color: #5b21b6; line-height: 1.5; margin-bottom: 6px;
     }
-    .mixed-risk-note strong { display: block; font-size: 12px; color: #4c1d95; margin-bottom: 3px; }
+    .mixed-risk-note strong {
+      display: block; font-size: 11px; font-weight: 600;
+      color: #4c1d95; margin-bottom: 3px;
+    }
+
+    /* ---- Trigger banners ---- */
     .trigger-banner {
-      border-radius: 6px; padding: 8px 10px; margin-bottom: 10px;
-      font-size: 12px; line-height: 1.5;
-      background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+      border-radius: var(--radius-md); padding: 8px 10px; margin-bottom: 8px;
+      font-size: 11px; line-height: 1.5;
+      background: #fef2f2; border: 0.5px solid #fecaca; color: #991b1b;
     }
     .trigger-banner.mixed { background: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; }
-    .trigger-banner strong { display: block; margin-bottom: 4px; font-size: 12px; }
+    .trigger-banner strong { display: block; margin-bottom: 4px; font-size: 11px; font-weight: 600; }
     .trigger-row {
       display: flex; align-items: flex-start; gap: 6px;
-      font-size: 11px; color: #374151; padding: 3px 0; border-top: 1px solid #f0f2f5;
+      font-size: 10px; color: var(--text-secondary); padding: 2px 0;
+      border-top: 0.5px solid var(--border-tertiary);
     }
     .trigger-row:first-of-type { border-top: none; padding-top: 0; }
     .trigger-tag {
-      font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
+      font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
     }
     .trigger-tag.rain { background: #dbeafe; color: #1d4ed8; }
     .trigger-tag.snow { background: #eef2ff; color: #4338ca; }
     .trigger-tag.wind { background: #fff7ed; color: #c2410c; }
-    .status-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
-    .status-dot.simulated { background: #f59e0b; }
+
+    /* ---- Data source row ---- */
+    .source-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-secondary); }
+    .source-dot { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
+
+    /* ---- Stats panels ---- */
     .stats-panel { display: none; }
     .stats-panel.visible { display: block; }
+
+    /* ---- Map ---- */
     .map-wrap { flex: 1; position: relative; }
     #map { width: 100%; height: 100%; }
-    .precip-popup strong { display: block; font-size: 13px; margin-bottom: 6px; }
+
+    /* ---- Map popups ---- */
+    .precip-popup strong { display: block; font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary); }
     .precip-popup .metric-row {
       display: flex; justify-content: space-between; align-items: center;
-      font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f0f2f5; gap: 8px;
+      font-size: 11px; padding: 3px 0; border-bottom: 0.5px solid var(--border-tertiary); gap: 8px;
     }
     .precip-popup .metric-row:last-child { border-bottom: none; }
-    .precip-popup .metric-label { color: #6b7280; white-space: nowrap; }
-    .precip-popup .metric-value { font-weight: 600; text-align: right; }
-    .precip-popup .metric-sub   { font-size: 10px; color: #9ca3af; text-align: right; }
-    .type-badge { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
-    .popup-dur { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; }
-    .popup-dur-label { font-size: 10px; color: #9ca3af; margin-bottom: 3px; }
+    .precip-popup .metric-label { color: var(--text-secondary); white-space: nowrap; }
+    .precip-popup .metric-value { font-weight: 600; text-align: right; color: var(--text-primary); }
+    .precip-popup .metric-sub   { font-size: 9px; color: var(--text-tertiary); text-align: right; }
+    .type-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+    .popup-dur { margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border-tertiary); }
+    .popup-dur-label { font-size: 9px; color: var(--text-tertiary); margin-bottom: 3px; }
     .popup-blowing {
-      margin-top: 6px; padding: 5px 8px; border-radius: 5px;
-      background: #eef2ff; border: 1px solid #c7d2fe; font-size: 11px; color: #4338ca;
+      margin-top: 6px; padding: 5px 8px; border-radius: var(--radius-sm);
+      background: #eef2ff; border: 0.5px solid #c7d2fe; font-size: 10px; color: #4338ca;
     }
-    .popup-blowing strong { font-size: 11px; color: #4338ca; display: inline; margin-bottom: 0; }
-    .popup-sources { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; font-size: 10px; color: #9ca3af; }
-    .trigger-list-popup { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; }
+    .popup-blowing strong { font-size: 10px; color: #4338ca; display: inline; margin-bottom: 0; }
+    .popup-sources { margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border-tertiary); font-size: 9px; color: var(--text-tertiary); }
+    .trigger-list-popup { margin-top: 6px; padding-top: 6px; border-top: 0.5px solid var(--border-tertiary); }
     .trigger-list-popup div {
-      font-size: 10px; color: #991b1b; padding: 1px 0;
+      font-size: 9px; color: #991b1b; padding: 1px 0;
       display: flex; align-items: flex-start; gap: 4px;
     }
+
+    /* ---- Map legend ---- */
     .map-legend {
-      background: #fff; border: 1px solid #e4e8ed; border-radius: 8px;
-      padding: 10px 12px; font-size: 12px; min-width: 160px;
+      background: rgba(255,255,255,0.96); border: 0.5px solid var(--border);
+      border-radius: var(--radius-md); padding: 10px 12px;
+      font-size: 10px; color: var(--text-secondary); line-height: 1.6;
+      box-shadow: var(--shadow);
     }
     .map-legend strong {
-      display: block; font-size: 11px; font-weight: 600;
-      letter-spacing: 0.04em; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;
+      display: block; font-size: 10px; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--text-tertiary); margin-bottom: 4px;
     }
     .map-legend strong + strong { margin-top: 8px; }
-    .legend-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; color: #374151; }
-    .legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .legend-row { display: flex; align-items: center; gap: 7px; margin-bottom: 3px; color: var(--text-primary); }
+    .legend-swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
   </style>
 </head>
 <body>
 
-<header class="header">
-  <a href="/mike/index.html" class="header-back">← Back</a>
-  <span class="header-title">Precipitation Monitor</span>
-  <span class="header-sub">Stockholm area</span>
-  <span class="provenance-badge">SIMULATED</span>
+<header class="app-header">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2C6 8 4 12 4 15a8 8 0 0 0 16 0c0-3-2-7-8-13z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brand-name">Precipitation Monitor</div>
+      <div class="brand-sub">Stockholm · municipal monitor</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status">
+      <span class="status-dot"></span>
+      Live · <span id="shell-clock">—</span>
+    </div>
+    <span class="prov-flag">SIMULATED</span>
+    <a href="/" class="header-back">← Back</a>
+  </div>
 </header>
 
 <div class="layout">
   <aside class="sidebar">
+
     <div class="sidebar-section">
-      <div class="sidebar-label">Layers</div>
-      <button class="layer-btn rain-active" id="btn-rain">
+      <div class="eyebrow">Layers</div>
+      <button class="layer-btn" id="btn-rain">
         <span class="layer-dot" style="background:#3b82f6"></span>
         <span class="layer-btn-text">
           <div class="layer-btn-name">Rain</div>
@@ -229,7 +344,7 @@
         </span>
         <span class="layer-toggle-indicator"></span>
       </button>
-      <button class="layer-btn snow-active" id="btn-snow">
+      <button class="layer-btn" id="btn-snow">
         <span class="layer-dot" style="background:#6366f1"></span>
         <span class="layer-btn-text">
           <div class="layer-btn-name">Snow</div>
@@ -261,8 +376,8 @@
       </button>
     </div>
 
-    <div class="sidebar-section stats-panel visible" id="rain-stats">
-      <div class="sidebar-label">Area averages · Rain</div>
+    <div class="sidebar-section stats-panel" id="rain-stats">
+      <div class="eyebrow">Area averages · Rain</div>
       <div class="stat-card">
         <div class="stat-card-label">Rainfall probability</div>
         <div class="stat-card-value" id="avg-rainfall">—<span>%</span></div>
@@ -294,8 +409,8 @@
       </div>
     </div>
 
-    <div class="sidebar-section stats-panel visible" id="snow-stats">
-      <div class="sidebar-label">Area averages · Snow</div>
+    <div class="sidebar-section stats-panel" id="snow-stats">
+      <div class="eyebrow">Area averages · Snow</div>
       <div class="stat-card">
         <div class="stat-card-label">Snow types present</div>
         <div class="type-pill-row" id="snow-type-summary"></div>
@@ -327,7 +442,7 @@
     </div>
 
     <div class="sidebar-section stats-panel" id="severe-stats">
-      <div class="sidebar-label">Severe Weather</div>
+      <div class="eyebrow">Severe Weather</div>
       <div id="severe-trigger-banner"></div>
       <div class="stat-card">
         <div class="stat-card-label">Districts in alert</div>
@@ -362,7 +477,7 @@
     </div>
 
     <div class="sidebar-section stats-panel" id="mixed-stats">
-      <div class="sidebar-label">Mixed Precipitation</div>
+      <div class="eyebrow">Mixed Precipitation</div>
       <div id="mixed-banner"></div>
       <div class="stat-card">
         <div class="stat-card-label">Districts affected</div>
@@ -390,22 +505,33 @@
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-label">Data source</div>
-      <div class="status-row">
-        <span class="status-dot simulated"></span>
+      <div class="eyebrow">Data source</div>
+      <div class="source-row">
+        <span class="source-dot"></span>
         Simulated · SMHI-shaped data
       </div>
     </div>
+
   </aside>
 
   <div class="map-wrap"><div id="map"></div></div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
 (function () {
   'use strict';
 
+  /* ---- Clock ---- */
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('shell-clock').textContent =
+      String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  /* ---- Districts ---- */
   const DISTRICTS = [
     { id: 'norrmalm',    name: 'Norrmalm',    lat: 59.3350, lon: 18.0630 },
     { id: 'sodermalm',   name: 'Södermalm',   lat: 59.3160, lon: 18.0720 },
@@ -418,6 +544,7 @@
     { id: 'bromma',      name: 'Bromma',      lat: 59.3380, lon: 17.9450 },
   ];
 
+  /* ---- Seeded RNG ---- */
   function seededRand(seed) {
     let h = seed ^ 0xdeadbeef;
     h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
@@ -435,6 +562,7 @@
   function mean(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
   function fmtHour(h) { return String(Math.min(23, h)).padStart(2, '0') + ':00'; }
 
+  /* ---- Duration bars ---- */
   function durBarHtml(startH, durH, onClass) {
     const nowH = new Date().getHours();
     return Array.from({ length: 24 }, (_, h) => {
@@ -444,7 +572,6 @@
       return `<div class="${cls.join(' ')}" title="${fmtHour(h)}"></div>`;
     }).join('');
   }
-
   function aggDurBar(data, onClass) {
     const counts = Array(24).fill(0);
     data.forEach(d => {
@@ -514,7 +641,6 @@
     if (rate < 2.0) return 'Moderate';
     return 'Heavy';
   }
-
   function generateSnowData() {
     return DISTRICTS.map(d => {
       const type = SNOW_TYPES[Math.floor(seededRand(dSeed(d.id, 100)) * 3)];
@@ -569,11 +695,10 @@
     const reduction = ((windKmh - 15) / 10) * accumRate * 1.5;
     return Math.max(0.1, Math.round((baseVis - reduction) * 10) / 10);
   }
-
   function generateSevereData(snowData) {
     return DISTRICTS.map((d, i) => {
       const [tMin, tMax] = TEMP_RANGE_BY_SNOW[snowData[i].type];
-      const tempC    = Math.round((tMin + seededRand(dSeed(d.id, 204)) * (tMax - tMin)) * 10) / 10;
+      const tempC     = Math.round((tMin + seededRand(dSeed(d.id, 204)) * (tMax - tMin)) * 10) / 10;
       const windSpeed = Math.round(2 + seededRand(dSeed(d.id, 200)) * 38);
       return {
         ...d, windSpeed,
@@ -585,7 +710,6 @@
       };
     });
   }
-
   function getSevereTriggers(rainD, snowD, severeD) {
     const t = [];
     if (rainD.rainfall >= 65)
@@ -609,7 +733,7 @@
     return '#ef4444';
   }
 
-  /* ---- Mixed precipitation (offsets 300+, derived from other layers) ---- */
+  /* ---- Mixed precipitation (derived) ---- */
   const MIXED_META = {
     freezing_rain: { label: 'Freezing rain', color: '#0891b2', bg: '#ecfeff', border: '#a5f3fc',
       desc: 'Rain falling on sub-zero surfaces — freezes on contact. Highest road risk.' },
@@ -618,7 +742,6 @@
     mix:           { label: 'Rain/snow mix', color: '#a855f7', bg: '#fdf4ff', border: '#e9d5ff',
       desc: 'Simultaneous rain and snow. Wet, heavy accumulation likely.' },
   };
-
   function getMixedType(tempC, rainfallPct) {
     if (rainfallPct < 25) return null;
     if (tempC > 2)        return null;
@@ -627,7 +750,6 @@
     if (tempC >= -2)      return 'sleet';
     return 'mix';
   }
-
   function generateMixedData(rainData, snowData, severeData) {
     return DISTRICTS.map((d, i) => {
       const mixedType = getMixedType(severeData[i].tempC, rainData[i].rainfall);
@@ -647,13 +769,12 @@
       };
     }).filter(Boolean);
   }
-
   function mixedIcon(mixedType) {
     const m    = MIXED_META[mixedType];
     const size = mixedType === 'freezing_rain' ? 26 : mixedType === 'sleet' ? 23 : 20;
     return L.divIcon({
       className: '',
-      html: `<div style="width:${size}px;height:${size}px;border-radius:50%;border:3px solid ${m.color};overflow:hidden;display:flex;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+      html: `<div style="width:${size}px;height:${size}px;border-radius:50%;border:3px solid ${m.color};overflow:hidden;display:flex;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
         <div style="width:50%;background:#2563eb;"></div>
         <div style="width:50%;background:#6366f1;"></div>
       </div>`,
@@ -668,7 +789,7 @@
   }).addTo(map);
 
   /* ---- Rain layer ---- */
-  const rainLayer = L.layerGroup().addTo(map);
+  const rainLayer = L.layerGroup();
 
   function buildRainLayer(data) {
     rainLayer.clearLayers();
@@ -699,7 +820,6 @@
       `).addTo(rainLayer);
     });
   }
-
   function updateRainStats(data) {
     document.getElementById('avg-rainfall').innerHTML   = `${Math.round(mean(data.map(d => d.rainfall)))}<span>%</span>`;
     document.getElementById('avg-rain-total').innerHTML = `${Math.round(mean(data.map(d => d.totalRainfall_mm)))}<span> mm</span>`;
@@ -711,7 +831,7 @@
   }
 
   /* ---- Snow layer ---- */
-  const snowLayer = L.layerGroup().addTo(map);
+  const snowLayer = L.layerGroup();
 
   function buildSnowLayer(snowData, severeData) {
     snowLayer.clearLayers();
@@ -758,7 +878,6 @@
       `).addTo(snowLayer);
     });
   }
-
   function updateSnowStats(snowData) {
     document.getElementById('avg-accum').innerHTML = `${Math.round(mean(snowData.map(d => d.accumRate)) * 10) / 10}<span> cm/hr</span>`;
     document.getElementById('avg-total').innerHTML = `${Math.round(mean(snowData.map(d => d.totalDepth)))}<span> cm</span>`;
@@ -786,9 +905,9 @@
   function buildSevereLayer(rainData, snowData, severeData) {
     severeLayer.clearLayers();
     DISTRICTS.forEach((district, i) => {
-      const rain   = rainData[i];
-      const snow   = snowData[i];
-      const severe = severeData[i];
+      const rain     = rainData[i];
+      const snow     = snowData[i];
+      const severe   = severeData[i];
       const triggers   = getSevereTriggers(rain, snow, severe);
       const color      = severityColor(triggers.length);
       const blowingVis = calcBlowingSnowVis(severe.visibility, severe.windSpeed, snow.accumRate);
@@ -797,8 +916,8 @@
           radius: 2000, color, weight: 1.5, fillColor: color, fillOpacity: 0.12, interactive: false,
         }).addTo(severeLayer);
       }
-      const feelsNote  = severe.feelsLike !== severe.tempC ? `<div class="metric-sub">Wind chill applied</div>` : '';
-      const visRow     = blowingVis !== null
+      const feelsNote = severe.feelsLike !== severe.tempC ? `<div class="metric-sub">Wind chill applied</div>` : '';
+      const visRow    = blowingVis !== null
         ? `<div class="metric-row"><span class="metric-label">Visibility (base)</span><span class="metric-value">${severe.visibility} km</span></div>
            <div class="metric-row"><span class="metric-label">Visibility (blowing snow)</span>
              <div><div class="metric-value" style="color:#4338ca">${blowingVis} km ⚠</div>
@@ -806,7 +925,7 @@
         : `<div class="metric-row"><span class="metric-label">Visibility</span>
              <div><div class="metric-value">${severe.visibility} km</div>
              <div class="metric-sub">${visibilityLabel(severe.visibility)}</div></div></div>`;
-      const trigHtml   = triggers.length > 0
+      const trigHtml  = triggers.length > 0
         ? `<div class="trigger-list-popup">${triggers.map(t =>
             `<div><span class="trigger-tag ${t.type}">${t.type.toUpperCase()}</span>${t.reason}</div>`).join('')}</div>` : '';
       L.circleMarker([district.lat, district.lon], {
@@ -828,7 +947,6 @@
       `).addTo(severeLayer);
     });
   }
-
   function updateSevereStats(rainData, snowData, severeData) {
     const allTriggers = DISTRICTS.map((_, i) => getSevereTriggers(rainData[i], snowData[i], severeData[i]));
     const alertCount  = allTriggers.filter(t => t.length > 0).length;
@@ -866,18 +984,18 @@
   function buildMixedLayer(mixedData) {
     mixedLayer.clearLayers();
     mixedData.forEach(d => {
-      const m     = MIXED_META[d.mixedType];
-      const durH  = Math.max(0, d.durationHours);
-      const endH  = Math.min(23, d.startHour + durH);
+      const m    = MIXED_META[d.mixedType];
+      const durH = Math.max(0, d.durationHours);
+      const endH = Math.min(23, d.startHour + durH);
       const durSection = durH > 0 ? `
         <div class="popup-dur">
           <div class="popup-dur-label">Mixed window · ${fmtHour(d.startHour)} – ${fmtHour(endH)} (${durH} hr${durH !== 1 ? 's' : ''})</div>
           <div class="dur-bar" style="gap:1px;height:12px;border-radius:3px">
             ${Array.from({ length: 24 }, (_, h) => {
-              const active = h >= d.startHour && h < d.startHour + durH;
-              const nowH   = new Date().getHours();
-              const style  = active ? 'background:linear-gradient(to right,#2563eb 50%,#6366f1 50%)' : 'background:#e5e7eb';
-              const outline = h === nowH ? ';outline:2px solid #1a1a2e;outline-offset:-1px' : '';
+              const active  = h >= d.startHour && h < d.startHour + durH;
+              const nowH    = new Date().getHours();
+              const style   = active ? 'background:linear-gradient(to right,#2563eb 50%,#6366f1 50%)' : 'background:#e5e7eb';
+              const outline = h === nowH ? ';outline:2px solid #2C2C2A;outline-offset:-1px' : '';
               return `<div style="border-radius:2px;${style}${outline}" title="${fmtHour(h)}"></div>`;
             }).join('')}
           </div>
@@ -897,14 +1015,13 @@
           <div class="metric-row"><span class="metric-label">Feels like</span><span class="metric-value">${d.feelsLike} °C</span></div>
           <div class="metric-row"><span class="metric-label">Rain probability</span><span class="metric-value">${d.rainfall}%</span></div>
           <div class="metric-row"><span class="metric-label">Snow contributing</span><span class="metric-value">${SNOW_META[d.snowType].label} · ${d.accumRate} cm/hr</span></div>
-          <div style="margin-top:6px;padding:6px 8px;border-radius:5px;background:${m.bg};border:1px solid ${m.border};font-size:11px;color:${m.color}">${m.desc}</div>
+          <div style="margin-top:6px;padding:6px 8px;border-radius:4px;background:${m.bg};border:0.5px solid ${m.border};font-size:10px;color:${m.color}">${m.desc}</div>
           ${durSection}
           <div class="popup-sources">Derived from Rain + Snow + Severe Weather layers</div>
         </div>
       `).addTo(mixedLayer);
     });
   }
-
   function updateMixedStats(mixedData) {
     const count = mixedData.length;
     document.getElementById('mixed-district-count').innerHTML = `${count}<span> of ${DISTRICTS.length}</span>`;
@@ -996,24 +1113,29 @@
   const severeData = generateSevereData(snowData);
   const mixedData  = generateMixedData(rainData, snowData, severeData);
 
-  buildRainLayer(rainData);   updateRainStats(rainData);
-  buildSnowLayer(snowData, severeData); updateSnowStats(snowData);
-  buildSevereLayer(rainData, snowData, severeData); updateSevereStats(rainData, snowData, severeData);
-  buildMixedLayer(mixedData); updateMixedStats(mixedData);
+  buildRainLayer(rainData);
+  buildSnowLayer(snowData, severeData);
+  buildSevereLayer(rainData, snowData, severeData);
+  buildMixedLayer(mixedData);
 
+  updateRainStats(rainData);
+  updateSnowStats(snowData);
+  updateSevereStats(rainData, snowData, severeData);
+  updateMixedStats(mixedData);
+
+  /* Rain ON by default */
+  rainLayer.addTo(map);
+  document.getElementById('btn-rain').classList.add('rain-active');
+  document.getElementById('rain-stats').classList.add('visible');
+
+  /* Snow, Severe, Mixed OFF — show alert badges only if conditions exist */
   const anyTriggered = DISTRICTS.some((_, i) =>
     getSevereTriggers(rainData[i], snowData[i], severeData[i]).length > 0
   );
   if (anyTriggered) {
-    severeLayer.addTo(map);
-    document.getElementById('btn-severe').classList.add('severe-active');
-    document.getElementById('severe-stats').classList.add('visible');
     document.getElementById('severe-alert-badge').classList.add('visible');
   }
   if (mixedData.length > 0) {
-    mixedLayer.addTo(map);
-    document.getElementById('btn-mixed').classList.add('mixed-active');
-    document.getElementById('mixed-stats').classList.add('visible');
     document.getElementById('mixed-alert-badge').classList.add('visible');
   }
 
