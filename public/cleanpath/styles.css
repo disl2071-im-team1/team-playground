@@ -1,29 +1,29 @@
 :root {
-  --bg: #FAF8F1;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F1EFE8;
-  --text-primary: #2C2C2A;
-  --text-secondary: #5F5E5A;
-  --text-tertiary: #87857F;
-  --border: rgba(0, 0, 0, 0.08);
-  --border-tertiary: rgba(0, 0, 0, 0.06);
+  --bg: #0E1310;
+  --bg-primary: #161C18;
+  --bg-secondary: #1E2721;
+  --text-primary: #E4EDE6;
+  --text-secondary: #8A9E8D;
+  --text-tertiary: #556358;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-tertiary: rgba(255, 255, 255, 0.05);
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
-  --green: #1D9E75;
-  --green-dark: #0F6E56;
-  --green-soft: #E1F5EE;
+  --green: #2DBF8A;
+  --green-dark: #1D9E75;
+  --green-soft: rgba(29, 158, 117, 0.15);
   --red: #E24B4A;
-  --red-dark: #A32D2D;
-  --red-darker: #501313;
-  --red-soft: #FCEBEB;
+  --red-dark: #C44444;
+  --red-darker: #FFBCBC;
+  --red-soft: rgba(226, 75, 74, 0.15);
   --amber: #EF9F27;
-  --amber-soft: #FAC775;
-  --purple: #534AB7;
-  --purple-dark: #3C3489;
-  --blue: #185FA5;
-  --blue-soft: #E6F1FB;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.03);
+  --amber-soft: rgba(239, 159, 39, 0.2);
+  --purple: #7B72D9;
+  --purple-dark: #A09AE8;
+  --blue: #4B9FE1;
+  --blue-soft: rgba(75, 159, 225, 0.15);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -114,9 +114,9 @@ body {
 }
 
 .tab.active {
-  background: var(--text-primary);
-  color: var(--bg-primary);
-  border-color: var(--text-primary);
+  background: var(--green-dark);
+  color: #fff;
+  border-color: var(--green-dark);
 }
 
 .screen {
@@ -223,11 +223,11 @@ body {
 }
 
 .leaflet-map .leaflet-tile-pane {
-  filter: saturate(0.85);
+  filter: saturate(0.6) brightness(0.75) hue-rotate(5deg);
 }
 
 .map-legend {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(22, 28, 24, 0.95);
   padding: 8px 10px;
   border-radius: var(--radius-md);
   border: 0.5px solid var(--border);
@@ -235,6 +235,7 @@ body {
   color: var(--text-secondary);
   line-height: 1.6;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
 }
 
 .map-legend strong {
@@ -1988,10 +1989,10 @@ body {
   border-radius: 999px;
   font-size: 10px;
 }
-.conf-high { background: var(--green-soft); color: var(--green-dark); }
+.conf-high { background: var(--green-soft); color: var(--green); }
 .conf-mixed { background: var(--blue-soft); color: var(--blue); }
-.conf-thin { background: var(--amber-soft); color: #5C3A06; }
-.conf-modelled { background: var(--red-soft); color: var(--red-dark); }
+.conf-thin { background: var(--amber-soft); color: var(--amber); }
+.conf-modelled { background: var(--red-soft); color: var(--red); }
 
 .placeholder-banner {
   background: var(--amber-soft);
@@ -2060,8 +2061,8 @@ textarea.dp-input { resize: vertical; }
 /* Pollen strip — modern widget style */
 .pollen-strip {
   margin-top: 12px;
-  background: #1A1F1C;
-  border: none;
+  background: linear-gradient(135deg, #0F2018 0%, #162820 100%);
+  border: 1px solid rgba(45, 191, 138, 0.12);
   border-radius: 12px;
   padding: 0;
   overflow: hidden;
