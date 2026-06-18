@@ -49,7 +49,13 @@
     .layer-btn.rain-active   { border-color: #3b82f6; background: #eff6ff; }
     .layer-btn.snow-active   { border-color: #6366f1; background: #eef2ff; }
     .layer-btn.severe-active { border-color: #ef4444; background: #fef2f2; }
+    .layer-btn.mixed-active  { border-color: #7c3aed; background: #f5f3ff; }
     .layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .layer-dot-split {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(to right, #2563eb 50%, #6366f1 50%);
+      border: 1px solid #c4b5fd;
+    }
     .layer-btn-text { flex: 1; }
     .layer-btn-name { font-size: 13px; font-weight: 500; color: #1a1a2e; display: flex; align-items: center; gap: 6px; }
     .layer-btn-desc { font-size: 11px; color: #9ca3af; margin-top: 1px; }
@@ -65,15 +71,18 @@
     .layer-btn.rain-active   .layer-toggle-indicator { background: #3b82f6; }
     .layer-btn.snow-active   .layer-toggle-indicator { background: #6366f1; }
     .layer-btn.severe-active .layer-toggle-indicator { background: #ef4444; }
+    .layer-btn.mixed-active  .layer-toggle-indicator { background: #7c3aed; }
     .layer-btn.rain-active   .layer-toggle-indicator::after,
     .layer-btn.snow-active   .layer-toggle-indicator::after,
-    .layer-btn.severe-active .layer-toggle-indicator::after { transform: translateX(12px); }
+    .layer-btn.severe-active .layer-toggle-indicator::after,
+    .layer-btn.mixed-active  .layer-toggle-indicator::after { transform: translateX(12px); }
     .alert-badge {
       display: none; width: 8px; height: 8px; border-radius: 50%;
       background: #ef4444; flex-shrink: 0;
       animation: pulse-dot 1.4s ease-in-out infinite;
     }
     .alert-badge.visible { display: inline-block; }
+    .alert-badge.mixed { background: #7c3aed; }
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; transform: scale(1); }
       50%       { opacity: 0.4; transform: scale(0.7); }
@@ -106,6 +115,10 @@
       border-radius: 20px; display: flex; align-items: center; gap: 4px;
     }
     .pill-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .pill-dot.split {
+      background: linear-gradient(to right, #2563eb 50%, #6366f1 50%);
+      border: 1px solid #c4b5fd;
+    }
     .slr-track {
       height: 6px; border-radius: 3px; margin: 6px 0 4px; position: relative;
       background: linear-gradient(to right, #1e3a8a, #6366f1, #a5b4fc, #e0e7ff);
@@ -128,11 +141,18 @@
     }
     .blowing-snow-row:first-of-type { border-top: none; }
     .blowing-snow-val { font-weight: 600; color: #4338ca; }
+    .mixed-risk-note {
+      border: 1px solid #ddd6fe; border-radius: 8px;
+      padding: 10px 12px; background: #f5f3ff; font-size: 11px;
+      color: #5b21b6; line-height: 1.5; margin-bottom: 8px;
+    }
+    .mixed-risk-note strong { display: block; font-size: 12px; color: #4c1d95; margin-bottom: 3px; }
     .trigger-banner {
       border-radius: 6px; padding: 8px 10px; margin-bottom: 10px;
       font-size: 12px; line-height: 1.5;
       background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
     }
+    .trigger-banner.mixed { background: #f5f3ff; border-color: #ddd6fe; color: #5b21b6; }
     .trigger-banner strong { display: block; margin-bottom: 4px; font-size: 12px; }
     .trigger-row {
       display: flex; align-items: flex-start; gap: 6px;
@@ -169,6 +189,7 @@
       background: #eef2ff; border: 1px solid #c7d2fe; font-size: 11px; color: #4338ca;
     }
     .popup-blowing strong { font-size: 11px; color: #4338ca; display: inline; margin-bottom: 0; }
+    .popup-sources { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; font-size: 10px; color: #9ca3af; }
     .trigger-list-popup { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; }
     .trigger-list-popup div {
       font-size: 10px; color: #991b1b; padding: 1px 0;
@@ -224,6 +245,17 @@
             <span class="alert-badge" id="severe-alert-badge"></span>
           </div>
           <div class="layer-btn-desc">Wind · pressure · visibility · temperature</div>
+        </span>
+        <span class="layer-toggle-indicator"></span>
+      </button>
+      <button class="layer-btn" id="btn-mixed">
+        <span class="layer-dot-split"></span>
+        <span class="layer-btn-text">
+          <div class="layer-btn-name">
+            Mixed Precipitation
+            <span class="alert-badge mixed" id="mixed-alert-badge"></span>
+          </div>
+          <div class="layer-btn-desc">Freezing rain · sleet · rain/snow mix</div>
         </span>
         <span class="layer-toggle-indicator"></span>
       </button>
@@ -329,6 +361,34 @@
       <div id="blowing-snow-sidebar"></div>
     </div>
 
+    <div class="sidebar-section stats-panel" id="mixed-stats">
+      <div class="sidebar-label">Mixed Precipitation</div>
+      <div id="mixed-banner"></div>
+      <div class="stat-card">
+        <div class="stat-card-label">Districts affected</div>
+        <div class="stat-card-value" id="mixed-district-count">—</div>
+        <div class="stat-card-sub" id="mixed-district-sub"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Types present</div>
+        <div class="type-pill-row" id="mixed-type-summary"></div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-card-label">Avg temperature</div>
+          <div class="stat-card-value" id="mixed-avg-temp">—<span>°C</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Avg rain prob.</div>
+          <div class="stat-card-value" id="mixed-avg-rain">—<span>%</span></div>
+        </div>
+      </div>
+      <div class="mixed-risk-note" id="mixed-risk-note" style="display:none">
+        <strong>Decision priority</strong>
+        Freezing rain poses the highest immediate road risk. Surfaces ice invisibly while precipitation appears liquid. Deploy gritters before onset, not after.
+      </div>
+    </div>
+
     <div class="sidebar-section">
       <div class="sidebar-label">Data source</div>
       <div class="status-row">
@@ -431,7 +491,7 @@
     return 'Very likely';
   }
 
-  /* ---- Snow (offsets 100–106) ---- */
+  /* ---- Snow (offsets 100–105) ---- */
   const SNOW_TYPES = ['dry', 'wet', 'graupel'];
   const SNOW_META = {
     dry:     { label: 'Dry',     color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
@@ -549,6 +609,58 @@
     return '#ef4444';
   }
 
+  /* ---- Mixed precipitation (offsets 300+, derived from other layers) ---- */
+  const MIXED_META = {
+    freezing_rain: { label: 'Freezing rain', color: '#0891b2', bg: '#ecfeff', border: '#a5f3fc',
+      desc: 'Rain falling on sub-zero surfaces — freezes on contact. Highest road risk.' },
+    sleet:         { label: 'Sleet',         color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe',
+      desc: 'Partially frozen droplets — pellet-like. Roads and pavements ice rapidly.' },
+    mix:           { label: 'Rain/snow mix', color: '#a855f7', bg: '#fdf4ff', border: '#e9d5ff',
+      desc: 'Simultaneous rain and snow. Wet, heavy accumulation likely.' },
+  };
+
+  function getMixedType(tempC, rainfallPct) {
+    if (rainfallPct < 25) return null;
+    if (tempC > 2)        return null;
+    if (tempC < -5)       return null;
+    if (tempC >= 0)       return 'freezing_rain';
+    if (tempC >= -2)      return 'sleet';
+    return 'mix';
+  }
+
+  function generateMixedData(rainData, snowData, severeData) {
+    return DISTRICTS.map((d, i) => {
+      const mixedType = getMixedType(severeData[i].tempC, rainData[i].rainfall);
+      if (!mixedType) return null;
+      return {
+        ...d, mixedType,
+        tempC:      severeData[i].tempC,
+        feelsLike:  severeData[i].feelsLike,
+        rainfall:   rainData[i].rainfall,
+        snowType:   snowData[i].type,
+        accumRate:  snowData[i].accumRate,
+        startHour:    Math.max(rainData[i].startHour, snowData[i].startHour),
+        durationHours: Math.min(
+          rainData[i].startHour  + rainData[i].durationHours,
+          snowData[i].startHour  + snowData[i].durationHours
+        ) - Math.max(rainData[i].startHour, snowData[i].startHour),
+      };
+    }).filter(Boolean);
+  }
+
+  function mixedIcon(mixedType) {
+    const m    = MIXED_META[mixedType];
+    const size = mixedType === 'freezing_rain' ? 26 : mixedType === 'sleet' ? 23 : 20;
+    return L.divIcon({
+      className: '',
+      html: `<div style="width:${size}px;height:${size}px;border-radius:50%;border:3px solid ${m.color};overflow:hidden;display:flex;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+        <div style="width:50%;background:#2563eb;"></div>
+        <div style="width:50%;background:#6366f1;"></div>
+      </div>`,
+      iconSize: [size, size], iconAnchor: [size / 2, size / 2], popupAnchor: [0, -(size / 2 + 4)],
+    });
+  }
+
   /* ---- Map ---- */
   const map = L.map('map').setView([59.328, 18.065], 12);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
@@ -573,10 +685,7 @@
           <strong>${d.name}</strong>
           <div class="metric-row">
             <span class="metric-label">Rainfall probability</span>
-            <div>
-              <div class="metric-value" style="color:${color}">${d.rainfall}%</div>
-              <div class="metric-sub">${rainfallLabel(d.rainfall)}</div>
-            </div>
+            <div><div class="metric-value" style="color:${color}">${d.rainfall}%</div><div class="metric-sub">${rainfallLabel(d.rainfall)}</div></div>
           </div>
           <div class="metric-row"><span class="metric-label">Total expected</span><span class="metric-value">${d.totalRainfall_mm} mm</span></div>
           <div class="metric-row"><span class="metric-label">Dew point</span><span class="metric-value">${d.dewPoint} °C</span></div>
@@ -731,7 +840,6 @@
     document.getElementById('avg-wind').innerHTML     = `${Math.round(mean(severeData.map(d => d.windSpeed)))}<span> km/h</span>`;
     document.getElementById('avg-pressure').innerHTML = `${Math.round(mean(severeData.map(d => d.pressure)))}<span> hPa</span>`;
     document.getElementById('avg-visibility').innerHTML = `${Math.round(mean(severeData.map(d => d.visibility)) * 10) / 10}<span> km</span>`;
-
     const banner = document.getElementById('severe-trigger-banner');
     if (alertCount > 0) {
       const byCat = { rain: 0, snow: 0, wind: 0 };
@@ -741,7 +849,6 @@
           `<div class="trigger-row"><span class="trigger-tag ${type}">${type.toUpperCase()}</span>${n} condition${n > 1 ? 's' : ''} across districts</div>`
         ).join('')}</div>`;
     } else { banner.innerHTML = ''; }
-
     const bsDistricts = DISTRICTS.map((dist, i) => {
       const bv = calcBlowingSnowVis(severeData[i].visibility, severeData[i].windSpeed, snowData[i].accumRate);
       return bv !== null ? { name: dist.name, baseVis: severeData[i].visibility, adjVis: bv } : null;
@@ -751,6 +858,83 @@
         <div class="blowing-snow-title">❄ Blowing snow · ${bsDistricts.length} district${bsDistricts.length > 1 ? 's' : ''}</div>
         ${bsDistricts.map(b => `<div class="blowing-snow-row"><span>${b.name}</span><span class="blowing-snow-val">${b.baseVis} → ${b.adjVis} km</span></div>`).join('')}
       </div>` : '';
+  }
+
+  /* ---- Mixed layer ---- */
+  const mixedLayer = L.layerGroup();
+
+  function buildMixedLayer(mixedData) {
+    mixedLayer.clearLayers();
+    mixedData.forEach(d => {
+      const m     = MIXED_META[d.mixedType];
+      const durH  = Math.max(0, d.durationHours);
+      const endH  = Math.min(23, d.startHour + durH);
+      const durSection = durH > 0 ? `
+        <div class="popup-dur">
+          <div class="popup-dur-label">Mixed window · ${fmtHour(d.startHour)} – ${fmtHour(endH)} (${durH} hr${durH !== 1 ? 's' : ''})</div>
+          <div class="dur-bar" style="gap:1px;height:12px;border-radius:3px">
+            ${Array.from({ length: 24 }, (_, h) => {
+              const active = h >= d.startHour && h < d.startHour + durH;
+              const nowH   = new Date().getHours();
+              const style  = active ? 'background:linear-gradient(to right,#2563eb 50%,#6366f1 50%)' : 'background:#e5e7eb';
+              const outline = h === nowH ? ';outline:2px solid #1a1a2e;outline-offset:-1px' : '';
+              return `<div style="border-radius:2px;${style}${outline}" title="${fmtHour(h)}"></div>`;
+            }).join('')}
+          </div>
+          <div class="dur-ticks" style="font-size:8px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+        </div>` : '';
+      L.circle([d.lat, d.lon], {
+        radius: 2000, color: '#7c3aed', weight: 0, fillColor: '#7c3aed', fillOpacity: 0.12, interactive: false,
+      }).addTo(mixedLayer);
+      L.marker([d.lat, d.lon], { icon: mixedIcon(d.mixedType) }).bindPopup(`
+        <div class="precip-popup" style="min-width:230px">
+          <strong>${d.name}</strong>
+          <div class="metric-row">
+            <span class="metric-label">Mixed type</span>
+            <span class="type-badge" style="background:${m.bg};color:${m.color};border:1px solid ${m.border}">${m.label}</span>
+          </div>
+          <div class="metric-row"><span class="metric-label">Temperature</span><span class="metric-value">${d.tempC} °C</span></div>
+          <div class="metric-row"><span class="metric-label">Feels like</span><span class="metric-value">${d.feelsLike} °C</span></div>
+          <div class="metric-row"><span class="metric-label">Rain probability</span><span class="metric-value">${d.rainfall}%</span></div>
+          <div class="metric-row"><span class="metric-label">Snow contributing</span><span class="metric-value">${SNOW_META[d.snowType].label} · ${d.accumRate} cm/hr</span></div>
+          <div style="margin-top:6px;padding:6px 8px;border-radius:5px;background:${m.bg};border:1px solid ${m.border};font-size:11px;color:${m.color}">${m.desc}</div>
+          ${durSection}
+          <div class="popup-sources">Derived from Rain + Snow + Severe Weather layers</div>
+        </div>
+      `).addTo(mixedLayer);
+    });
+  }
+
+  function updateMixedStats(mixedData) {
+    const count = mixedData.length;
+    document.getElementById('mixed-district-count').innerHTML = `${count}<span> of ${DISTRICTS.length}</span>`;
+    document.getElementById('mixed-district-sub').textContent = count === 0
+      ? 'No mixed conditions present'
+      : `${count} district${count > 1 ? 's' : ''} in the rain/snow transition zone`;
+    const typeCounts = { freezing_rain: 0, sleet: 0, mix: 0 };
+    mixedData.forEach(d => typeCounts[d.mixedType]++);
+    document.getElementById('mixed-type-summary').innerHTML = Object.entries(MIXED_META)
+      .filter(([t]) => typeCounts[t] > 0)
+      .map(([t, m]) => `
+        <span class="type-pill" style="background:${m.bg};color:${m.color};border:1px solid ${m.border}">
+          <span class="pill-dot split"></span>${m.label} (${typeCounts[t]})
+        </span>`).join('');
+    if (count > 0) {
+      document.getElementById('mixed-avg-temp').innerHTML = `${Math.round(mean(mixedData.map(d => d.tempC)) * 10) / 10}<span>°C</span>`;
+      document.getElementById('mixed-avg-rain').innerHTML = `${Math.round(mean(mixedData.map(d => d.rainfall)))}<span>%</span>`;
+      document.getElementById('mixed-banner').innerHTML = `
+        <div class="trigger-banner mixed">
+          <strong>⚠ Mixed conditions · ${count} district${count > 1 ? 's' : ''}</strong>
+          ${typeCounts.freezing_rain > 0 ? `<div class="trigger-row"><span class="trigger-tag" style="background:#ecfeff;color:#0891b2">FRZING RAIN</span>${typeCounts.freezing_rain} district${typeCounts.freezing_rain > 1 ? 's' : ''}</div>` : ''}
+          ${typeCounts.sleet         > 0 ? `<div class="trigger-row"><span class="trigger-tag" style="background:#f5f3ff;color:#7c3aed">SLEET</span>${typeCounts.sleet} district${typeCounts.sleet > 1 ? 's' : ''}</div>` : ''}
+          ${typeCounts.mix           > 0 ? `<div class="trigger-row"><span class="trigger-tag" style="background:#fdf4ff;color:#a855f7">MIXED</span>${typeCounts.mix} district${typeCounts.mix > 1 ? 's' : ''}</div>` : ''}
+        </div>`;
+      if (typeCounts.freezing_rain > 0) {
+        document.getElementById('mixed-risk-note').style.display = 'block';
+      }
+    } else {
+      document.getElementById('mixed-banner').innerHTML = '';
+    }
   }
 
   /* ---- Layer toggles ---- */
@@ -765,6 +949,7 @@
   wireToggle('btn-rain',   rainLayer,   'rain-active',   'rain-stats');
   wireToggle('btn-snow',   snowLayer,   'snow-active',   'snow-stats');
   wireToggle('btn-severe', severeLayer, 'severe-active', 'severe-stats');
+  wireToggle('btn-mixed',  mixedLayer,  'mixed-active',  'mixed-stats');
 
   /* ---- Legend ---- */
   const legend = L.control({ position: 'bottomright' });
@@ -784,6 +969,22 @@
       <div class="legend-row"><span class="legend-swatch" style="background:#94a3b8"></span>No alert</div>
       <div class="legend-row"><span class="legend-swatch" style="background:#f59e0b"></span>1 condition</div>
       <div class="legend-row"><span class="legend-swatch" style="background:#ef4444"></span>3+ conditions</div>
+      <strong>Mixed · Ring colour</strong>
+      <div class="legend-row">
+        <span style="width:14px;height:14px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:3px solid #0891b2">
+          <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(to right,#2563eb 50%,#6366f1 50%)"></span>
+        </span>Freezing rain
+      </div>
+      <div class="legend-row">
+        <span style="width:14px;height:14px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:3px solid #7c3aed">
+          <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(to right,#2563eb 50%,#6366f1 50%)"></span>
+        </span>Sleet
+      </div>
+      <div class="legend-row">
+        <span style="width:14px;height:14px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:3px solid #a855f7">
+          <span style="width:8px;height:8px;border-radius:50%;background:linear-gradient(to right,#2563eb 50%,#6366f1 50%)"></span>
+        </span>Rain/snow mix
+      </div>
     `;
     return div;
   };
@@ -793,13 +994,12 @@
   const rainData   = generateRainData();
   const snowData   = generateSnowData();
   const severeData = generateSevereData(snowData);
+  const mixedData  = generateMixedData(rainData, snowData, severeData);
 
-  buildRainLayer(rainData);
-  updateRainStats(rainData);
-  buildSnowLayer(snowData, severeData);
-  updateSnowStats(snowData);
-  buildSevereLayer(rainData, snowData, severeData);
-  updateSevereStats(rainData, snowData, severeData);
+  buildRainLayer(rainData);   updateRainStats(rainData);
+  buildSnowLayer(snowData, severeData); updateSnowStats(snowData);
+  buildSevereLayer(rainData, snowData, severeData); updateSevereStats(rainData, snowData, severeData);
+  buildMixedLayer(mixedData); updateMixedStats(mixedData);
 
   const anyTriggered = DISTRICTS.some((_, i) =>
     getSevereTriggers(rainData[i], snowData[i], severeData[i]).length > 0
@@ -809,6 +1009,12 @@
     document.getElementById('btn-severe').classList.add('severe-active');
     document.getElementById('severe-stats').classList.add('visible');
     document.getElementById('severe-alert-badge').classList.add('visible');
+  }
+  if (mixedData.length > 0) {
+    mixedLayer.addTo(map);
+    document.getElementById('btn-mixed').classList.add('mixed-active');
+    document.getElementById('mixed-stats').classList.add('visible');
+    document.getElementById('mixed-alert-badge').classList.add('visible');
   }
 
 })();
