@@ -55,6 +55,18 @@ export default function Home() {
             </li>
             <li>
               <a
+                href="/mike/precipitation.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Precipitation Monitor
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · rainfall, dew point and humidity across Stockholm
+              </span>
+            </li>
+            <li>
+              <a
                 href="/natalie/timer/index.html"
                 className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
               >
