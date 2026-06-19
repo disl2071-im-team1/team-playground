@@ -469,23 +469,72 @@
     sampleZone(box(59.29, 18.12, 0.03), C.extreme, 'SE zone — Extreme');
   }
 
-  function drawHeat() {
-    const C = { comfortable: '#2C7FB8', caution: '#FAC775', warning: '#EF9F27', extreme: '#E24B4A' };
-    const box = (cy, cx, d) => [[cy - d, cx - d], [cy - d, cx + d], [cy + d, cx + d], [cy + d, cx - d]];
-    sampleZone(box(59.345, 18.04, 0.035), C.caution, 'Inner west — Caution');
-    sampleZone(box(59.315, 18.08, 0.035), C.warning, 'City core — Warning');
-    sampleZone(box(59.305, 18.13, 0.030), C.extreme, 'SE built-up — Extreme');
-    sampleZone(box(59.355, 18.13, 0.030), C.comfortable, 'Gärdet green — Comfortable');
-    // Vulnerable sites layer ON by default for heat (care homes, preschools).
-    [
-      [[59.336, 18.060], 'Vasastan care home'],
-      [[59.312, 18.078], 'Södermalm preschool'],
-      [[59.345, 18.105], 'Östermalm care home'],
-      [[59.300, 18.110], 'Hammarby preschool']
-    ].forEach(([ll, l]) => {
-      L.marker(ll, { icon: L.divIcon({ className: 'vuln-pin', html: '♥', iconSize: [18, 18] }) })
-        .bindTooltip(`${l} (sample vulnerable site)`, { sticky: true }).addTo(gVulnerable);
+  /* ---- Heat: apparent-temperature surface + vulnerable sites ----
+   * Demo forecast shaped like SMHI output. Labelled placeholder until the
+   * SMHI temperature adapter lands; never dressed up as real measurement.
+   * Temperature is the deliberately high-confidence layer (largely measured),
+   * a contrast to the modelled algae and fire surfaces. */
+  const HEAT_DISTRICTS = [
+    { name: 'Norrmalm',    lat: 59.337, lon: 18.058, base: 30.5 },
+    { name: 'Södermalm',   lat: 59.314, lon: 18.072, base: 30.0 },
+    { name: 'Östermalm',   lat: 59.337, lon: 18.085, base: 29.5 },
+    { name: 'Vasastan',    lat: 59.346, lon: 18.045, base: 29.5 },
+    { name: 'Kungsholmen', lat: 59.330, lon: 18.030, base: 28.5 },
+    { name: 'Skärholmen',  lat: 59.277, lon: 17.907, base: 28.0 },
+    { name: 'Älvsjö',      lat: 59.278, lon: 18.010, base: 27.0 }
+  ];
+  const HEAT_VULNERABLE = [
+    { ll: [59.339, 18.061], type: 'care', name: 'Solgården äldreboende' },
+    { ll: [59.333, 18.054], type: 'pre',  name: 'Förskolan Myran' },
+    { ll: [59.312, 18.078], type: 'care', name: 'Söder äldrecentrum' },
+    { ll: [59.318, 18.065], type: 'pre',  name: 'Förskolan Sjöhästen' },
+    { ll: [59.340, 18.090], type: 'care', name: 'Östermalms servicehus' },
+    { ll: [59.346, 18.045], type: 'pre',  name: 'Förskolan Tuppen' },
+    { ll: [59.330, 18.030], type: 'care', name: 'Kungsholmens servicehus' },
+    { ll: [59.278, 17.905], type: 'care', name: 'Skärholmens äldreboende' },
+    { ll: [59.280, 17.912], type: 'pre',  name: 'Förskolan Galaxen' },
+    { ll: [59.279, 18.010], type: 'care', name: 'Älvsjö äldreboende' }
+  ];
+  // Diurnal apparent-temperature bump by clock hour: peaks mid-afternoon.
+  const HEAT_DIURNAL = { 12: 1, 13: 1.5, 14: 2, 15: 2.5, 16: 2.5, 17: 2, 18: 1, 19: 0, 20: -1, 21: -1.5, 22: -2, 23: -2.5, 0: -3, 1: -3, 2: -3.5 };
+
+  function heatColor(t) {
+    if (t >= 33) return '#E24B4A'; // Extreme
+    if (t >= 30) return '#EF9F27'; // Warning
+    if (t >= 27) return '#FAC775'; // Caution
+    return '#2C7FB8';              // Comfortable
+  }
+  function heatBand(t) {
+    if (t >= 33) return 'Extreme';
+    if (t >= 30) return 'Warning';
+    if (t >= 27) return 'Caution';
+    return 'Comfortable';
+  }
+  function heatTempAt(d, lead) {
+    const clock = (14 + lead) % 24;
+    const bump = HEAT_DIURNAL[clock] != null ? HEAT_DIURNAL[clock] : -2;
+    return Math.round((d.base + bump) * 10) / 10;
+  }
+  function drawHeatZones(lead) {
+    HEAT_DISTRICTS.forEach(d => {
+      const t = heatTempAt(d, lead);
+      const c = heatColor(t);
+      L.circle([d.lat, d.lon], { radius: 1000, color: c, weight: 1, opacity: 0.5, fillColor: c, fillOpacity: 0.38 })
+        .bindTooltip(`${d.name} — känns som ${t}°C · ${heatBand(t)} (sample)`, { sticky: true })
+        .addTo(gHazard);
     });
+  }
+  function drawHeatVulnerable() {
+    HEAT_VULNERABLE.forEach(v => {
+      const isCare = v.type === 'care';
+      L.marker(v.ll, { icon: L.divIcon({ className: 'vuln-pin' + (isCare ? '' : ' vp-pre'), html: isCare ? '♥' : '◆', iconSize: [18, 18] }) })
+        .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} (sample vulnerable site)`, { sticky: true })
+        .addTo(gVulnerable);
+    });
+  }
+  function drawHeat() {
+    drawHeatZones(currentLeadHour());
+    drawHeatVulnerable();
   }
 
   /* ============================================================
@@ -635,9 +684,9 @@
       eyebrow: 'Extreme heat', verb: 'Activate the municipal heat plan',
       decisionTitle: 'Municipal heat plan',
       sources: 'SMHI stations · värmebölja',
-      legend: { title: 'Apparent temperature', items: [
-        { c: '#2C7FB8', t: 'Comfortable' }, { c: '#FAC775', t: 'Caution' },
-        { c: '#EF9F27', t: 'Warning' }, { c: '#E24B4A', t: 'Extreme' }
+      legend: { title: 'Apparent temp (känns som)', items: [
+        { c: '#2C7FB8', t: 'Comfortable <27°' }, { c: '#FAC775', t: 'Caution 27–29°' },
+        { c: '#EF9F27', t: 'Warning 30–32°' }, { c: '#E24B4A', t: 'Extreme 33°+' }
       ] },
       layers: [
         { key: 'hazard', label: 'Apparent-temp surface (placeholder)', on: true, dot: '#EF9F27' },
@@ -652,7 +701,9 @@
       ],
       buttons: ['Activate', 'Stand down'], confidence: 'high', real: false,
       provenance: 'Measured: SMHI temperature stations (dense). Forecast: värmebölja.',
-      draw: drawHeat, activate: activatePlaceholder
+      draw: drawHeat,
+      onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); },
+      activate: activatePlaceholder
     }
   };
 
@@ -714,6 +765,9 @@
       if (currentHazard === 'air') {
         clearTimeout(debounce);
         debounce = setTimeout(() => loadCams(currentLeadHour()), 350);
+      } else {
+        const haz = HAZARDS[currentHazard];
+        if (haz && typeof haz.onLead === 'function') haz.onLead(currentLeadHour());
       }
     });
     update();

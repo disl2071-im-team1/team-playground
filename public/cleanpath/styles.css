@@ -2340,3 +2340,9 @@ textarea.dp-input { resize: vertical; }
 }
 
 .map-details summary:hover { color: var(--text-secondary); }
+
+/* Preschool variant of the vulnerable-site pin (heat hazard). */
+.vuln-pin.vp-pre {
+  color: #534AB7;
+  font-size: 13px;
+}
