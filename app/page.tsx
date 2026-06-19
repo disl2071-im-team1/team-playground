@@ -26,7 +26,8 @@ export default function Home() {
               </a>
               <span className="text-zinc-500">
                 {" "}
-                · routing Stockholm by air quality, not just time
+                · routing Stockholm by air quality, plus a Heat tab for
+                municipal heat planning
               </span>
             </li>
             <li>
