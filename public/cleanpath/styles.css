@@ -2081,6 +2081,147 @@ textarea.dp-input { resize: vertical; }
   min-height: 14px; line-height: 1.4;
 }
 
+/* Pollen strip — modern widget style */
+.pollen-strip {
+  margin-top: 12px;
+  background: linear-gradient(135deg, #0F2018 0%, #162820 100%);
+  border: 1px solid rgba(45, 191, 138, 0.12);
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pollen-strip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px 12px;
+  gap: 10px;
+}
+
+.pollen-strip-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+
+.pollen-strip-sub {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  margin-top: 2px;
+}
+
+.pollen-source-link {
+  font-size: 10px;
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.pollen-source-link:hover {
+  color: rgba(255,255,255,0.55);
+}
+
+.pollen-scroll {
+  display: flex;
+  gap: 10px;
+  padding: 0 18px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.pollen-scroll::-webkit-scrollbar { display: none; }
+
+.pollen-card {
+  flex: 0 0 auto;
+  width: 118px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 12px 12px 10px;
+  border: 1px solid rgba(255,255,255,0.07);
+  position: relative;
+  overflow: hidden;
+  transition: background 0.15s;
+}
+
+.pollen-card:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.pollen-card-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  pointer-events: none;
+  opacity: 0.12;
+}
+
+.pollen-icon {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.pollen-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 1px;
+}
+
+.pollen-name-sv {
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
+  font-weight: 400;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.pollen-count {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.pollen-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pollen-badge-none  { background: rgba(255,255,255,0.1);  color: rgba(255,255,255,0.4); }
+.pollen-badge-low   { background: rgba(29,158,117,0.25);  color: #6DDBB5; }
+.pollen-badge-mod   { background: rgba(239,159,39,0.25);  color: #F5BE6C; }
+.pollen-badge-high  { background: rgba(226,75,74,0.25);   color: #F28B8A; }
+.pollen-badge-vhigh { background: rgba(226,75,74,0.4);    color: #FFBCBC; }
+
+.pollen-bar-track {
+  height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.pollen-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  opacity: 0.75;
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+
 /* Vulnerable-site pin (heat) */
 .vuln-pin {
   color: #A32D2D;
