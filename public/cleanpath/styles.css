@@ -2232,6 +2232,54 @@ textarea.dp-input { resize: vertical; }
 }
 
 /* ============================================================
+ * Precipitation popup (Rain tab)
+ * ========================================================== */
+.precip-popup strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: var(--text-primary);
+}
+.precip-popup .metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+  padding: 3px 0;
+  border-bottom: 0.5px solid var(--border-tertiary);
+  gap: 8px;
+}
+.precip-popup .metric-row:last-child { border-bottom: none; }
+.precip-popup .metric-label { color: var(--text-secondary); white-space: nowrap; }
+.precip-popup .metric-value { font-weight: 600; text-align: right; color: var(--text-primary); }
+.precip-popup .metric-sub { font-size: 9px; color: var(--text-tertiary); text-align: right; }
+.popup-dur {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 0.5px solid var(--border-tertiary);
+}
+.popup-dur-label { font-size: 9px; color: var(--text-tertiary); margin-bottom: 3px; }
+.dur-bar {
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  gap: 1px;
+  height: 12px;
+  border-radius: 3px;
+  margin-bottom: 3px;
+}
+.dur-hr { border-radius: 2px; background: #e5e7eb; }
+.dur-hr.on-rain { background: #3b82f6; }
+.dur-hr.dur-now { outline: 2px solid var(--text-primary); outline-offset: -1px; border-radius: 2px; }
+.dur-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  color: var(--text-tertiary);
+  padding: 0 1px;
+}
+
+/* ============================================================
  * Pollen strip — pastel light style
  * ========================================================== */
 .pollen-strip {

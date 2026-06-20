@@ -21,6 +21,53 @@
     ));
   }
 
+  /* ---- Seeded RNG (ported from precipitation.html) ---- */
+  function seededRand(seed) {
+    let h = seed ^ 0xdeadbeef;
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h ^= h >>> 16;
+    return (h >>> 0) / 0xffffffff;
+  }
+  function dSeed(id, offset) {
+    const today = new Date();
+    const base = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+    return base + Math.abs(h) % 10000 + (offset || 0);
+  }
+  function mean(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
+  function fmtHour(h) { return String(Math.min(23, h)).padStart(2, '0') + ':00'; }
+  function durBarHtml(startH, durH, onClass) {
+    const nowH = new Date().getHours();
+    return Array.from({ length: 24 }, (_, h) => {
+      const cls = ['dur-hr'];
+      if (h >= startH && h < startH + durH) cls.push(onClass);
+      if (h === nowH) cls.push('dur-now');
+      return `<div class="${cls.join(' ')}" title="${fmtHour(h)}"></div>`;
+    }).join('');
+  }
+  function aggDurBar(data, onClass) {
+    const counts = Array(24).fill(0);
+    data.forEach(d => {
+      for (let h = d.startHour; h < Math.min(24, d.startHour + d.durationHours); h++) counts[h]++;
+    });
+    const maxC = Math.max(1, ...counts);
+    const nowH = new Date().getHours();
+    const html = Array.from({ length: 24 }, (_, h) => {
+      const cls = ['dur-hr'];
+      if (counts[h] > 0) cls.push(onClass);
+      if (h === nowH) cls.push('dur-now');
+      const style = counts[h] > 0 ? ` style="opacity:${(0.3 + (counts[h] / maxC) * 0.7).toFixed(2)}"` : '';
+      return `<div class="${cls.join(' ')}"${style} title="${fmtHour(h)} · ${counts[h]} districts"></div>`;
+    }).join('');
+    const peakHours = counts.reduce((a, c, h) => { if (c === maxC && maxC > 0) a.push(h); return a; }, []);
+    const peakLabel = peakHours.length > 0
+      ? `<strong>Peak:</strong> ${fmtHour(peakHours[0])} – ${fmtHour(peakHours[peakHours.length - 1] + 1)} · ${maxC} district${maxC !== 1 ? 's' : ''}`
+      : 'No precipitation expected';
+    return { html, peakLabel };
+  }
+
   /* ---- PM2.5 (air) colour scales, ported from the kept air stack ---- */
   function indexToColor(idx) {
     if (idx == null) return '#9CA3AF';
@@ -538,6 +585,77 @@
   }
 
   /* ============================================================
+   * Rain hazard — simulated precipitation data
+   * ========================================================== */
+
+  const RAIN_DISTRICTS = [
+    { id: 'norrmalm',    name: 'Norrmalm',    lat: 59.3350, lon: 18.0630 },
+    { id: 'sodermalm',   name: 'Södermalm',   lat: 59.3160, lon: 18.0720 },
+    { id: 'ostermalm',   name: 'Östermalm',   lat: 59.3400, lon: 18.0850 },
+    { id: 'kungsholmen', name: 'Kungsholmen', lat: 59.3300, lon: 18.0300 },
+    { id: 'vasastan',    name: 'Vasastan',    lat: 59.3460, lon: 18.0550 },
+    { id: 'gamla_stan',  name: 'Gamla Stan',  lat: 59.3230, lon: 18.0710 },
+    { id: 'djurgarden',  name: 'Djurgården',  lat: 59.3340, lon: 18.1100 },
+    { id: 'hammarby',    name: 'Hammarby',    lat: 59.3020, lon: 18.0890 },
+    { id: 'bromma',      name: 'Bromma',      lat: 59.3380, lon: 17.9450 },
+  ];
+
+  function rainfallColor(pct) {
+    if (pct < 30) return '#bfdbfe';
+    if (pct < 50) return '#60a5fa';
+    if (pct < 65) return '#2563eb';
+    return '#1e3a8a';
+  }
+  function rainfallLabel(pct) {
+    if (pct < 30) return 'Low chance';
+    if (pct < 50) return 'Moderate';
+    if (pct < 65) return 'Likely';
+    return 'Very likely';
+  }
+
+  function generateRainData() {
+    return RAIN_DISTRICTS.map(d => ({
+      ...d,
+      rainfall:         Math.round(20  + seededRand(dSeed(d.id, 0)) * 55),
+      dewPoint:         Math.round((7  + seededRand(dSeed(d.id, 1)) * 7) * 10) / 10,
+      humidity:         Math.round(55  + seededRand(dSeed(d.id, 2)) * 27),
+      totalRainfall_mm: Math.round(     seededRand(dSeed(d.id, 3)) * 90),
+      startHour:        Math.floor(     seededRand(dSeed(d.id, 4)) * 21),
+      durationHours:    Math.round(1  + seededRand(dSeed(d.id, 5)) * 7),
+    }));
+  }
+
+  function drawRain() {
+    const data = generateRainData();
+    data.forEach(d => {
+      const color = rainfallColor(d.rainfall);
+      const endHour = Math.min(23, d.startHour + d.durationHours);
+      L.circle([d.lat, d.lon], {
+        radius: 1800, color, weight: 0, fillColor: color, fillOpacity: 0.22, interactive: false,
+      }).addTo(gHazard);
+      L.circleMarker([d.lat, d.lon], {
+        radius: 9, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.95,
+      }).bindPopup(`
+        <div class="precip-popup" style="min-width:210px">
+          <strong>${d.name}</strong>
+          <div class="metric-row">
+            <span class="metric-label">Rainfall probability</span>
+            <div><div class="metric-value" style="color:${color}">${d.rainfall}%</div><div class="metric-sub">${rainfallLabel(d.rainfall)}</div></div>
+          </div>
+          <div class="metric-row"><span class="metric-label">Total expected</span><span class="metric-value">${d.totalRainfall_mm} mm</span></div>
+          <div class="metric-row"><span class="metric-label">Dew point</span><span class="metric-value">${d.dewPoint} °C</span></div>
+          <div class="metric-row"><span class="metric-label">Humidity</span><span class="metric-value">${d.humidity}%</span></div>
+          <div class="popup-dur">
+            <div class="popup-dur-label">Duration · ${fmtHour(d.startHour)} – ${fmtHour(endHour)} (${d.durationHours} hr${d.durationHours > 1 ? 's' : ''})</div>
+            <div class="dur-bar" style="gap:1px;height:12px">${durBarHtml(d.startHour, d.durationHours, 'on-rain')}</div>
+            <div class="dur-ticks" style="font-size:8px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+          </div>
+        </div>
+      `).addTo(gHazard);
+    });
+  }
+
+  /* ============================================================
    * Provenance bar
    * ========================================================== */
   function setProvenance(text, confidence, isPlaceholder) {
@@ -704,6 +822,39 @@
       draw: drawHeat,
       onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); },
       activate: activatePlaceholder
+    },
+    rain: {
+      eyebrow: 'Precipitation',
+      verb: 'Issue or lift a rainfall advisory',
+      decisionTitle: 'Rainfall advisory',
+      sources: 'SMHI-shaped simulated data',
+      legend: {
+        title: 'Rain · Probability',
+        items: [
+          { c: '#bfdbfe', t: 'Low (<30%)' },
+          { c: '#60a5fa', t: 'Moderate (30–49%)' },
+          { c: '#2563eb', t: 'Likely (50–64%)' },
+          { c: '#1e3a8a', t: 'Very likely (65%+)' }
+        ]
+      },
+      layers: [
+        { key: 'hazard', label: 'Rainfall probability (simulated)', on: true, dot: '#2563eb' }
+      ],
+      fields: [
+        { label: 'Area', kind: 'draw' },
+        { label: 'Level', kind: 'select', options: ['Watch', 'Advisory', 'Warning'] },
+        { label: 'Affected districts', kind: 'text', placeholder: 'e.g. Södermalm, Vasastan' },
+        { label: 'Message', kind: 'textarea', placeholder: 'Advisory text…' }
+      ],
+      buttons: ['Issue', 'Lift'],
+      confidence: 'thin',
+      real: false,
+      provenance: 'Simulated · SMHI-shaped district data. No live connection yet.',
+      activate: function(haz) {
+        setLayerStatus([{ id: 'rain', label: 'Rainfall layer (simulated)', state: 'offline', detail: 'simulated · SMHI adapter not connected' }]);
+        setProvenance(haz.provenance, haz.confidence, true);
+        drawRain();
+      }
     }
   };
 
