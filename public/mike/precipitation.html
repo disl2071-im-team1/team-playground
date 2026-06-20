@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Precipitation Monitor · Stockholm</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f6f8; color: #1a1a2e;
+    }
+    .header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 18px; background: #fff;
+      border-bottom: 1px solid #e4e8ed; position: relative; z-index: 1000;
+    }
+    .header-back { font-size: 13px; color: #6b7280; text-decoration: none; }
+    .header-back:hover { color: #1a1a2e; }
+    .header-title { font-size: 15px; font-weight: 600; color: #1a1a2e; }
+    .header-sub { font-size: 13px; color: #6b7280; margin-left: auto; }
+    .provenance-badge {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.04em;
+      padding: 3px 8px; border-radius: 4px;
+      background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa;
+    }
+    .layout { display: flex; height: calc(100vh - 49px); }
+    .sidebar {
+      width: 296px; flex-shrink: 0; background: #fff;
+      border-right: 1px solid #e4e8ed; overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .sidebar-section { padding: 16px; border-bottom: 1px solid #f0f2f5; }
+    .sidebar-section:last-child { border-bottom: none; }
+    .sidebar-label {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+      color: #9ca3af; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .layer-btn {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 10px 12px;
+      border: 1px solid #e4e8ed; border-radius: 8px;
+      background: #fff; cursor: pointer; text-align: left;
+      margin-bottom: 8px; transition: border-color 0.15s, background 0.15s;
+    }
+    .layer-btn:last-child { margin-bottom: 0; }
+    .layer-btn.rain-active { border-color: #3b82f6; background: #eff6ff; }
+    .layer-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .layer-btn-text { flex: 1; }
+    .layer-btn-name { font-size: 13px; font-weight: 500; color: #1a1a2e; }
+    .layer-btn-desc { font-size: 11px; color: #9ca3af; margin-top: 1px; }
+    .layer-toggle-indicator {
+      width: 28px; height: 16px; border-radius: 8px;
+      background: #d1d5db; position: relative; flex-shrink: 0; transition: background 0.15s;
+    }
+    .layer-toggle-indicator::after {
+      content: ''; position: absolute; left: 2px; top: 2px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; transition: transform 0.15s;
+    }
+    .layer-btn.rain-active .layer-toggle-indicator { background: #3b82f6; }
+    .layer-btn.rain-active .layer-toggle-indicator::after { transform: translateX(12px); }
+    .stat-card {
+      display: flex; flex-direction: column;
+      padding: 10px 12px; border: 1px solid #e4e8ed;
+      border-radius: 8px; margin-bottom: 8px;
+    }
+    .stat-card:last-child { margin-bottom: 0; }
+    .stat-card-label { font-size: 11px; color: #9ca3af; margin-bottom: 3px; }
+    .stat-card-value { font-size: 20px; font-weight: 700; color: #1a1a2e; line-height: 1.1; }
+    .stat-card-value span { font-size: 12px; font-weight: 400; color: #6b7280; }
+    .stat-card-sub { font-size: 11px; color: #6b7280; margin-top: 2px; }
+    .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .stat-row:last-child { margin-bottom: 0; }
+    .stat-row .stat-card { margin-bottom: 0; }
+    .dur-wrap { margin-top: 4px; }
+    .dur-bar { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; height: 14px; border-radius: 3px; margin-bottom: 3px; }
+    .dur-hr { border-radius: 2px; background: #e5e7eb; }
+    .dur-hr.on-rain { background: #3b82f6; }
+    .dur-hr.dur-now { outline: 2px solid #1a1a2e; outline-offset: -1px; border-radius: 2px; }
+    .dur-ticks { display: flex; justify-content: space-between; font-size: 9px; color: #9ca3af; padding: 0 1px; }
+    .dur-peak { font-size: 11px; color: #374151; margin-bottom: 4px; }
+    .dur-peak strong { font-weight: 600; }
+    .status-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6b7280; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; flex-shrink: 0; }
+    .status-dot.simulated { background: #f59e0b; }
+    .stats-panel { display: none; }
+    .stats-panel.visible { display: block; }
+    .map-wrap { flex: 1; position: relative; }
+    #map { width: 100%; height: 100%; }
+    .precip-popup strong { display: block; font-size: 13px; margin-bottom: 6px; }
+    .precip-popup .metric-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f0f2f5; gap: 8px;
+    }
+    .precip-popup .metric-row:last-child { border-bottom: none; }
+    .precip-popup .metric-label { color: #6b7280; white-space: nowrap; }
+    .precip-popup .metric-value { font-weight: 600; text-align: right; }
+    .precip-popup .metric-sub   { font-size: 10px; color: #9ca3af; text-align: right; }
+    .popup-dur { margin-top: 6px; padding-top: 6px; border-top: 1px solid #f0f2f5; }
+    .popup-dur-label { font-size: 10px; color: #9ca3af; margin-bottom: 3px; }
+    .map-legend {
+      background: #fff; border: 1px solid #e4e8ed; border-radius: 8px;
+      padding: 10px 12px; font-size: 12px; min-width: 160px;
+    }
+    .map-legend strong {
+      display: block; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.04em; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .legend-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; color: #374151; }
+    .legend-swatch { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <a href="/mike/index.html" class="header-back">← Back</a>
+  <span class="header-title">Precipitation Monitor</span>
+  <span class="header-sub">Stockholm area</span>
+  <span class="provenance-badge">SIMULATED</span>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Layers</div>
+      <button class="layer-btn rain-active" id="btn-rain">
+        <span class="layer-dot" style="background:#3b82f6"></span>
+        <span class="layer-btn-text">
+          <div class="layer-btn-name">Rain</div>
+          <div class="layer-btn-desc">Rainfall · dew point · humidity · duration</div>
+        </span>
+        <span class="layer-toggle-indicator"></span>
+      </button>
+    </div>
+
+    <div class="sidebar-section stats-panel visible" id="rain-stats">
+      <div class="sidebar-label">Area averages · Rain</div>
+      <div class="stat-card">
+        <div class="stat-card-label">Rainfall probability</div>
+        <div class="stat-card-value" id="avg-rainfall">—<span>%</span></div>
+        <div class="stat-card-sub">Across all districts</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-card-label">Total expected</div>
+          <div class="stat-card-value" id="avg-rain-total">—<span> mm</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">Humidity</div>
+          <div class="stat-card-value" id="avg-humidity">—<span>%</span></div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-card-label">Dew point</div>
+          <div class="stat-card-value" id="avg-dew">—<span>°C</span></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Precipitation window</div>
+        <div class="dur-peak" id="rain-peak">—</div>
+        <div class="dur-wrap">
+          <div class="dur-bar" id="rain-agg-bar"></div>
+          <div class="dur-ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Data source</div>
+      <div class="status-row">
+        <span class="status-dot simulated"></span>
+        Simulated · SMHI-shaped data
+      </div>
+    </div>
+  </aside>
+
+  <div class="map-wrap"><div id="map"></div></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  const DISTRICTS = [
+    { id: 'norrmalm',    name: 'Norrmalm',    lat: 59.3350, lon: 18.0630 },
+    { id: 'sodermalm',   name: 'Södermalm',   lat: 59.3160, lon: 18.0720 },
+    { id: 'ostermalm',   name: 'Östermalm',   lat: 59.3400, lon: 18.0850 },
+    { id: 'kungsholmen', name: 'Kungsholmen', lat: 59.3300, lon: 18.0300 },
+    { id: 'vasastan',    name: 'Vasastan',    lat: 59.3460, lon: 18.0550 },
+    { id: 'gamla_stan',  name: 'Gamla Stan',  lat: 59.3230, lon: 18.0710 },
+    { id: 'djurgarden',  name: 'Djurgården',  lat: 59.3340, lon: 18.1100 },
+    { id: 'hammarby',    name: 'Hammarby',    lat: 59.3020, lon: 18.0890 },
+    { id: 'bromma',      name: 'Bromma',      lat: 59.3380, lon: 17.9450 },
+  ];
+
+  function seededRand(seed) {
+    let h = seed ^ 0xdeadbeef;
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
+    h ^= h >>> 16;
+    return (h >>> 0) / 0xffffffff;
+  }
+  function dSeed(id, offset) {
+    const today = new Date();
+    const base = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    let h = 0;
+    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+    return base + Math.abs(h) % 10000 + (offset || 0);
+  }
+  function mean(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
+  function fmtHour(h) { return String(Math.min(23, h)).padStart(2, '0') + ':00'; }
+
+  function durBarHtml(startH, durH, onClass) {
+    const nowH = new Date().getHours();
+    return Array.from({ length: 24 }, (_, h) => {
+      const cls = ['dur-hr'];
+      if (h >= startH && h < startH + durH) cls.push(onClass);
+      if (h === nowH) cls.push('dur-now');
+      return `<div class="${cls.join(' ')}" title="${fmtHour(h)}"></div>`;
+    }).join('');
+  }
+
+  function aggDurBar(data, onClass) {
+    const counts = Array(24).fill(0);
+    data.forEach(d => {
+      for (let h = d.startHour; h < Math.min(24, d.startHour + d.durationHours); h++) counts[h]++;
+    });
+    const maxC = Math.max(1, ...counts);
+    const nowH = new Date().getHours();
+    const html = Array.from({ length: 24 }, (_, h) => {
+      const cls = ['dur-hr'];
+      if (counts[h] > 0) cls.push(onClass);
+      if (h === nowH) cls.push('dur-now');
+      const style = counts[h] > 0 ? ` style="opacity:${(0.3 + (counts[h] / maxC) * 0.7).toFixed(2)}"` : '';
+      return `<div class="${cls.join(' ')}"${style} title="${fmtHour(h)} · ${counts[h]} districts"></div>`;
+    }).join('');
+    const peakHours = counts.reduce((a, c, h) => { if (c === maxC && maxC > 0) a.push(h); return a; }, []);
+    const peakLabel = peakHours.length > 0
+      ? `<strong>Peak:</strong> ${fmtHour(peakHours[0])} – ${fmtHour(peakHours[peakHours.length - 1] + 1)} · ${maxC} district${maxC !== 1 ? 's' : ''}`
+      : 'No precipitation expected';
+    return { html, peakLabel };
+  }
+
+  function generateRainData() {
+    return DISTRICTS.map(d => ({
+      ...d,
+      rainfall:         Math.round(20  + seededRand(dSeed(d.id, 0)) * 55),
+      dewPoint:         Math.round((7  + seededRand(dSeed(d.id, 1)) * 7) * 10) / 10,
+      humidity:         Math.round(55  + seededRand(dSeed(d.id, 2)) * 27),
+      totalRainfall_mm: Math.round(     seededRand(dSeed(d.id, 3)) * 90),
+      startHour:        Math.floor(     seededRand(dSeed(d.id, 4)) * 21),
+      durationHours:    Math.round(1  + seededRand(dSeed(d.id, 5)) * 7),
+    }));
+  }
+
+  function rainfallColor(pct) {
+    if (pct < 30) return '#bfdbfe';
+    if (pct < 50) return '#60a5fa';
+    if (pct < 65) return '#2563eb';
+    return '#1e3a8a';
+  }
+  function rainfallLabel(pct) {
+    if (pct < 30) return 'Low chance';
+    if (pct < 50) return 'Moderate';
+    if (pct < 65) return 'Likely';
+    return 'Very likely';
+  }
+
+  const map = L.map('map').setView([59.328, 18.065], 12);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 18, attribution: '&copy; OpenStreetMap &copy; CARTO'
+  }).addTo(map);
+
+  const rainLayer = L.layerGroup().addTo(map);
+
+  function buildRainLayer(data) {
+    rainLayer.clearLayers();
+    data.forEach(d => {
+      const color   = rainfallColor(d.rainfall);
+      const endHour = Math.min(23, d.startHour + d.durationHours);
+      L.circle([d.lat, d.lon], {
+        radius: 1800, color, weight: 0, fillColor: color, fillOpacity: 0.22, interactive: false,
+      }).addTo(rainLayer);
+      L.circleMarker([d.lat, d.lon], {
+        radius: 9, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.95,
+      }).bindPopup(`
+        <div class="precip-popup" style="min-width:210px">
+          <strong>${d.name}</strong>
+          <div class="metric-row">
+            <span class="metric-label">Rainfall probability</span>
+            <div>
+              <div class="metric-value" style="color:${color}">${d.rainfall}%</div>
+              <div class="metric-sub">${rainfallLabel(d.rainfall)}</div>
+            </div>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Total expected</span>
+            <span class="metric-value">${d.totalRainfall_mm} mm</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Dew point</span>
+            <span class="metric-value">${d.dewPoint} °C</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">Humidity</span>
+            <span class="metric-value">${d.humidity}%</span>
+          </div>
+          <div class="popup-dur">
+            <div class="popup-dur-label">Duration · ${fmtHour(d.startHour)} – ${fmtHour(endHour)} (${d.durationHours} hr${d.durationHours > 1 ? 's' : ''})</div>
+            <div class="dur-bar" style="gap:1px;height:12px">${durBarHtml(d.startHour, d.durationHours, 'on-rain')}</div>
+            <div class="dur-ticks" style="font-size:8px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+          </div>
+        </div>
+      `).addTo(rainLayer);
+    });
+  }
+
+  function updateRainStats(data) {
+    document.getElementById('avg-rainfall').innerHTML   = `${Math.round(mean(data.map(d => d.rainfall)))}<span>%</span>`;
+    document.getElementById('avg-rain-total').innerHTML = `${Math.round(mean(data.map(d => d.totalRainfall_mm)))}<span> mm</span>`;
+    document.getElementById('avg-dew').innerHTML        = `${Math.round(mean(data.map(d => d.dewPoint)) * 10) / 10}<span>°C</span>`;
+    document.getElementById('avg-humidity').innerHTML   = `${Math.round(mean(data.map(d => d.humidity)))}<span>%</span>`;
+    const agg = aggDurBar(data, 'on-rain');
+    document.getElementById('rain-agg-bar').innerHTML = agg.html;
+    document.getElementById('rain-peak').innerHTML    = agg.peakLabel;
+  }
+
+  document.getElementById('btn-rain').addEventListener('click', function () {
+    const nowOn = !map.hasLayer(rainLayer);
+    this.classList.toggle('rain-active', nowOn);
+    if (nowOn) rainLayer.addTo(map); else rainLayer.remove();
+    document.getElementById('rain-stats').classList.toggle('visible', nowOn);
+  });
+
+  const legend = L.control({ position: 'bottomright' });
+  legend.onAdd = function () {
+    const div = L.DomUtil.create('div', 'map-legend');
+    div.innerHTML = `
+      <strong>Rain · Probability</strong>
+      <div class="legend-row"><span class="legend-swatch" style="background:#bfdbfe"></span>Low (&lt;30%)</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#60a5fa"></span>Moderate (30–49%)</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#2563eb"></span>Likely (50–64%)</div>
+      <div class="legend-row"><span class="legend-swatch" style="background:#1e3a8a"></span>Very likely (65%+)</div>
+    `;
+    return div;
+  };
+  legend.addTo(map);
+
+  const rainData = generateRainData();
+  buildRainLayer(rainData);
+  updateRainStats(rainData);
+
+})();
+</script>
+</body>
+</html>

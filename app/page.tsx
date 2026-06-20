@@ -26,7 +26,8 @@ export default function Home() {
               </a>
               <span className="text-zinc-500">
                 {" "}
-                · routing Stockholm by air quality, not just time
+                · routing Stockholm by air quality, plus a Heat tab for
+                municipal heat planning
               </span>
             </li>
             <li>
@@ -51,6 +52,18 @@ export default function Home() {
               <span className="text-zinc-500">
                 {" "}
                 · a yellow button, a counter, and the joy of clicking
+              </span>
+            </li>
+            <li>
+              <a
+                href="/mike/precipitation.html"
+                className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900"
+              >
+                Precipitation Monitor
+              </a>
+              <span className="text-zinc-500">
+                {" "}
+                · rainfall, dew point and humidity across Stockholm
               </span>
             </li>
             <li>
