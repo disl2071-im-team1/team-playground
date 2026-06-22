@@ -590,22 +590,20 @@
     grid.innerHTML = sorted.map(([tag, count]) => {
       const meta = ALGAE_SIGNAL_META[tag];
       const pct = Math.round((count / total) * 100);
-      const badgeCls = meta.severity >= 3 ? 'pollen-badge-high'
-                     : meta.severity >= 2 ? 'pollen-badge-mod'
-                     : 'pollen-badge-low';
-      const badgeLabel = meta.severity >= 3 ? 'HIGH' : meta.severity >= 2 ? 'MEDIUM' : 'LOW';
-      const barColor = meta.severity >= 3 ? 'var(--red)' : meta.severity >= 2 ? 'var(--amber)' : 'var(--green)';
-      const glowColor = meta.severity >= 3 ? '#F5CFCF' : meta.severity >= 2 ? '#F5E6C8' : '#C8EBD8';
+      const color = pct >= 75 ? 'var(--red)' : pct >= 50 ? 'var(--amber)' : 'var(--green)';
+      const glowColor = pct >= 75 ? '#F5CFCF' : pct >= 50 ? '#F5E6C8' : '#C8EBD8';
+      const siteLabel = count === 1 ? 'site' : 'sites';
 
-      return `<div class="pollen-card">
+      return `<div class="pollen-card algae-signal-card">
         <div class="pollen-card-glow" style="background:${glowColor}"></div>
         <span class="pollen-icon">${meta.icon}</span>
         <div class="pollen-name">${meta.shortLabel}</div>
-        <span class="pollen-name-sv">${meta.label}</span>
-        <span class="pollen-count" style="color:${barColor}">${count}</span>
-        <span class="pollen-badge ${badgeCls}">${badgeLabel}</span>
-        <div class="pollen-bar-track">
-          <div class="pollen-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+        <div class="algae-signal-bottom">
+          <span class="pollen-count" style="color:${color}">${count}</span>
+          <span class="algae-signal-site-label">${siteLabel}</span>
+          <div class="pollen-bar-track">
+            <div class="pollen-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
         </div>
       </div>`;
     }).join('');

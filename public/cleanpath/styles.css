@@ -2793,3 +2793,19 @@ textarea.dp-input { resize: vertical; }
   font-weight: 600;
 }
 
+/* Algae signal cards — bottom-aligned number + bar */
+.algae-signal-card {
+  display: flex;
+  flex-direction: column;
+}
+.algae-signal-bottom {
+  margin-top: auto;
+}
+.algae-signal-site-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  display: block;
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
