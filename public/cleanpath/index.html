@@ -75,17 +75,6 @@
       </div>
     </div>
 
-    <!-- Algae risk signal strip — visible only on Algae tab -->
-    <section class="pollen-strip" id="algae-risk-strip" style="display:none">
-      <div class="pollen-strip-head">
-        <div>
-          <div class="pollen-strip-title">Network risk signals · Stockholm bathing sites</div>
-          <div class="pollen-strip-sub">Aggregated across all monitored sites</div>
-        </div>
-      </div>
-      <div class="pollen-scroll" id="algae-risk-grid"></div>
-    </section>
-
     <div class="shell-grid">
 
       <!-- Map shell (dominant). Legend + layers panel are Leaflet controls added in JS. -->
@@ -125,6 +114,17 @@
       </aside>
 
     </div>
+
+    <!-- Algae risk signal strip — visible only on Algae tab, below the map -->
+    <section class="pollen-strip" id="algae-risk-strip" style="display:none">
+      <div class="pollen-strip-head">
+        <div>
+          <div class="pollen-strip-title">Network risk signals · Stockholm bathing sites</div>
+          <div class="pollen-strip-sub">Aggregated across all 8 monitored sites</div>
+        </div>
+      </div>
+      <div class="pollen-scroll" id="algae-risk-grid"></div>
+    </section>
 
     <!-- Pollen strip — Air tab only, hidden for other hazards -->
     <section class="pollen-strip" id="pollen-strip" style="display:none">

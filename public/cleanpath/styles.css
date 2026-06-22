@@ -2793,7 +2793,3 @@ textarea.dp-input { resize: vertical; }
   font-weight: 600;
 }
 
-/* Algae risk signal strip — severity tints on pollen-card */
-.algae-signal-card.algae-signal-high { border-top: 3px solid var(--red); }
-.algae-signal-card.algae-signal-med  { border-top: 3px solid var(--amber); }
-.algae-signal-card.algae-signal-low  { border-top: 3px solid var(--text-tertiary); }

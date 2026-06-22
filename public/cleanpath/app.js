@@ -547,23 +547,25 @@
   function hideAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'none'; }
 
   const ALGAE_SIGNAL_META = {
-    'high-count':     { icon: '⚠️', label: 'above advisory threshold',      severity: 3 },
-    'toxin-species':  { icon: '🔬', label: 'with toxin-producing species',   severity: 3 },
-    'surface-scum':   { icon: '🌊', label: 'with visible surface scum',      severity: 3 },
-    'high-temp':      { icon: '🌡️', label: 'with elevated water temperature', severity: 2 },
-    'watch-threshold':{ icon: '🦠', label: 'approaching advisory threshold', severity: 2 },
-    'upward-trend':   { icon: '📈', label: 'with rising cyanobacteria count', severity: 2 },
-    'calm-surface':   { icon: '🌬️', label: 'with calm surface — accumulation risk', severity: 1 },
-    'stale-data':     { icon: '🕐', label: 'with overdue sampling data',     severity: 1 },
-    'high-footfall':  { icon: '🏊', label: 'high-footfall — elevated public health risk', severity: 2 },
-    'wind-dispersal': { icon: '💨', label: 'with wind-assisted dispersal',   severity: 0 },
+    'high-count':     { icon: '⚠️', shortLabel: 'Above threshold',   label: 'sites above advisory threshold',        severity: 3 },
+    'toxin-species':  { icon: '🔬', shortLabel: 'Toxin species',     label: 'sites with toxin-producing species',    severity: 3 },
+    'surface-scum':   { icon: '🌊', shortLabel: 'Surface scum',      label: 'sites with visible surface scum',       severity: 3 },
+    'high-temp':      { icon: '🌡️', shortLabel: 'High temperature',  label: 'sites with elevated water temperature', severity: 2 },
+    'watch-threshold':{ icon: '🦠', shortLabel: 'Watch level',       label: 'sites approaching advisory threshold',  severity: 2 },
+    'upward-trend':   { icon: '📈', shortLabel: 'Rising count',      label: 'sites with rising cyanobacteria count', severity: 2 },
+    'calm-surface':   { icon: '🌬️', shortLabel: 'Calm surface',      label: 'sites with low wind — accumulation risk', severity: 1 },
+    'stale-data':     { icon: '🕐', shortLabel: 'Stale data',        label: 'sites with overdue sampling data',      severity: 1 },
+    'high-footfall':  { icon: '🏊', shortLabel: 'High footfall',     label: 'high-footfall sites — elevated risk',   severity: 2 },
+    'wind-dispersal': { icon: '💨', shortLabel: 'Wind dispersal',    label: 'sites with wind-assisted dispersal',    severity: 0 },
   };
 
   function updateAlgaeRiskStrip() {
     const grid = document.getElementById('algae-risk-grid');
     if (!grid) return;
 
-    // Count sites per tag (only active = non-null tag)
+    const total = ALGAE_SITES.length;
+
+    // Count sites per tag
     const counts = {};
     ALGAE_SITES.forEach(site => {
       site.factors.forEach(f => {
@@ -571,13 +573,14 @@
       });
     });
 
-    // Sort by severity desc, then count desc
+    // Sort by severity desc, then count desc — take top 6
     const sorted = Object.entries(counts)
       .filter(([tag]) => ALGAE_SIGNAL_META[tag])
       .sort(([a, ca], [b, cb]) => {
         const sd = (ALGAE_SIGNAL_META[b].severity || 0) - (ALGAE_SIGNAL_META[a].severity || 0);
         return sd !== 0 ? sd : cb - ca;
-      });
+      })
+      .slice(0, 6);
 
     if (sorted.length === 0) {
       grid.innerHTML = '<div style="color:var(--text-tertiary);font-size:13px;padding:8px 0">No active risk signals across the network.</div>';
@@ -586,14 +589,24 @@
 
     grid.innerHTML = sorted.map(([tag, count]) => {
       const meta = ALGAE_SIGNAL_META[tag];
-      const siteWord = count === 1 ? 'site' : 'sites';
-      const sevClass = meta.severity >= 3 ? 'algae-signal-high'
-                     : meta.severity >= 2 ? 'algae-signal-med'
-                     : 'algae-signal-low';
-      return `<div class="pollen-card algae-signal-card ${sevClass}">
-        <div class="pollen-icon">${meta.icon}</div>
-        <div class="pollen-name">${count} ${siteWord}</div>
-        <div class="pollen-level">${meta.label}</div>
+      const pct = Math.round((count / total) * 100);
+      const badgeCls = meta.severity >= 3 ? 'pollen-badge-high'
+                     : meta.severity >= 2 ? 'pollen-badge-mod'
+                     : 'pollen-badge-low';
+      const badgeLabel = meta.severity >= 3 ? 'HIGH' : meta.severity >= 2 ? 'MEDIUM' : 'LOW';
+      const barColor = meta.severity >= 3 ? 'var(--red)' : meta.severity >= 2 ? 'var(--amber)' : 'var(--green)';
+      const glowColor = meta.severity >= 3 ? '#F5CFCF' : meta.severity >= 2 ? '#F5E6C8' : '#C8EBD8';
+
+      return `<div class="pollen-card">
+        <div class="pollen-card-glow" style="background:${glowColor}"></div>
+        <span class="pollen-icon">${meta.icon}</span>
+        <div class="pollen-name">${meta.shortLabel}</div>
+        <span class="pollen-name-sv">${meta.label}</span>
+        <span class="pollen-count" style="color:${barColor}">${count}</span>
+        <span class="pollen-badge ${badgeCls}">${badgeLabel}</span>
+        <div class="pollen-bar-track">
+          <div class="pollen-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
       </div>`;
     }).join('');
   }
