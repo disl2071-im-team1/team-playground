@@ -392,9 +392,9 @@
       obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '4 µg/L', visibility: '2.8 m', temp: '18 °C' },
       dataAge: '2h ago', stale: false,
       factors: [
-        { icon: '🌡️', text: 'Water temperature within normal range for season' },
-        { icon: '💨', text: 'Northerly wind dispersing surface accumulation' },
-        { icon: '☀️', text: 'Moderate sunlight — bloom growth unlikely today' },
+        { icon: '🌡️', text: 'Water temperature within normal range for season', tag: null },
+        { icon: '💨', text: 'Northerly wind dispersing surface accumulation',   tag: 'wind-dispersal' },
+        { icon: '☀️', text: 'Moderate sunlight — bloom growth unlikely today',  tag: null },
       ],
       recommendation: 'No action needed. Continue routine weekly sampling. Next scheduled check: Friday.',
       audit: [
@@ -407,10 +407,10 @@
       obs: { cyanobacteria: '2 400 cells/mL', chlorophyll: '18 µg/L', visibility: '1.2 m', temp: '22 °C' },
       dataAge: '5h ago', stale: false,
       factors: [
-        { icon: '🦠', text: 'Cyanobacteria count elevated — approaching advisory threshold (10 000 cells/mL)' },
-        { icon: '🌡️', text: 'Water temp 22 °C — favourable for bloom growth' },
-        { icon: '🌬️', text: 'Low wind speed, calm surface — accumulation risk high' },
-        { icon: '📈', text: 'Count up 3× vs last week — upward trend' },
+        { icon: '🦠', text: 'Cyanobacteria count elevated — approaching advisory threshold (10 000 cells/mL)', tag: 'watch-threshold' },
+        { icon: '🌡️', text: 'Water temp 22 °C — favourable for bloom growth',                                 tag: 'high-temp' },
+        { icon: '🌬️', text: 'Low wind speed, calm surface — accumulation risk high',                          tag: 'calm-surface' },
+        { icon: '📈', text: 'Count up 3× vs last week — upward trend',                                        tag: 'upward-trend' },
       ],
       recommendation: 'Recommend escalating to Advisory if next sample confirms count > 5 000 cells/mL. Consider posting watch signage at site entry. Re-sample within 48 h.',
       audit: [
@@ -423,10 +423,10 @@
       obs: { cyanobacteria: '28 000 cells/mL', chlorophyll: '52 µg/L', visibility: '0.4 m', temp: '24 °C' },
       dataAge: '1h ago', stale: false,
       factors: [
-        { icon: '⚠️', text: 'Cyanobacteria count well above advisory threshold' },
-        { icon: '🌡️', text: 'Highest water temperature in network — bloom conditions peak' },
-        { icon: '🌊', text: 'Surface scum visible on SE shore — direct contact risk' },
-        { icon: '🔬', text: 'Species identified: Microcystis aeruginosa — toxin-producing strain' },
+        { icon: '⚠️', text: 'Cyanobacteria count well above advisory threshold',                    tag: 'high-count' },
+        { icon: '🌡️', text: 'Highest water temperature in network — bloom conditions peak',         tag: 'high-temp' },
+        { icon: '🌊', text: 'Surface scum visible on SE shore — direct contact risk',               tag: 'surface-scum' },
+        { icon: '🔬', text: 'Species identified: Microcystis aeruginosa — toxin-producing strain',  tag: 'toxin-species' },
       ],
       recommendation: 'Maintain Advisory. Issue public notification. Re-sample every 24 h. Escalate to Closed if scum covers > 30% of bathing area or count exceeds 100 000 cells/mL.',
       audit: [
@@ -440,8 +440,8 @@
       obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '3 µg/L', visibility: '3.1 m', temp: '17 °C' },
       dataAge: '3 days ago', stale: true,
       factors: [
-        { icon: '🕐', text: 'Data is 3 days old — last sample overdue. Confidence: low.' },
-        { icon: '🌊', text: 'Sheltered inlet — historically prone to accumulation in calm periods' },
+        { icon: '🕐', text: 'Data is 3 days old — last sample overdue. Confidence: low.', tag: 'stale-data' },
+        { icon: '🌊', text: 'Sheltered inlet — historically prone to accumulation in calm periods', tag: 'calm-surface' },
       ],
       recommendation: 'Schedule urgent re-sample. Current Clear status cannot be confirmed — data is stale. Do not issue Clear confirmation until fresh sample received.',
       audit: [
@@ -454,8 +454,8 @@
       obs: { cyanobacteria: '300 cells/mL', chlorophyll: '6 µg/L', visibility: '2.1 m', temp: '20 °C' },
       dataAge: '6h ago', stale: false,
       factors: [
-        { icon: '✅', text: 'Count well below watch threshold' },
-        { icon: '💨', text: 'Good wind mixing — low accumulation risk' },
+        { icon: '✅', text: 'Count well below watch threshold',          tag: null },
+        { icon: '💨', text: 'Good wind mixing — low accumulation risk',  tag: 'wind-dispersal' },
       ],
       recommendation: 'No action. Continue routine sampling.',
       audit: [
@@ -468,8 +468,8 @@
       obs: { cyanobacteria: '150 cells/mL', chlorophyll: '5 µg/L', visibility: '2.5 m', temp: '19 °C' },
       dataAge: '1 day ago', stale: false,
       factors: [
-        { icon: '✅', text: 'Count within safe range' },
-        { icon: '🌿', text: 'Dense reed bed on north shore provides natural filtration' },
+        { icon: '✅', text: 'Count within safe range',                                    tag: null },
+        { icon: '🌿', text: 'Dense reed bed on north shore provides natural filtration',  tag: null },
       ],
       recommendation: 'No action. Next routine sample due in 6 days.',
       audit: [
@@ -482,9 +482,9 @@
       obs: { cyanobacteria: '15 000 cells/mL', chlorophyll: '38 µg/L', visibility: '0.6 m', temp: '23 °C' },
       dataAge: '4h ago', stale: false,
       factors: [
-        { icon: '⚠️', text: 'Count above advisory threshold — active bloom confirmed' },
-        { icon: '🏊', text: 'High visitor volume site — public health risk elevated' },
-        { icon: '🌡️', text: 'Sustained warm temperatures forecast for next 5 days' },
+        { icon: '⚠️', text: 'Count above advisory threshold — active bloom confirmed',   tag: 'high-count' },
+        { icon: '🏊', text: 'High visitor volume site — public health risk elevated',    tag: 'high-footfall' },
+        { icon: '🌡️', text: 'Sustained warm temperatures forecast for next 5 days',     tag: 'high-temp' },
       ],
       recommendation: 'Maintain Advisory. Signs posted. Re-sample tomorrow. Consider pre-emptive Closed status given forecast heat and high visitor numbers.',
       audit: [
@@ -497,8 +497,8 @@
       obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '4 µg/L', visibility: '3.0 m', temp: '18 °C' },
       dataAge: '1 day ago', stale: false,
       factors: [
-        { icon: '✅', text: 'All indicators within normal range' },
-        { icon: '🌲', text: 'Forested catchment — lower nutrient runoff than urban sites' },
+        { icon: '✅', text: 'All indicators within normal range',                          tag: null },
+        { icon: '🌲', text: 'Forested catchment — lower nutrient runoff than urban sites', tag: null },
       ],
       recommendation: 'No action. Model forecasts low bloom risk for next 7 days.',
       audit: [
@@ -546,10 +546,73 @@
   function showAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'flex'; }
   function hideAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'none'; }
 
+  const ALGAE_SIGNAL_META = {
+    'high-count':     { icon: '⚠️', label: 'above advisory threshold',      severity: 3 },
+    'toxin-species':  { icon: '🔬', label: 'with toxin-producing species',   severity: 3 },
+    'surface-scum':   { icon: '🌊', label: 'with visible surface scum',      severity: 3 },
+    'high-temp':      { icon: '🌡️', label: 'with elevated water temperature', severity: 2 },
+    'watch-threshold':{ icon: '🦠', label: 'approaching advisory threshold', severity: 2 },
+    'upward-trend':   { icon: '📈', label: 'with rising cyanobacteria count', severity: 2 },
+    'calm-surface':   { icon: '🌬️', label: 'with calm surface — accumulation risk', severity: 1 },
+    'stale-data':     { icon: '🕐', label: 'with overdue sampling data',     severity: 1 },
+    'high-footfall':  { icon: '🏊', label: 'high-footfall — elevated public health risk', severity: 2 },
+    'wind-dispersal': { icon: '💨', label: 'with wind-assisted dispersal',   severity: 0 },
+  };
+
+  function updateAlgaeRiskStrip() {
+    const grid = document.getElementById('algae-risk-grid');
+    if (!grid) return;
+
+    // Count sites per tag (only active = non-null tag)
+    const counts = {};
+    ALGAE_SITES.forEach(site => {
+      site.factors.forEach(f => {
+        if (f.tag) counts[f.tag] = (counts[f.tag] || 0) + 1;
+      });
+    });
+
+    // Sort by severity desc, then count desc
+    const sorted = Object.entries(counts)
+      .filter(([tag]) => ALGAE_SIGNAL_META[tag])
+      .sort(([a, ca], [b, cb]) => {
+        const sd = (ALGAE_SIGNAL_META[b].severity || 0) - (ALGAE_SIGNAL_META[a].severity || 0);
+        return sd !== 0 ? sd : cb - ca;
+      });
+
+    if (sorted.length === 0) {
+      grid.innerHTML = '<div style="color:var(--text-tertiary);font-size:13px;padding:8px 0">No active risk signals across the network.</div>';
+      return;
+    }
+
+    grid.innerHTML = sorted.map(([tag, count]) => {
+      const meta = ALGAE_SIGNAL_META[tag];
+      const siteWord = count === 1 ? 'site' : 'sites';
+      const sevClass = meta.severity >= 3 ? 'algae-signal-high'
+                     : meta.severity >= 2 ? 'algae-signal-med'
+                     : 'algae-signal-low';
+      return `<div class="pollen-card algae-signal-card ${sevClass}">
+        <div class="pollen-icon">${meta.icon}</div>
+        <div class="pollen-name">${count} ${siteWord}</div>
+        <div class="pollen-level">${meta.label}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function showAlgaeRiskStrip() {
+    updateAlgaeRiskStrip();
+    const s = document.getElementById('algae-risk-strip');
+    if (s) s.style.display = 'block';
+  }
+  function hideAlgaeRiskStrip() {
+    const s = document.getElementById('algae-risk-strip');
+    if (s) s.style.display = 'none';
+  }
+
   function activateAlgae(haz) {
     hidePollen();
     hideAirHero();
     updateAlgaeHero();
+    showAlgaeRiskStrip();
     setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
@@ -634,6 +697,7 @@
 
   function activateAir(haz) {
     hideAlgaeHero();
+    hideAlgaeRiskStrip();
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
       { id: 'integration', label: 'Integration layer' },
@@ -657,6 +721,7 @@
     hidePollen();
     hideAirHero();
     hideAlgaeHero();
+    hideAlgaeRiskStrip();
     setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
