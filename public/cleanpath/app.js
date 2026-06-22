@@ -382,6 +382,68 @@
   function showAirHero()  { const h = document.getElementById('aq-hero'); if (h) h.style.display = 'flex'; }
   function hideAirHero()  { const h = document.getElementById('aq-hero'); if (h) h.style.display = 'none'; }
 
+  /* ============================================================
+   * Algae hero
+   * ========================================================== */
+
+  const ALGAE_SITES = [
+    { name: 'Brunnsviken',       status: 'none' },
+    { name: 'Hellasgården',      status: 'watch' },
+    { name: 'Lilla Värtan',      status: 'advisory' },
+    { name: 'Smedsuddsbadet',    status: 'none' },
+    { name: 'Flatenbadet',       status: 'none' },
+    { name: 'Långsjön',          status: 'none' },
+    { name: 'Råstasjön',         status: 'advisory' },
+    { name: 'Judarn',            status: 'none' },
+  ];
+
+  function updateAlgaeHero() {
+    const hero = document.getElementById('algae-hero');
+    if (!hero) return;
+    const total = ALGAE_SITES.length;
+    const advisories = ALGAE_SITES.filter(s => s.status === 'advisory' || s.status === 'closed').length;
+    const watches = ALGAE_SITES.filter(s => s.status === 'watch').length;
+
+    const lvlEl  = document.getElementById('algae-hero-level');
+    const hdEl   = document.getElementById('algae-hero-headline');
+    const bkEl   = document.getElementById('algae-hero-breakdown');
+    const vdEl   = document.getElementById('algae-hero-verdict');
+
+    if (advisories === 0 && watches === 0) {
+      if (lvlEl)  { lvlEl.textContent = 'Clear'; lvlEl.className = 'aq-hero-level aq-level-low'; }
+      if (hdEl)   hdEl.textContent = 'All bathing sites are clear across Stockholm';
+      if (bkEl)   bkEl.innerHTML = `<span class="aq-breakdown-item">${total} sites monitored — no active advisories</span>`;
+      if (vdEl)   { vdEl.textContent = 'Safe to swim at all monitored sites.'; vdEl.className = 'aq-hero-verdict'; }
+    } else {
+      const lvl = advisories > 0 ? 'Advisory' : 'Watch';
+      const cls = advisories > 0 ? 'aq-level-high' : 'aq-level-mod';
+      if (lvlEl)  { lvlEl.textContent = lvl; lvlEl.className = 'aq-hero-level ' + cls; }
+      if (hdEl)   hdEl.textContent = advisories > 0
+        ? `${advisories} out of ${total} bathing sites have active advisories`
+        : `${watches} out of ${total} bathing sites are on algae watch`;
+      const parts = [];
+      if (advisories) parts.push(`<span class="aq-breakdown-item" style="color:var(--band-high)">${advisories} advisory</span>`);
+      if (watches)    parts.push(`<span class="aq-breakdown-item" style="color:var(--band-mod)">${watches} watch</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total - advisories - watches} clear</span>`);
+      if (bkEl)   bkEl.innerHTML = parts.join('');
+      if (vdEl)   { vdEl.textContent = advisories ? 'Avoid swimming at affected sites.' : 'Exercise caution at watch sites.'; vdEl.className = 'aq-hero-verdict'; }
+    }
+
+    hero.style.display = 'flex';
+  }
+
+  function showAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'flex'; }
+  function hideAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'none'; }
+
+  function activateAlgae(haz) {
+    hidePollen();
+    hideAirHero();
+    updateAlgaeHero();
+    setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
+    setProvenance(haz.provenance, haz.confidence, true);
+    if (haz.draw) haz.draw();
+  }
+
   // Air provenance computed from the real data (honest counts), not hardcoded.
   function updateAirProvenance() {
     const by = (integrationData && integrationData.bySource) || {};
@@ -460,6 +522,7 @@
   }
 
   function activateAir(haz) {
+    hideAlgaeHero();
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
       { id: 'integration', label: 'Integration layer' },
@@ -482,6 +545,7 @@
   function activatePlaceholder(haz) {
     hidePollen();
     hideAirHero();
+    hideAlgaeHero();
     setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
@@ -773,7 +837,7 @@
       ],
       buttons: ['Post', 'Lift'], confidence: 'thin', real: false,
       provenance: 'Observed: local samples (few). Modelled: Copernicus Marine / SMHI satellite.',
-      draw: drawAlgae, activate: activatePlaceholder
+      draw: drawAlgae, activate: activateAlgae
     },
     fire: {
       eyebrow: 'Fire risk', verb: 'Declare or lift an open-burning ban',
