@@ -2535,3 +2535,260 @@ textarea.dp-input { resize: vertical; }
   color: #534AB7;
   font-size: 13px;
 }
+
+/* ============================================================
+ * Algae site detail modal
+ * ========================================================== */
+
+.algae-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.algae-modal {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+
+.algae-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  z-index: 1;
+}
+
+.algae-modal-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+
+.algae-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.algae-modal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.algae-modal-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.algae-modal-status-badge.badge-none     { background: #E5E7EB; color: #374151; }
+.algae-modal-status-badge.badge-watch    { background: #FEF3C7; color: #92400E; }
+.algae-modal-status-badge.badge-advisory { background: #FFEDD5; color: #9A3412; }
+.algae-modal-status-badge.badge-closed   { background: #FEE2E2; color: #991B1B; }
+
+.algae-modal-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 4px;
+}
+.algae-modal-close:hover { color: var(--text-primary); background: var(--bg-secondary); }
+
+.algae-modal-body {
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.algae-modal-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+
+.algae-modal-obs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.algae-modal-obs-item {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.algae-modal-obs-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-bottom: 3px;
+}
+.algae-modal-obs-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.algae-modal-obs-value.val-high  { color: #C05621; }
+.algae-modal-obs-value.val-warn  { color: #92400E; }
+.algae-modal-obs-value.val-ok    { color: #166534; }
+
+.algae-modal-data-age {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.algae-modal-data-age.stale { color: #C05621; font-weight: 500; }
+
+.algae-modal-factors {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.algae-modal-factor {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.algae-modal-factor-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.algae-modal-recommendation {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+}
+.algae-modal-rec-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+}
+.algae-modal-rec-text {
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.algae-modal-audit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.algae-modal-audit-entry {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.algae-modal-audit-time {
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 72px;
+}
+
+.algae-modal-status-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.algae-modal-status-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: var(--bg-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.12s, background 0.12s;
+}
+.algae-modal-status-btn:hover        { border-color: var(--green); }
+.algae-modal-status-btn.active-none  { border-color: #9CA3AF; background: #F3F4F6; }
+.algae-modal-status-btn.active-watch { border-color: #F59E0B; background: #FEF3C7; }
+.algae-modal-status-btn.active-advisory { border-color: #F97316; background: #FFEDD5; }
+.algae-modal-status-btn.active-closed   { border-color: #EF4444; background: #FEE2E2; }
+
+.algae-modal-message {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  resize: vertical;
+  line-height: 1.5;
+}
+.algae-modal-message:focus { outline: 2px solid var(--green); border-color: transparent; }
+
+.algae-modal-msg-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.algae-modal-btn {
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.12s;
+}
+.algae-modal-btn:hover { opacity: 0.85; }
+.algae-modal-btn-primary { background: var(--green-dark); color: #fff; }
+.algae-modal-btn-ghost   { background: var(--bg-secondary); color: var(--text-secondary); }
+
+.algae-modal-sent {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--green-dark);
+  font-weight: 600;
+}
