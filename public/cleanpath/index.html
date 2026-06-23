@@ -63,6 +63,18 @@
       </div>
     </div>
 
+    <!-- Algae situation hero — visible only on Algae tab -->
+    <div class="aq-hero card" id="algae-hero" style="display:none">
+      <div class="aq-hero-left">
+        <div class="aq-hero-level" id="algae-hero-level">—</div>
+        <div class="aq-hero-headline" id="algae-hero-headline">—</div>
+        <div class="aq-hero-breakdown" id="algae-hero-breakdown"></div>
+      </div>
+      <div class="aq-hero-right">
+        <div class="aq-hero-verdict" id="algae-hero-verdict"></div>
+      </div>
+    </div>
+
     <div class="shell-grid">
 
       <!-- Map shell (dominant). Legend + layers panel are Leaflet controls added in JS. -->
@@ -103,6 +115,17 @@
 
     </div>
 
+    <!-- Algae risk signal strip — visible only on Algae tab, below the map -->
+    <section class="pollen-strip" id="algae-risk-strip" style="display:none">
+      <div class="pollen-strip-head">
+        <div>
+          <div class="pollen-strip-title">Network risk signals · Stockholm bathing sites</div>
+          <div class="pollen-strip-sub">Aggregated across all 8 monitored sites</div>
+        </div>
+      </div>
+      <div class="pollen-scroll" id="algae-risk-grid"></div>
+    </section>
+
     <!-- Pollen strip — Air tab only, hidden for other hazards -->
     <section class="pollen-strip" id="pollen-strip" style="display:none">
       <div class="pollen-strip-head">
@@ -119,6 +142,68 @@
       Clean Path · municipal monitoring shell. One shell, four hazards. Every reading is source-tagged; modelled and placeholder data are labelled, never shown as measurement.
     </footer>
   </main>
+
+  <!-- Algae site detail modal -->
+  <div id="algae-modal" class="algae-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="algae-modal-title">
+    <div class="algae-modal">
+      <div class="algae-modal-header">
+        <div>
+          <div class="algae-modal-eyebrow" id="algae-modal-eyebrow">Bathing site</div>
+          <h3 class="algae-modal-title" id="algae-modal-title">—</h3>
+        </div>
+        <div class="algae-modal-header-right">
+          <span class="algae-modal-status-badge" id="algae-modal-badge">—</span>
+          <button class="algae-modal-close" id="algae-modal-close" aria-label="Close">✕</button>
+        </div>
+      </div>
+
+      <div class="algae-modal-body">
+
+        <!-- Observations row -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Observed conditions</div>
+          <div class="algae-modal-obs-grid" id="algae-modal-obs"></div>
+          <div class="algae-modal-data-age" id="algae-modal-age"></div>
+        </div>
+
+        <!-- Risk factors -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Risk factors</div>
+          <div class="algae-modal-factors" id="algae-modal-factors"></div>
+        </div>
+
+        <!-- Confidence & recommendation -->
+        <div class="algae-modal-section algae-modal-recommendation" id="algae-modal-rec-box">
+          <div class="algae-modal-rec-label">Officer recommendation</div>
+          <div class="algae-modal-rec-text" id="algae-modal-rec"></div>
+        </div>
+
+        <!-- Audit trail -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Audit trail</div>
+          <div class="algae-modal-audit" id="algae-modal-audit"></div>
+        </div>
+
+        <!-- Action: change status -->
+        <div class="algae-modal-section algae-modal-actions-section">
+          <div class="algae-modal-section-title">Change status</div>
+          <div class="algae-modal-status-row" id="algae-modal-status-row"></div>
+        </div>
+
+        <!-- Public message -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Public advisory message</div>
+          <textarea class="algae-modal-message" id="algae-modal-message" rows="3" placeholder="Draft citizen message…"></textarea>
+          <div class="algae-modal-msg-actions">
+            <button class="algae-modal-btn algae-modal-btn-ghost" id="algae-modal-generate">Generate draft</button>
+            <button class="algae-modal-btn algae-modal-btn-primary" id="algae-modal-send">Send advisory</button>
+          </div>
+          <div class="algae-modal-sent" id="algae-modal-sent" style="display:none">Advisory sent · logged to audit trail</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

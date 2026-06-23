@@ -382,6 +382,253 @@
   function showAirHero()  { const h = document.getElementById('aq-hero'); if (h) h.style.display = 'flex'; }
   function hideAirHero()  { const h = document.getElementById('aq-hero'); if (h) h.style.display = 'none'; }
 
+  /* ============================================================
+   * Algae hero
+   * ========================================================== */
+
+  const ALGAE_SITES = [
+    {
+      name: 'Brunnsviken', ll: [59.368, 18.012], status: 'none',
+      obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '4 µg/L', visibility: '2.8 m', temp: '18 °C' },
+      dataAge: '2h ago', stale: false,
+      factors: [
+        { icon: '🌡️', text: 'Water temperature within normal range for season', tag: null },
+        { icon: '💨', text: 'Northerly wind dispersing surface accumulation',   tag: 'wind-dispersal' },
+        { icon: '☀️', text: 'Moderate sunlight — bloom growth unlikely today',  tag: null },
+      ],
+      recommendation: 'No action needed. Continue routine weekly sampling. Next scheduled check: Friday.',
+      audit: [
+        { time: '2 days ago', text: 'Status confirmed Clear after field sample. Officer: A. Lindqvist' },
+        { time: '9 days ago', text: 'Routine check — no change' },
+      ],
+    },
+    {
+      name: 'Hellasgården', ll: [59.260, 18.171], status: 'watch',
+      obs: { cyanobacteria: '2 400 cells/mL', chlorophyll: '18 µg/L', visibility: '1.2 m', temp: '22 °C' },
+      dataAge: '5h ago', stale: false,
+      factors: [
+        { icon: '🦠', text: 'Cyanobacteria count elevated — approaching advisory threshold (10 000 cells/mL)', tag: 'watch-threshold' },
+        { icon: '🌡️', text: 'Water temp 22 °C — favourable for bloom growth',                                 tag: 'high-temp' },
+        { icon: '🌬️', text: 'Low wind speed, calm surface — accumulation risk high',                          tag: 'calm-surface' },
+        { icon: '📈', text: 'Count up 3× vs last week — upward trend',                                        tag: 'upward-trend' },
+      ],
+      recommendation: 'Recommend escalating to Advisory if next sample confirms count > 5 000 cells/mL. Consider posting watch signage at site entry. Re-sample within 48 h.',
+      audit: [
+        { time: '5h ago',    text: 'Status changed: Clear → Watch. Count 2 400 cells/mL. Officer: M. Eriksson' },
+        { time: '8 days ago', text: 'Routine check — Clear confirmed' },
+      ],
+    },
+    {
+      name: 'Lilla Värtan', ll: [59.345, 18.110], status: 'advisory',
+      obs: { cyanobacteria: '28 000 cells/mL', chlorophyll: '52 µg/L', visibility: '0.4 m', temp: '24 °C' },
+      dataAge: '1h ago', stale: false,
+      factors: [
+        { icon: '⚠️', text: 'Cyanobacteria count well above advisory threshold',                    tag: 'high-count' },
+        { icon: '🌡️', text: 'Highest water temperature in network — bloom conditions peak',         tag: 'high-temp' },
+        { icon: '🌊', text: 'Surface scum visible on SE shore — direct contact risk',               tag: 'surface-scum' },
+        { icon: '🔬', text: 'Species identified: Microcystis aeruginosa — toxin-producing strain',  tag: 'toxin-species' },
+      ],
+      recommendation: 'Maintain Advisory. Issue public notification. Re-sample every 24 h. Escalate to Closed if scum covers > 30% of bathing area or count exceeds 100 000 cells/mL.',
+      audit: [
+        { time: '1h ago',    text: 'Re-sample confirmed — count remains elevated. Officer: A. Lindqvist' },
+        { time: '2 days ago', text: 'Status changed: Watch → Advisory. Count 28 000 cells/mL. Officer: M. Eriksson' },
+        { time: '5 days ago', text: 'Status changed: Clear → Watch. Officer: M. Eriksson' },
+      ],
+    },
+    {
+      name: 'Smedsuddsbadet', ll: [59.318, 18.020], status: 'none',
+      obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '3 µg/L', visibility: '3.1 m', temp: '17 °C' },
+      dataAge: '3 days ago', stale: true,
+      factors: [
+        { icon: '🕐', text: 'Data is 3 days old — last sample overdue. Confidence: low.', tag: 'stale-data' },
+        { icon: '🌊', text: 'Sheltered inlet — historically prone to accumulation in calm periods', tag: 'calm-surface' },
+      ],
+      recommendation: 'Schedule urgent re-sample. Current Clear status cannot be confirmed — data is stale. Do not issue Clear confirmation until fresh sample received.',
+      audit: [
+        { time: '3 days ago', text: 'Routine sample — Clear confirmed. Officer: P. Holm' },
+        { time: '10 days ago', text: 'Routine sample — Clear confirmed' },
+      ],
+    },
+    {
+      name: 'Flatenbadet', ll: [59.258, 18.115], status: 'none',
+      obs: { cyanobacteria: '300 cells/mL', chlorophyll: '6 µg/L', visibility: '2.1 m', temp: '20 °C' },
+      dataAge: '6h ago', stale: false,
+      factors: [
+        { icon: '✅', text: 'Count well below watch threshold',          tag: null },
+        { icon: '💨', text: 'Good wind mixing — low accumulation risk',  tag: 'wind-dispersal' },
+      ],
+      recommendation: 'No action. Continue routine sampling.',
+      audit: [
+        { time: '6h ago',    text: 'Routine sample — Clear. Officer: S. Bergström' },
+        { time: '8 days ago', text: 'Routine sample — Clear' },
+      ],
+    },
+    {
+      name: 'Långsjön', ll: [59.300, 17.940], status: 'none',
+      obs: { cyanobacteria: '150 cells/mL', chlorophyll: '5 µg/L', visibility: '2.5 m', temp: '19 °C' },
+      dataAge: '1 day ago', stale: false,
+      factors: [
+        { icon: '✅', text: 'Count within safe range',                                    tag: null },
+        { icon: '🌿', text: 'Dense reed bed on north shore provides natural filtration',  tag: null },
+      ],
+      recommendation: 'No action. Next routine sample due in 6 days.',
+      audit: [
+        { time: '1 day ago',  text: 'Routine sample — Clear. Officer: A. Lindqvist' },
+        { time: '8 days ago', text: 'Routine sample — Clear' },
+      ],
+    },
+    {
+      name: 'Råstasjön', ll: [59.369, 17.990], status: 'advisory',
+      obs: { cyanobacteria: '15 000 cells/mL', chlorophyll: '38 µg/L', visibility: '0.6 m', temp: '23 °C' },
+      dataAge: '4h ago', stale: false,
+      factors: [
+        { icon: '⚠️', text: 'Count above advisory threshold — active bloom confirmed',   tag: 'high-count' },
+        { icon: '🏊', text: 'High visitor volume site — public health risk elevated',    tag: 'high-footfall' },
+        { icon: '🌡️', text: 'Sustained warm temperatures forecast for next 5 days',     tag: 'high-temp' },
+      ],
+      recommendation: 'Maintain Advisory. Signs posted. Re-sample tomorrow. Consider pre-emptive Closed status given forecast heat and high visitor numbers.',
+      audit: [
+        { time: '4h ago',    text: 'Re-sample confirmed bloom. Count 15 000 cells/mL. Officer: M. Eriksson' },
+        { time: '3 days ago', text: 'Status changed: Clear → Advisory. Officer: P. Holm' },
+      ],
+    },
+    {
+      name: 'Judarn', ll: [59.345, 17.980], status: 'none',
+      obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '4 µg/L', visibility: '3.0 m', temp: '18 °C' },
+      dataAge: '1 day ago', stale: false,
+      factors: [
+        { icon: '✅', text: 'All indicators within normal range',                          tag: null },
+        { icon: '🌲', text: 'Forested catchment — lower nutrient runoff than urban sites', tag: null },
+      ],
+      recommendation: 'No action. Model forecasts low bloom risk for next 7 days.',
+      audit: [
+        { time: '1 day ago',  text: 'Routine sample — Clear. Officer: S. Bergström' },
+        { time: '8 days ago', text: 'Routine sample — Clear' },
+      ],
+    },
+  ];
+
+  function updateAlgaeHero() {
+    const hero = document.getElementById('algae-hero');
+    if (!hero) return;
+    const total = ALGAE_SITES.length;
+    const advisories = ALGAE_SITES.filter(s => s.status === 'advisory' || s.status === 'closed').length;
+    const watches = ALGAE_SITES.filter(s => s.status === 'watch').length;
+
+    const lvlEl  = document.getElementById('algae-hero-level');
+    const hdEl   = document.getElementById('algae-hero-headline');
+    const bkEl   = document.getElementById('algae-hero-breakdown');
+    const vdEl   = document.getElementById('algae-hero-verdict');
+
+    if (advisories === 0 && watches === 0) {
+      if (lvlEl)  { lvlEl.textContent = 'Clear'; lvlEl.className = 'aq-hero-level aq-level-low'; }
+      if (hdEl)   hdEl.textContent = 'All bathing sites are clear across Stockholm';
+      if (bkEl)   bkEl.innerHTML = `<span class="aq-breakdown-item">${total} sites monitored — no active advisories</span>`;
+      if (vdEl)   { vdEl.textContent = 'Safe to swim at all monitored sites.'; vdEl.className = 'aq-hero-verdict'; }
+    } else {
+      const lvl = advisories > 0 ? 'Advisory' : 'Watch';
+      const cls = advisories > 0 ? 'aq-level-high' : 'aq-level-mod';
+      if (lvlEl)  { lvlEl.textContent = lvl; lvlEl.className = 'aq-hero-level ' + cls; }
+      if (hdEl)   hdEl.textContent = advisories > 0
+        ? `${advisories} out of ${total} bathing sites have active advisories`
+        : `${watches} out of ${total} bathing sites are on algae watch`;
+      const parts = [];
+      if (advisories) parts.push(`<span class="aq-breakdown-item" style="color:var(--band-high)">${advisories} advisory</span>`);
+      if (watches)    parts.push(`<span class="aq-breakdown-item" style="color:var(--band-mod)">${watches} watch</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total - advisories - watches} clear</span>`);
+      if (bkEl)   bkEl.innerHTML = parts.join('');
+      if (vdEl)   { vdEl.textContent = advisories ? 'Avoid swimming at affected sites.' : 'Exercise caution at watch sites.'; vdEl.className = 'aq-hero-verdict'; }
+    }
+
+    hero.style.display = 'flex';
+  }
+
+  function showAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'flex'; }
+  function hideAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'none'; }
+
+  const ALGAE_SIGNAL_META = {
+    'high-count':     { icon: '⚠️', shortLabel: 'Above threshold',   label: 'sites above advisory threshold',        severity: 3 },
+    'toxin-species':  { icon: '🔬', shortLabel: 'Toxin species',     label: 'sites with toxin-producing species',    severity: 3 },
+    'surface-scum':   { icon: '🌊', shortLabel: 'Surface scum',      label: 'sites with visible surface scum',       severity: 3 },
+    'high-temp':      { icon: '🌡️', shortLabel: 'High temperature',  label: 'sites with elevated water temperature', severity: 2 },
+    'watch-threshold':{ icon: '🦠', shortLabel: 'Watch level',       label: 'sites approaching advisory threshold',  severity: 2 },
+    'upward-trend':   { icon: '📈', shortLabel: 'Rising count',      label: 'sites with rising cyanobacteria count', severity: 2 },
+    'calm-surface':   { icon: '🌬️', shortLabel: 'Calm surface',      label: 'sites with low wind — accumulation risk', severity: 1 },
+    'stale-data':     { icon: '🕐', shortLabel: 'Stale data',        label: 'sites with overdue sampling data',      severity: 1 },
+    'high-footfall':  { icon: '🏊', shortLabel: 'High footfall',     label: 'high-footfall sites — elevated risk',   severity: 2 },
+    'wind-dispersal': { icon: '💨', shortLabel: 'Wind dispersal',    label: 'sites with wind-assisted dispersal',    severity: 0 },
+  };
+
+  function updateAlgaeRiskStrip() {
+    const grid = document.getElementById('algae-risk-grid');
+    if (!grid) return;
+
+    const total = ALGAE_SITES.length;
+
+    // Count sites per tag
+    const counts = {};
+    ALGAE_SITES.forEach(site => {
+      site.factors.forEach(f => {
+        if (f.tag) counts[f.tag] = (counts[f.tag] || 0) + 1;
+      });
+    });
+
+    // Sort by severity desc, then count desc — take top 6
+    const sorted = Object.entries(counts)
+      .filter(([tag]) => ALGAE_SIGNAL_META[tag])
+      .sort(([a, ca], [b, cb]) => {
+        const sd = (ALGAE_SIGNAL_META[b].severity || 0) - (ALGAE_SIGNAL_META[a].severity || 0);
+        return sd !== 0 ? sd : cb - ca;
+      })
+      .slice(0, 6);
+
+    if (sorted.length === 0) {
+      grid.innerHTML = '<div style="color:var(--text-tertiary);font-size:13px;padding:8px 0">No active risk signals across the network.</div>';
+      return;
+    }
+
+    grid.innerHTML = sorted.map(([tag, count]) => {
+      const meta = ALGAE_SIGNAL_META[tag];
+      const pct = Math.round((count / total) * 100);
+      const color = pct >= 75 ? 'var(--red)' : pct >= 50 ? 'var(--amber)' : 'var(--green)';
+      const glowColor = pct >= 75 ? '#F5CFCF' : pct >= 50 ? '#F5E6C8' : '#C8EBD8';
+      const siteLabel = count === 1 ? 'site' : 'sites';
+
+      return `<div class="pollen-card algae-signal-card">
+        <div class="pollen-card-glow" style="background:${glowColor}"></div>
+        <span class="pollen-icon">${meta.icon}</span>
+        <div class="pollen-name">${meta.shortLabel}</div>
+        <div class="algae-signal-bottom">
+          <span class="pollen-count" style="color:${color}">${count}</span>
+          <span class="algae-signal-site-label">${siteLabel}</span>
+          <div class="pollen-bar-track">
+            <div class="pollen-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showAlgaeRiskStrip() {
+    updateAlgaeRiskStrip();
+    const s = document.getElementById('algae-risk-strip');
+    if (s) s.style.display = 'block';
+  }
+  function hideAlgaeRiskStrip() {
+    const s = document.getElementById('algae-risk-strip');
+    if (s) s.style.display = 'none';
+  }
+
+  function activateAlgae(haz) {
+    hidePollen();
+    hideAirHero();
+    updateAlgaeHero();
+    showAlgaeRiskStrip();
+    setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
+    setProvenance(haz.provenance, haz.confidence, true);
+    if (haz.draw) haz.draw();
+  }
+
   // Air provenance computed from the real data (honest counts), not hardcoded.
   function updateAirProvenance() {
     const by = (integrationData && integrationData.bySource) || {};
@@ -460,6 +707,8 @@
   }
 
   function activateAir(haz) {
+    hideAlgaeHero();
+    hideAlgaeRiskStrip();
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
       { id: 'integration', label: 'Integration layer' },
@@ -482,6 +731,8 @@
   function activatePlaceholder(haz) {
     hidePollen();
     hideAirHero();
+    hideAlgaeHero();
+    hideAlgaeRiskStrip();
     setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
@@ -496,16 +747,154 @@
       .bindTooltip(`${label} (sample)`, { sticky: true }).addTo(gHazard);
   }
 
+  const ALGAE_STATUS_COLOR = { none: '#9CA3AF', watch: '#FAC775', advisory: '#EF9F27', closed: '#E24B4A' };
+  const ALGAE_STATUS_LABEL = { none: 'Clear', watch: 'Watch', advisory: 'Advisory', closed: 'Closed' };
+
   function drawAlgae() {
-    // Sample bathing sites around Stockholm waters (placeholder statuses).
-    const C = { none: '#9CA3AF', watch: '#FAC775', advisory: '#EF9F27', closed: '#E24B4A' };
-    [
-      [[59.310, 18.090], C.none, 'Brunnsviken — None'],
-      [[59.300, 18.140], C.watch, 'Hellasgården — Watch'],
-      [[59.345, 18.110], C.advisory, 'Lilla Värtan — Advisory'],
-      [[59.318, 18.020], C.closed, 'Smedsuddsbadet — Closed']
-    ].forEach(([ll, c, l]) => sampleMarker(ll, c, l));
+    ALGAE_SITES.forEach(site => {
+      const color = ALGAE_STATUS_COLOR[site.status] || '#9CA3AF';
+      const marker = L.circleMarker(site.ll, {
+        radius: 9, fillColor: color, color: '#FFFFFF', weight: 2, fillOpacity: 0.95
+      });
+      marker.bindTooltip(`<strong>${site.name}</strong><br>${ALGAE_STATUS_LABEL[site.status]}`, { sticky: true });
+      marker.on('click', () => openAlgaeModal(site));
+      marker.addTo(gHazard);
+    });
   }
+
+  /* ---- Algae modal ---- */
+
+  let _modalSite = null;
+  let _pendingStatus = null;
+
+  function openAlgaeModal(site) {
+    _modalSite = site;
+    _pendingStatus = site.status;
+
+    document.getElementById('algae-modal-eyebrow').textContent = 'Bathing site · Stockholm';
+    document.getElementById('algae-modal-title').textContent = site.name;
+
+    const badge = document.getElementById('algae-modal-badge');
+    badge.textContent = ALGAE_STATUS_LABEL[site.status];
+    badge.className = 'algae-modal-status-badge badge-' + site.status;
+
+    // Observations
+    const obsEl = document.getElementById('algae-modal-obs');
+    const obsMap = {
+      'Cyanobacteria': site.obs.cyanobacteria,
+      'Chlorophyll-a': site.obs.chlorophyll,
+      'Visibility':    site.obs.visibility,
+      'Water temp':    site.obs.temp,
+    };
+    const valClass = site.status === 'advisory' || site.status === 'closed' ? 'val-high'
+                   : site.status === 'watch' ? 'val-warn' : 'val-ok';
+    obsEl.innerHTML = Object.entries(obsMap).map(([k, v]) =>
+      `<div class="algae-modal-obs-item">
+        <div class="algae-modal-obs-label">${k}</div>
+        <div class="algae-modal-obs-value ${k === 'Cyanobacteria' ? valClass : ''}">${v}</div>
+      </div>`
+    ).join('');
+
+    const ageEl = document.getElementById('algae-modal-age');
+    ageEl.textContent = `Last sample: ${site.dataAge}`;
+    ageEl.className = 'algae-modal-data-age' + (site.stale ? ' stale' : '');
+    if (site.stale) ageEl.textContent += ' · ⚠ Data stale — re-sample urgently';
+
+    // Risk factors
+    document.getElementById('algae-modal-factors').innerHTML = site.factors.map(f =>
+      `<div class="algae-modal-factor"><span class="algae-modal-factor-icon">${f.icon}</span><span>${f.text}</span></div>`
+    ).join('');
+
+    // Recommendation
+    document.getElementById('algae-modal-rec').textContent = site.recommendation;
+
+    // Audit
+    document.getElementById('algae-modal-audit').innerHTML = site.audit.map(e =>
+      `<div class="algae-modal-audit-entry"><span class="algae-modal-audit-time">${e.time}</span><span>${e.text}</span></div>`
+    ).join('');
+
+    // Status buttons
+    renderStatusButtons(_pendingStatus);
+
+    // Reset message/sent state
+    document.getElementById('algae-modal-message').value = '';
+    document.getElementById('algae-modal-sent').style.display = 'none';
+
+    document.getElementById('algae-modal').style.display = 'flex';
+  }
+
+  function renderStatusButtons(active) {
+    const row = document.getElementById('algae-modal-status-row');
+    row.innerHTML = ['none', 'watch', 'advisory', 'closed'].map(s =>
+      `<button class="algae-modal-status-btn ${active === s ? 'active-' + s : ''}" data-status="${s}">
+        ${ALGAE_STATUS_LABEL[s]}
+      </button>`
+    ).join('');
+    row.querySelectorAll('.algae-modal-status-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        _pendingStatus = btn.dataset.status;
+        renderStatusButtons(_pendingStatus);
+      });
+    });
+  }
+
+  function closeAlgaeModal() {
+    document.getElementById('algae-modal').style.display = 'none';
+    _modalSite = null;
+    _pendingStatus = null;
+  }
+
+  function algaeGenerateDraft() {
+    if (!_modalSite) return;
+    const s = _pendingStatus || _modalSite.status;
+    const label = ALGAE_STATUS_LABEL[s];
+    const templates = {
+      none:     `Stockholm stad informerar: Vattenkvaliteten vid ${_modalSite.name} är god. Badvattnet bedöms som säkert för bad.`,
+      watch:    `Stockholm stad informerar: Vi bevakar vattenkvaliteten vid ${_modalSite.name} på grund av förhöjda halter av cyanobakterier. Undvik att svälja vatten och skölj av dig efter bad.`,
+      advisory: `BADVARNING – ${_modalSite.name}: Förhöjda halter av cyanobakterier har påvisats. Stockholms stad avråder från bad. Håll barn och husdjur borta från vattnet.`,
+      closed:   `FÖRBUD MOT BAD – ${_modalSite.name}: Badplatsen är stängd till följd av hälsofarliga halter av cyanobakterier. Bad är förbjudet tills vidare.`,
+    };
+    document.getElementById('algae-modal-message').value = templates[s] || '';
+  }
+
+  function alsgaeSendAdvisory() {
+    if (!_modalSite) return;
+    const msg = document.getElementById('algae-modal-message').value.trim();
+    if (!msg) { document.getElementById('algae-modal-message').focus(); return; }
+
+    // Apply the status change to the data
+    if (_pendingStatus && _pendingStatus !== _modalSite.status) {
+      const old = _modalSite.status;
+      _modalSite.status = _pendingStatus;
+      _modalSite.audit.unshift({ time: 'just now', text: `Status changed: ${ALGAE_STATUS_LABEL[old]} → ${ALGAE_STATUS_LABEL[_pendingStatus]}. Message sent. Officer: You` });
+
+      // Update badge
+      const badge = document.getElementById('algae-modal-badge');
+      badge.textContent = ALGAE_STATUS_LABEL[_pendingStatus];
+      badge.className = 'algae-modal-status-badge badge-' + _pendingStatus;
+
+      // Redraw map markers
+      gHazard.clearLayers();
+      drawAlgae();
+      updateAlgaeHero();
+    } else {
+      _modalSite.audit.unshift({ time: 'just now', text: `Advisory message sent (status unchanged). Officer: You` });
+    }
+
+    document.getElementById('algae-modal-audit').innerHTML = _modalSite.audit.map(e =>
+      `<div class="algae-modal-audit-entry"><span class="algae-modal-audit-time">${e.time}</span><span>${e.text}</span></div>`
+    ).join('');
+
+    document.getElementById('algae-modal-sent').style.display = 'block';
+  }
+
+  // Wire modal buttons (once on load)
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('algae-modal-close').addEventListener('click', closeAlgaeModal);
+    document.getElementById('algae-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAlgaeModal(); });
+    document.getElementById('algae-modal-generate').addEventListener('click', algaeGenerateDraft);
+    document.getElementById('algae-modal-send').addEventListener('click', alsgaeSendAdvisory);
+  });
 
   function drawFire() {
     const C = { low: '#1D9E75', moderate: '#FAC775', high: '#EF9F27', extreme: '#E24B4A' };
@@ -773,7 +1162,7 @@
       ],
       buttons: ['Post', 'Lift'], confidence: 'thin', real: false,
       provenance: 'Observed: local samples (few). Modelled: Copernicus Marine / SMHI satellite.',
-      draw: drawAlgae, activate: activatePlaceholder
+      draw: drawAlgae, activate: activateAlgae
     },
     fire: {
       eyebrow: 'Fire risk', verb: 'Declare or lift an open-burning ban',
