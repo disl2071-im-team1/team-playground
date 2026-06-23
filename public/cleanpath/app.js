@@ -626,6 +626,8 @@
     hideHeatStrip();
     hideFireHero();
     hideFireStrip();
+    hideRainHero();
+    hideRainStrip();
     updateAlgaeHero();
     showAlgaeRiskStrip();
     setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
@@ -690,7 +692,9 @@
       </div>`;
     }).join('');
 
-    strip.style.display = 'block';
+    // loadPollen() is async; if the officer switched tabs before it resolved,
+    // don't pop the pollen strip back up over another hazard's surface.
+    if (currentHazard === 'air') strip.style.display = 'block';
   }
 
   async function loadPollen() {
@@ -717,6 +721,8 @@
     hideHeatStrip();
     hideFireHero();
     hideFireStrip();
+    hideRainHero();
+    hideRainStrip();
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
       { id: 'integration', label: 'Integration layer' },
@@ -887,6 +893,11 @@
     document.getElementById('fire-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeFireModal(); });
     document.getElementById('fire-modal-generate').addEventListener('click', fireGenerateDraft);
     document.getElementById('fire-modal-send').addEventListener('click', fireSendNotice);
+
+    document.getElementById('rain-modal-close').addEventListener('click', closeRainModal);
+    document.getElementById('rain-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRainModal(); });
+    document.getElementById('rain-modal-generate').addEventListener('click', rainGenerateDraft);
+    document.getElementById('rain-modal-send').addEventListener('click', rainSendAdvisory);
   });
 
   /* ---- Fire: modelled fire-risk zones + open-burning ban surface ----
@@ -1199,6 +1210,8 @@
     hideHeatStrip();
     hideFireHero();
     hideFireStrip();
+    hideRainHero();
+    hideRainStrip();
     updateFireHero();
     showFireStrip();
     setLayerStatus([{ id: 'fire', label: haz.layers[0].label, state: 'offline', detail: 'modelled · no direct measurement' }]);
@@ -1564,6 +1577,8 @@
     hideAlgaeRiskStrip();
     hideFireHero();
     hideFireStrip();
+    hideRainHero();
+    hideRainStrip();
     updateHeatHero();
     showHeatHero();
     showHeatStrip();
@@ -1601,46 +1616,290 @@
     return 'Very likely';
   }
 
-  function generateRainData() {
+  // Forecast is re-seeded by the lead hour so the time slider moves it (offset
+  // the seed by lead, the way Heat re-seeds). lead 0 reproduces the base draw.
+  function generateRainData(lead) {
+    const o = (lead || 0) * 10;
     return RAIN_DISTRICTS.map(d => ({
       ...d,
-      rainfall:         Math.round(20  + seededRand(dSeed(d.id, 0)) * 55),
-      dewPoint:         Math.round((7  + seededRand(dSeed(d.id, 1)) * 7) * 10) / 10,
-      humidity:         Math.round(55  + seededRand(dSeed(d.id, 2)) * 27),
-      totalRainfall_mm: Math.round(     seededRand(dSeed(d.id, 3)) * 90),
-      startHour:        Math.floor(     seededRand(dSeed(d.id, 4)) * 21),
-      durationHours:    Math.round(1  + seededRand(dSeed(d.id, 5)) * 7),
+      rainfall:         Math.round(20  + seededRand(dSeed(d.id, o + 0)) * 55),
+      dewPoint:         Math.round((7  + seededRand(dSeed(d.id, o + 1)) * 7) * 10) / 10,
+      humidity:         Math.round(55  + seededRand(dSeed(d.id, o + 2)) * 27),
+      totalRainfall_mm: Math.round(     seededRand(dSeed(d.id, o + 3)) * 90),
+      startHour:        Math.floor(     seededRand(dSeed(d.id, o + 4)) * 21),
+      durationHours:    Math.round(1  + seededRand(dSeed(d.id, o + 5)) * 7),
     }));
   }
 
   function drawRain() {
-    const data = generateRainData();
+    const data = generateRainData(currentLeadHour());
     data.forEach(d => {
       const color = rainfallColor(d.rainfall);
-      const endHour = Math.min(23, d.startHour + d.durationHours);
       L.circle([d.lat, d.lon], {
         radius: 1800, color, weight: 0, fillColor: color, fillOpacity: 0.22, interactive: false,
       }).addTo(gHazard);
       L.circleMarker([d.lat, d.lon], {
         radius: 9, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.95,
-      }).bindPopup(`
-        <div class="precip-popup" style="min-width:210px">
-          <strong>${d.name}</strong>
-          <div class="metric-row">
-            <span class="metric-label">Rainfall probability</span>
-            <div><div class="metric-value" style="color:${color}">${d.rainfall}%</div><div class="metric-sub">${rainfallLabel(d.rainfall)}</div></div>
-          </div>
-          <div class="metric-row"><span class="metric-label">Total expected</span><span class="metric-value">${d.totalRainfall_mm} mm</span></div>
-          <div class="metric-row"><span class="metric-label">Dew point</span><span class="metric-value">${d.dewPoint} °C</span></div>
-          <div class="metric-row"><span class="metric-label">Humidity</span><span class="metric-value">${d.humidity}%</span></div>
-          <div class="popup-dur">
-            <div class="popup-dur-label">Duration · ${fmtHour(d.startHour)} – ${fmtHour(endHour)} (${d.durationHours} hr${d.durationHours > 1 ? 's' : ''})</div>
-            <div class="dur-bar" style="gap:1px;height:12px">${durBarHtml(d.startHour, d.durationHours, 'on-rain')}</div>
-            <div class="dur-ticks" style="font-size:8px"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
-          </div>
-        </div>
-      `).addTo(gHazard);
+      })
+        .bindTooltip(`${d.name} — ${d.rainfall}% · ${rainfallLabel(d.rainfall)} (simulated)`, { sticky: true })
+        .on('click', () => openRainModal(d))
+        .addTo(gHazard);
     });
+  }
+
+  /* ---- Rain situation hero — mirrors the air/algae hero, bespoke to rain ----
+   * Re-seeded at the current lead hour so it tracks the slider: how many
+   * districts are Likely+, the peak rainfall window, and an officer verdict. */
+  const RAIN_LEVEL_CLS = { 'Very likely': 'aq-level-high', 'Likely': 'aq-level-mod', 'Moderate': 'aq-level-low', 'Low chance': 'aq-level-low' };
+
+  // Peak window across districts (hours with the most districts raining).
+  function rainPeakWindow(data) {
+    const counts = Array(24).fill(0);
+    data.forEach(d => { for (let h = d.startHour; h < Math.min(24, d.startHour + d.durationHours); h++) counts[h]++; });
+    const maxC = Math.max(0, ...counts);
+    if (maxC === 0) return null;
+    const peakHours = counts.reduce((a, c, h) => { if (c === maxC) a.push(h); return a; }, []);
+    return { start: peakHours[0], end: peakHours[peakHours.length - 1] + 1, count: maxC };
+  }
+
+  function updateRainHero() {
+    const hero = document.getElementById('rain-hero');
+    if (!hero) return;
+    const data = generateRainData(currentLeadHour());
+    const total = data.length;
+    const veryLikely = data.filter(d => d.rainfall >= 65);
+    const likely = data.filter(d => d.rainfall >= 50 && d.rainfall < 65);
+    const moderate = data.filter(d => d.rainfall >= 30 && d.rainfall < 50);
+    const likelyPlus = data.filter(d => d.rainfall >= 50);
+    const peakPct = data.reduce((m, d) => Math.max(m, d.rainfall), 0);
+    const band = rainfallLabel(peakPct);
+    const peak = rainPeakWindow(data);
+
+    const lvlEl = document.getElementById('rain-hero-level');
+    const hdEl  = document.getElementById('rain-hero-headline');
+    const bkEl  = document.getElementById('rain-hero-breakdown');
+    const vdEl  = document.getElementById('rain-hero-verdict');
+
+    if (lvlEl) { lvlEl.textContent = band; lvlEl.className = 'aq-hero-level ' + (RAIN_LEVEL_CLS[band] || 'aq-level-low'); }
+
+    if (hdEl) {
+      if (likelyPlus.length > 0 && peak) {
+        hdEl.textContent = `Rain likely in ${likelyPlus.length} of ${total} districts, peak ${fmtHour(peak.start)} to ${fmtHour(peak.end)}`;
+      } else if (moderate.length > 0) {
+        hdEl.textContent = `Moderate rain chance in ${moderate.length} of ${total} districts`;
+      } else {
+        hdEl.textContent = `Low rain chance across all ${total} districts`;
+      }
+    }
+
+    if (bkEl) {
+      const bands = [
+        { label: 'Very likely', color: '#1e3a8a', n: veryLikely.length },
+        { label: 'Likely',      color: '#2563eb', n: likely.length },
+        { label: 'Moderate',    color: '#60a5fa', n: moderate.length },
+      ];
+      const parts = bands.filter(b => b.n > 0).map(b =>
+        `<span class="aq-breakdown-item"><span class="aq-breakdown-dot" style="background:${b.color}"></span>${b.n} ${b.label}</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} districts · simulated (no live data)</span>`);
+      bkEl.innerHTML = parts.join('');
+    }
+
+    if (vdEl) {
+      let verdict;
+      if (likelyPlus.length > 0) {
+        const names = likelyPlus.map(d => d.name);
+        const shown = names.slice(0, 3).join(', ');
+        verdict = `Advisory for ${shown}${names.length > 3 ? ` and ${names.length - 3} more` : ''}.`;
+      } else if (moderate.length > 0) {
+        verdict = 'Monitor — moderate rain chance. No advisory needed yet.';
+      } else {
+        verdict = 'No rainfall advisory needed.';
+      }
+      vdEl.textContent = verdict;
+      vdEl.className = 'aq-hero-verdict';
+    }
+
+    hero.style.display = 'flex';
+  }
+
+  function showRainHero() { const h = document.getElementById('rain-hero'); if (h) h.style.display = 'flex'; }
+  function hideRainHero() { const h = document.getElementById('rain-hero'); if (h) h.style.display = 'none'; }
+
+  /* ---- Rain duration strip — a district duration overview from aggDurBar() ---- */
+  function updateRainStrip() {
+    const body = document.getElementById('rain-strip-body');
+    const sub  = document.getElementById('rain-strip-sub');
+    if (!body) return;
+    const data = generateRainData(currentLeadHour());
+    const raining = data.filter(d => d.rainfall >= 30).length;
+    const { html, peakLabel } = aggDurBar(data, 'on-rain');
+    if (sub) sub.textContent = `${raining} of ${data.length} districts with rain · simulated (no live connection)`;
+    body.innerHTML =
+      `<div class="dur-bar rain-strip-bar">${html}</div>
+       <div class="dur-ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+       <div class="rain-strip-peak">${peakLabel}</div>`;
+  }
+
+  function showRainStrip() {
+    updateRainStrip();
+    const s = document.getElementById('rain-strip');
+    if (s) s.style.display = 'block';
+  }
+  function hideRainStrip() {
+    const s = document.getElementById('rain-strip');
+    if (s) s.style.display = 'none';
+  }
+
+  /* ---- Rain district modal — mirrors the algae modal ----
+   * Per-district metrics, the duration bar, an officer recommendation, audit
+   * trail, an Issue / Lift advisory state machine, and a public message with
+   * draft + send logged. Status + audit persist by district id (the forecast
+   * itself is re-seeded each draw). */
+  const RAIN_STATUS_LABEL = { none: 'No advisory', advisory: 'Advisory issued' };
+  const RAIN_STATUS_BTN   = { none: 'Lift advisory', advisory: 'Issue advisory' };
+  const _rainState = {};
+  let _rainModalDistrict = null;
+  let _rainPendingStatus = null;
+
+  function rainStateFor(d) {
+    if (!_rainState[d.id]) {
+      _rainState[d.id] = {
+        status: 'none',
+        audit: [{ time: 'start of shift', text: 'Monitoring simulated rainfall forecast. No advisory active.' }],
+      };
+    }
+    return _rainState[d.id];
+  }
+
+  function rainSeverityClass(pct) {
+    return pct >= 65 ? 'val-high' : pct >= 50 ? 'val-warn' : 'val-ok';
+  }
+
+  function rainRecommendation(d) {
+    const end = Math.min(23, d.startHour + d.durationHours);
+    if (d.rainfall >= 65) return `Heavy rain likely in ${d.name} — ${d.rainfall}% probability, up to ${d.totalRainfall_mm} mm. Issue a rainfall advisory: warn of local flooding and surface water, and alert drainage and operations for the ${fmtHour(d.startHour)}–${fmtHour(end)} window.`;
+    if (d.rainfall >= 50) return `Rain likely in ${d.name} (${d.rainfall}%, up to ${d.totalRainfall_mm} mm). Consider a precautionary advisory; monitor the forecast and ready drainage crews for the ${fmtHour(d.startHour)}–${fmtHour(end)} window.`;
+    if (d.rainfall >= 30) return `Moderate rain chance in ${d.name} (${d.rainfall}%). No advisory needed yet; keep watching the simulated forecast.`;
+    return `Low rain chance in ${d.name} (${d.rainfall}%). No action needed.`;
+  }
+
+  function renderRainAudit(d) {
+    const el = document.getElementById('rain-modal-audit');
+    if (!el) return;
+    el.innerHTML = rainStateFor(d).audit.map(e =>
+      `<div class="algae-modal-audit-entry"><span class="algae-modal-audit-time">${escapeHtml(e.time)}</span><span>${escapeHtml(e.text)}</span></div>`
+    ).join('');
+  }
+
+  function renderRainStatusButtons(active) {
+    const row = document.getElementById('rain-modal-status-row');
+    if (!row) return;
+    row.innerHTML = ['none', 'advisory'].map(s =>
+      `<button class="algae-modal-status-btn ${active === s ? 'active-' + s : ''}" data-status="${s}">${RAIN_STATUS_BTN[s]}</button>`
+    ).join('');
+    row.querySelectorAll('.algae-modal-status-btn').forEach(btn => {
+      btn.addEventListener('click', () => { _rainPendingStatus = btn.dataset.status; renderRainStatusButtons(_rainPendingStatus); });
+    });
+  }
+
+  function openRainModal(d) {
+    if (!d) return;
+    _rainModalDistrict = d;
+    const st = rainStateFor(d);
+    _rainPendingStatus = st.status;
+
+    document.getElementById('rain-modal-eyebrow').textContent = 'District · Stockholm';
+    document.getElementById('rain-modal-title').textContent = d.name;
+
+    const badge = document.getElementById('rain-modal-badge');
+    badge.textContent = RAIN_STATUS_LABEL[st.status];
+    badge.className = 'algae-modal-status-badge badge-' + st.status;
+
+    const metrics = [
+      { label: 'Rainfall probability', value: `${d.rainfall}%`, cls: rainSeverityClass(d.rainfall) },
+      { label: 'Total expected',       value: `${d.totalRainfall_mm} mm`, cls: '' },
+      { label: 'Dew point',            value: `${d.dewPoint} °C`, cls: '' },
+      { label: 'Humidity',             value: `${d.humidity}%`, cls: '' },
+    ];
+    document.getElementById('rain-modal-metrics').innerHTML = metrics.map(m =>
+      `<div class="algae-modal-obs-item">
+        <div class="algae-modal-obs-label">${escapeHtml(m.label)}</div>
+        <div class="algae-modal-obs-value ${m.cls}">${escapeHtml(m.value)}</div>
+      </div>`
+    ).join('');
+
+    document.getElementById('rain-modal-note').innerHTML =
+      `${rainfallLabel(d.rainfall)} · simulated SMHI-shaped forecast — no live connection`;
+
+    const end = Math.min(23, d.startHour + d.durationHours);
+    document.getElementById('rain-modal-duration').innerHTML =
+      `<div class="rain-modal-dur-label">${fmtHour(d.startHour)} – ${fmtHour(end)} · ${d.durationHours} hr${d.durationHours > 1 ? 's' : ''}</div>
+       <div class="dur-bar rain-strip-bar">${durBarHtml(d.startHour, d.durationHours, 'on-rain')}</div>
+       <div class="dur-ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>`;
+
+    document.getElementById('rain-modal-rec').textContent = rainRecommendation(d);
+    renderRainAudit(d);
+    renderRainStatusButtons(_rainPendingStatus);
+
+    document.getElementById('rain-modal-message').value = '';
+    document.getElementById('rain-modal-sent').style.display = 'none';
+
+    document.getElementById('rain-modal').style.display = 'flex';
+  }
+
+  function closeRainModal() {
+    document.getElementById('rain-modal').style.display = 'none';
+    _rainModalDistrict = null;
+    _rainPendingStatus = null;
+  }
+
+  function rainGenerateDraft() {
+    if (!_rainModalDistrict) return;
+    const d = _rainModalDistrict;
+    const s = _rainPendingStatus || rainStateFor(d).status;
+    const templates = {
+      advisory: `Stockholm stad informerar: Risk för kraftigt regn i ${d.name}, ${d.rainfall}% sannolikhet och upp till ${d.totalRainfall_mm} mm. Var beredd på lokala översvämningar och vatten på vägbanan. Undvik källarutrymmen vid skyfall.`,
+      none:     `Stockholm stad informerar: Regn väntas i ${d.name} under dagen (${d.rainfall}% sannolikhet). Ingen varning råder för närvarande. Håll dig uppdaterad via stockholm.se.`,
+    };
+    document.getElementById('rain-modal-message').value = templates[s] || templates.none;
+  }
+
+  function rainSendAdvisory() {
+    if (!_rainModalDistrict) return;
+    const msg = document.getElementById('rain-modal-message').value.trim();
+    if (!msg) { document.getElementById('rain-modal-message').focus(); return; }
+    const d = _rainModalDistrict;
+    const st = rainStateFor(d);
+
+    if (_rainPendingStatus && _rainPendingStatus !== st.status) {
+      const old = st.status;
+      st.status = _rainPendingStatus;
+      st.audit.unshift({ time: 'just now', text: `Rainfall advisory ${st.status === 'advisory' ? 'issued' : 'lifted'}: ${RAIN_STATUS_LABEL[old]} → ${RAIN_STATUS_LABEL[st.status]}. Message sent. Officer: You` });
+      const badge = document.getElementById('rain-modal-badge');
+      badge.textContent = RAIN_STATUS_LABEL[st.status];
+      badge.className = 'algae-modal-status-badge badge-' + st.status;
+    } else {
+      st.audit.unshift({ time: 'just now', text: 'Advisory message sent (status unchanged). Officer: You' });
+    }
+
+    renderRainAudit(d);
+    document.getElementById('rain-modal-sent').style.display = 'block';
+  }
+
+  function activateRain(haz) {
+    hidePollen();
+    hideAirHero();
+    hideAlgaeHero();
+    hideAlgaeRiskStrip();
+    hideHeatHero();
+    hideHeatStrip();
+    hideFireHero();
+    hideFireStrip();
+    updateRainHero();
+    showRainStrip();
+    setLayerStatus([{ id: 'rain', label: haz.layers[0].label, state: 'offline', detail: 'simulated · SMHI adapter not connected' }]);
+    setProvenance(haz.provenance, haz.confidence, true);
+    if (haz.draw) haz.draw();
   }
 
   /* ============================================================
@@ -1838,15 +2097,9 @@
       confidence: 'thin',
       real: false,
       provenance: 'Simulated · SMHI-shaped district data. No live connection yet.',
-      activate: function(haz) {
-        hideHeatHero();
-        hideHeatStrip();
-        hideFireHero();
-        hideFireStrip();
-        setLayerStatus([{ id: 'rain', label: 'Rainfall layer (simulated)', state: 'offline', detail: 'simulated · SMHI adapter not connected' }]);
-        setProvenance(haz.provenance, haz.confidence, true);
-        drawRain();
-      }
+      draw: drawRain,
+      onLead: (lead) => { gHazard.clearLayers(); drawRain(); updateRainHero(); updateRainStrip(); },
+      activate: activateRain
     }
   };
 
