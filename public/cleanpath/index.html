@@ -87,6 +87,18 @@
       </div>
     </div>
 
+    <!-- Fire situation hero — visible only on Fire tab -->
+    <div class="aq-hero card" id="fire-hero" style="display:none">
+      <div class="aq-hero-left">
+        <div class="aq-hero-level" id="fire-hero-level">—</div>
+        <div class="aq-hero-headline" id="fire-hero-headline">—</div>
+        <div class="aq-hero-breakdown" id="fire-hero-breakdown"></div>
+      </div>
+      <div class="aq-hero-right">
+        <div class="aq-hero-verdict" id="fire-hero-verdict"></div>
+      </div>
+    </div>
+
     <div class="shell-grid">
 
       <!-- Map shell (dominant). Legend + layers panel are Leaflet controls added in JS. -->
@@ -147,6 +159,17 @@
         </div>
       </div>
       <div class="pollen-scroll" id="heat-strip-grid"></div>
+    </section>
+
+    <!-- Fire driver strip — visible only on Fire tab, below the map -->
+    <section class="pollen-strip" id="fire-strip" style="display:none">
+      <div class="pollen-strip-head">
+        <div>
+          <div class="pollen-strip-title">Fire-risk drivers across zones</div>
+          <div class="pollen-strip-sub" id="fire-strip-sub">—</div>
+        </div>
+      </div>
+      <div class="pollen-scroll" id="fire-strip-grid"></div>
     </section>
 
     <!-- Pollen strip — Air tab only, hidden for other hazards -->
@@ -284,6 +307,62 @@
             <button class="algae-modal-btn algae-modal-btn-primary" id="heat-modal-send">Send advisory</button>
           </div>
           <div class="algae-modal-sent" id="heat-modal-sent" style="display:none">Advisory sent · logged to audit trail</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Fire zone detail modal -->
+  <div id="fire-modal" class="algae-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="fire-modal-title">
+    <div class="algae-modal">
+      <div class="algae-modal-header">
+        <div>
+          <div class="algae-modal-eyebrow" id="fire-modal-eyebrow">Fire-risk zone</div>
+          <h3 class="algae-modal-title" id="fire-modal-title">—</h3>
+        </div>
+        <div class="algae-modal-header-right">
+          <span class="algae-modal-status-badge" id="fire-modal-badge">—</span>
+          <button class="algae-modal-close" id="fire-modal-close" aria-label="Close">✕</button>
+        </div>
+      </div>
+
+      <div class="algae-modal-body">
+
+        <!-- Risk drivers (modelled) -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Risk drivers · modelled</div>
+          <div class="algae-modal-obs-grid" id="fire-modal-drivers"></div>
+          <div class="algae-modal-data-age" id="fire-modal-index"></div>
+        </div>
+
+        <!-- Officer recommendation -->
+        <div class="algae-modal-section algae-modal-recommendation" id="fire-modal-rec-box">
+          <div class="algae-modal-rec-label">Officer recommendation</div>
+          <div class="algae-modal-rec-text" id="fire-modal-rec"></div>
+        </div>
+
+        <!-- Audit trail -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Audit trail</div>
+          <div class="algae-modal-audit" id="fire-modal-audit"></div>
+        </div>
+
+        <!-- Open-burning ban state machine -->
+        <div class="algae-modal-section algae-modal-actions-section">
+          <div class="algae-modal-section-title">Open-burning ban</div>
+          <div class="algae-modal-status-row" id="fire-modal-status-row"></div>
+        </div>
+
+        <!-- Public notice -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Public notice</div>
+          <textarea class="algae-modal-message" id="fire-modal-message" rows="3" placeholder="Draft public notice…"></textarea>
+          <div class="algae-modal-msg-actions">
+            <button class="algae-modal-btn algae-modal-btn-ghost" id="fire-modal-generate">Generate draft</button>
+            <button class="algae-modal-btn algae-modal-btn-primary" id="fire-modal-send">Send notice</button>
+          </div>
+          <div class="algae-modal-sent" id="fire-modal-sent" style="display:none">Notice sent · logged to audit trail</div>
         </div>
 
       </div>
