@@ -2893,3 +2893,7 @@ textarea.dp-input { resize: vertical; }
 .algae-modal-status-btn.active-standby    { border-color: #9CA3AF; background: #F3F4F6; }
 .algae-modal-status-btn.active-activated  { border-color: #EF4444; background: #FEE2E2; }
 
+/* Fire — open-burning ban state (the No-ban state reuses algae's grey badge-none / active-none) */
+.algae-modal-status-badge.badge-ban { background: #FFEDD5; color: #9A3412; }
+.algae-modal-status-btn.active-ban  { border-color: #F97316; background: #FFEDD5; }
+

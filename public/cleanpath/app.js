@@ -624,6 +624,8 @@
     hideAirHero();
     hideHeatHero();
     hideHeatStrip();
+    hideFireHero();
+    hideFireStrip();
     updateAlgaeHero();
     showAlgaeRiskStrip();
     setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
@@ -713,6 +715,8 @@
     hideAlgaeRiskStrip();
     hideHeatHero();
     hideHeatStrip();
+    hideFireHero();
+    hideFireStrip();
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
       { id: 'integration', label: 'Integration layer' },
@@ -724,33 +728,6 @@
     loadIntegrationLayer();
     loadCams(currentLeadHour());
     loadPollen();
-  }
-
-  /* ============================================================
-   * Placeholder hazards — clearly labelled, never real
-   * ========================================================== */
-
-  // Each placeholder draws a few sample shapes in the legend colours, all
-  // marked "(sample)" in their tooltips, plus the topright PLACEHOLDER banner.
-  function activatePlaceholder(haz) {
-    hidePollen();
-    hideAirHero();
-    hideAlgaeHero();
-    hideAlgaeRiskStrip();
-    hideHeatHero();
-    hideHeatStrip();
-    setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
-    setProvenance(haz.provenance, haz.confidence, true);
-    if (haz.draw) haz.draw();
-  }
-
-  function sampleZone(latlngs, color, label) {
-    L.polygon(latlngs, { color, weight: 1, opacity: 0.6, fillColor: color, fillOpacity: 0.35 })
-      .bindTooltip(`${label} (sample)`, { sticky: true }).addTo(gHazard);
-  }
-  function sampleMarker(latlng, color, label, ring) {
-    L.circleMarker(latlng, { radius: 8, fillColor: color, color: ring || '#FFFFFF', weight: 2, fillOpacity: 0.9 })
-      .bindTooltip(`${label} (sample)`, { sticky: true }).addTo(gHazard);
   }
 
   const ALGAE_STATUS_COLOR = { none: '#9CA3AF', watch: '#FAC775', advisory: '#EF9F27', closed: '#E24B4A' };
@@ -905,15 +882,328 @@
     document.getElementById('heat-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHeatModal(); });
     document.getElementById('heat-modal-generate').addEventListener('click', heatGenerateDraft);
     document.getElementById('heat-modal-send').addEventListener('click', heatSendAdvisory);
+
+    document.getElementById('fire-modal-close').addEventListener('click', closeFireModal);
+    document.getElementById('fire-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeFireModal(); });
+    document.getElementById('fire-modal-generate').addEventListener('click', fireGenerateDraft);
+    document.getElementById('fire-modal-send').addEventListener('click', fireSendNotice);
   });
 
+  /* ---- Fire: modelled fire-risk zones + open-burning ban surface ----
+   * Fire is the deliberately MODELLED layer — no direct measurement. The data
+   * below is a demo forecast shaped like SMHI brandrisk / FWI output and is
+   * labelled placeholder / (sample) / modelled throughout. The ban decision
+   * acting on an openly-modelled layer is the intended honest contrast; no
+   * value here is dressed up as measured. */
+  function fireBox(cy, cx, d) {
+    return [[cy - d, cx - d], [cy - d, cx + d], [cy + d, cx + d], [cy + d, cx - d]];
+  }
+  const FIRE_BAND_COLOR = { Low: '#1D9E75', Moderate: '#FAC775', High: '#EF9F27', Extreme: '#E24B4A' };
+  const FIRE_BAND_ORDER = ['Low', 'Moderate', 'High', 'Extreme'];
+  function fireBand(index) {
+    if (index >= 5) return 'Extreme';
+    if (index >= 4) return 'High';
+    if (index >= 3) return 'Moderate';
+    return 'Low';
+  }
+  function fireColor(index) { return FIRE_BAND_COLOR[fireBand(index)] || FIRE_BAND_COLOR.Low; }
+
+  const FIRE_STATUS_LABEL = { none: 'No ban', ban: 'Ban declared' };
+  const FIRE_STATUS_BTN   = { none: 'Lift ban', ban: 'Declare ban' };
+
+  const FIRE_ZONES = [
+    {
+      id: 'nw', short: 'NW zone', name: 'NW zone — Järvafältet', latlngs: fireBox(59.36, 18.02, 0.03),
+      index: 2, status: 'none', trend: 'Stable — light rain forecast midweek',
+      drivers: [
+        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '3 days', severity: 1 },
+        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '5 m/s',  severity: 1 },
+        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Moist',  severity: 0 },
+        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '2 days', severity: 0 },
+      ],
+      recommendation: 'No action needed. The grassland here is still moist and winds are light; modelled risk is Low. Continue routine monitoring of the brandrisk forecast.',
+      audit: [
+        { time: '1 day ago',  text: 'Modelled brandrisk reviewed — Low. No restriction. Officer: A. Lindqvist' },
+        { time: '6 days ago', text: 'Routine review — Low' },
+      ],
+    },
+    {
+      id: 'ne', short: 'NE zone', name: 'NE zone — Norra Djurgården', latlngs: fireBox(59.36, 18.12, 0.03),
+      index: 3, status: 'none', trend: 'Rising — no rain in the 5-day forecast',
+      drivers: [
+        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '6 days', severity: 2 },
+        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '8 m/s',  severity: 1 },
+        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Dry',    severity: 2 },
+        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '6 days', severity: 2 },
+      ],
+      recommendation: 'No ban yet, but conditions are drying. Modelled risk is Moderate and trending up with no rain forecast. Prepare a precautionary burning advisory and re-check the brandrisk model daily.',
+      audit: [
+        { time: '4h ago',     text: 'Modelled brandrisk reviewed — Moderate, rising. Officer: M. Eriksson' },
+        { time: '3 days ago', text: 'Routine review — Low → Moderate' },
+      ],
+    },
+    {
+      id: 'sw', short: 'SW zone', name: 'SW zone — Älvsjöskogen', latlngs: fireBox(59.29, 18.02, 0.03),
+      index: 4, status: 'none', trend: 'Holding — dry, breezy week ahead',
+      drivers: [
+        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '9 days',   severity: 3 },
+        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '12 m/s',   severity: 2 },
+        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Very dry', severity: 3 },
+        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '9 days',   severity: 2 },
+      ],
+      recommendation: 'Open-burning ban advised. Modelled risk is High: nine dry days, very dry forest fuel and fresh winds. Declare a ban for this zone and post signage at trailheads. Re-evaluate when measurable rain is forecast.',
+      audit: [
+        { time: '2h ago',     text: 'Modelled brandrisk reviewed — High. Ban advised. Officer: M. Eriksson' },
+        { time: '2 days ago', text: 'Routine review — Moderate → High' },
+      ],
+    },
+    {
+      id: 'se', short: 'SE zone', name: 'SE zone — Nackareservatet', latlngs: fireBox(59.29, 18.12, 0.03),
+      index: 5, status: 'none', trend: 'Climbing — record dry spell, strong winds',
+      drivers: [
+        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '12 days',    severity: 3 },
+        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '18 m/s',     severity: 3 },
+        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Tinder-dry', severity: 3 },
+        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '14 days',    severity: 3 },
+      ],
+      recommendation: 'Declare an open-burning ban immediately. Modelled risk is Extreme: a record dry spell, tinder-dry fuel and strong winds make any ignition dangerous. Declare the ban, notify the public and brief the rescue service.',
+      audit: [
+        { time: '1h ago',    text: 'Modelled brandrisk reviewed — Extreme. Immediate ban advised. Officer: A. Lindqvist' },
+        { time: '1 day ago', text: 'Routine review — High → Extreme' },
+      ],
+    },
+  ];
+
   function drawFire() {
-    const C = { low: '#1D9E75', moderate: '#FAC775', high: '#EF9F27', extreme: '#E24B4A' };
-    const box = (cy, cx, d) => [[cy - d, cx - d], [cy - d, cx + d], [cy + d, cx + d], [cy + d, cx - d]];
-    sampleZone(box(59.36, 18.02, 0.03), C.low, 'NW zone — Low');
-    sampleZone(box(59.36, 18.12, 0.03), C.moderate, 'NE zone — Moderate');
-    sampleZone(box(59.29, 18.02, 0.03), C.high, 'SW zone — High');
-    sampleZone(box(59.29, 18.12, 0.03), C.extreme, 'SE zone — Extreme');
+    FIRE_ZONES.forEach(z => {
+      const c = fireColor(z.index);
+      L.polygon(z.latlngs, { color: c, weight: 1, opacity: 0.6, fillColor: c, fillOpacity: 0.35 })
+        .bindTooltip(`${z.name} — ${fireBand(z.index)} (sample)`, { sticky: true })
+        .on('click', () => openFireModal(z))
+        .addTo(gHazard);
+    });
+  }
+
+  /* ---- Fire situation hero — mirrors the air/algae hero, bespoke to fire ---- */
+  const FIRE_LEVEL_CLS = { Extreme: 'aq-level-vhigh', High: 'aq-level-high', Moderate: 'aq-level-mod', Low: 'aq-level-low' };
+
+  function updateFireHero() {
+    const hero = document.getElementById('fire-hero');
+    if (!hero) return;
+    const total = FIRE_ZONES.length;
+    const zones = FIRE_ZONES.map(z => ({ short: z.short, band: fireBand(z.index) }));
+    const extreme = zones.filter(z => z.band === 'Extreme');
+    const high = zones.filter(z => z.band === 'High');
+    const moderate = zones.filter(z => z.band === 'Moderate');
+    const highPlus = extreme.length + high.length;
+    const worst = zones.reduce((a, b) => (FIRE_BAND_ORDER.indexOf(b.band) > FIRE_BAND_ORDER.indexOf(a.band) ? b : a), zones[0]);
+    const names = arr => arr.map(z => z.short).join(', ');
+
+    const lvlEl = document.getElementById('fire-hero-level');
+    const hdEl  = document.getElementById('fire-hero-headline');
+    const bkEl  = document.getElementById('fire-hero-breakdown');
+    const vdEl  = document.getElementById('fire-hero-verdict');
+
+    if (lvlEl) { lvlEl.textContent = worst.band; lvlEl.className = 'aq-hero-level ' + (FIRE_LEVEL_CLS[worst.band] || 'aq-level-low'); }
+
+    if (hdEl) {
+      if (highPlus > 0)        hdEl.textContent = `${highPlus} of ${total} zones at High risk or above`;
+      else if (moderate.length > 0) hdEl.textContent = `${moderate.length} of ${total} zones at Moderate risk`;
+      else                     hdEl.textContent = `Fire risk is Low across all ${total} zones`;
+    }
+
+    if (bkEl) {
+      const bands = [
+        { label: 'Extreme',  color: '#E24B4A', n: extreme.length },
+        { label: 'High',     color: '#EF9F27', n: high.length },
+        { label: 'Moderate', color: '#FAC775', n: moderate.length },
+      ];
+      const parts = bands.filter(b => b.n > 0).map(b =>
+        `<span class="aq-breakdown-item"><span class="aq-breakdown-dot" style="background:${b.color}"></span>${b.n} ${b.label}</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} zones · modelled (no measurement)</span>`);
+      bkEl.innerHTML = parts.join('');
+    }
+
+    if (vdEl) {
+      let verdict;
+      if (extreme.length > 0)  verdict = `Declare an open-burning ban now — extreme fire risk in the ${names(extreme)}.`;
+      else if (highPlus > 0)   verdict = `Open-burning ban advised, ${names(high)}.`;
+      else if (moderate.length > 0) verdict = 'Monitor closely. Prepare a precautionary burning advisory.';
+      else                     verdict = 'No fire action needed. Conditions are benign.';
+      vdEl.textContent = verdict;
+      vdEl.className = 'aq-hero-verdict';
+    }
+
+    hero.style.display = 'flex';
+  }
+
+  function showFireHero() { const h = document.getElementById('fire-hero'); if (h) h.style.display = 'flex'; }
+  function hideFireHero() { const h = document.getElementById('fire-hero'); if (h) h.style.display = 'none'; }
+
+  /* ---- Fire driver strip — mirrors the algae risk strip ----
+   * Aggregates the modelled drivers across zones (consecutive dry days, wind,
+   * fuel dryness): how many zones carry each driver at an elevated level. */
+  const FIRE_DRIVER_META = {
+    'dry-days':     { icon: '☀️', label: 'Consecutive dry days' },
+    'wind':         { icon: '💨', label: 'High wind' },
+    'fuel-dryness': { icon: '🌿', label: 'Fuel dryness' },
+  };
+
+  function updateFireStrip() {
+    const grid = document.getElementById('fire-strip-grid');
+    const sub  = document.getElementById('fire-strip-sub');
+    if (!grid) return;
+    const total = FIRE_ZONES.length;
+    if (sub) sub.textContent = `Modelled brandrisk drivers across ${total} zones · sample (no direct measurement)`;
+
+    grid.innerHTML = Object.keys(FIRE_DRIVER_META).map(key => {
+      const meta = FIRE_DRIVER_META[key];
+      const count = FIRE_ZONES.filter(z => {
+        const d = z.drivers.find(x => x.key === key);
+        return d && d.severity >= 2;
+      }).length;
+      const pct = Math.round((count / total) * 100);
+      const color = pct >= 75 ? 'var(--red)' : pct >= 50 ? 'var(--amber)' : 'var(--green)';
+      const glowColor = pct >= 75 ? '#F5CFCF' : pct >= 50 ? '#F5E6C8' : '#C8EBD8';
+      const zoneLabel = count === 1 ? 'zone' : 'zones';
+      return `<div class="pollen-card algae-signal-card">
+        <div class="pollen-card-glow" style="background:${glowColor}"></div>
+        <span class="pollen-icon">${meta.icon}</span>
+        <div class="pollen-name">${meta.label}</div>
+        <div class="algae-signal-bottom">
+          <span class="pollen-count" style="color:${color}">${count}</span>
+          <span class="algae-signal-site-label">of ${total} ${zoneLabel}</span>
+          <div class="pollen-bar-track">
+            <div class="pollen-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showFireStrip() {
+    updateFireStrip();
+    const s = document.getElementById('fire-strip');
+    if (s) s.style.display = 'block';
+  }
+  function hideFireStrip() {
+    const s = document.getElementById('fire-strip');
+    if (s) s.style.display = 'none';
+  }
+
+  /* ---- Fire zone modal — mirrors the algae modal ----
+   * Drivers, an officer recommendation, audit trail, a Declare / Lift ban
+   * state machine, and a public notice with draft + send logged to the audit. */
+  let _fireModalZone = null;
+  let _firePendingStatus = null;
+
+  function fireSeverityClass(sev) {
+    return sev >= 3 ? 'val-high' : sev >= 2 ? 'val-warn' : 'val-ok';
+  }
+
+  function renderFireAudit(z) {
+    const el = document.getElementById('fire-modal-audit');
+    if (!el) return;
+    el.innerHTML = z.audit.map(e =>
+      `<div class="algae-modal-audit-entry"><span class="algae-modal-audit-time">${escapeHtml(e.time)}</span><span>${escapeHtml(e.text)}</span></div>`
+    ).join('');
+  }
+
+  function renderFireStatusButtons(active) {
+    const row = document.getElementById('fire-modal-status-row');
+    if (!row) return;
+    row.innerHTML = ['none', 'ban'].map(s =>
+      `<button class="algae-modal-status-btn ${active === s ? 'active-' + s : ''}" data-status="${s}">${FIRE_STATUS_BTN[s]}</button>`
+    ).join('');
+    row.querySelectorAll('.algae-modal-status-btn').forEach(btn => {
+      btn.addEventListener('click', () => { _firePendingStatus = btn.dataset.status; renderFireStatusButtons(_firePendingStatus); });
+    });
+  }
+
+  function openFireModal(z) {
+    if (!z) return;
+    _fireModalZone = z;
+    _firePendingStatus = z.status;
+
+    document.getElementById('fire-modal-eyebrow').textContent = 'Fire-risk zone · Stockholm';
+    document.getElementById('fire-modal-title').textContent = z.name;
+
+    const badge = document.getElementById('fire-modal-badge');
+    badge.textContent = FIRE_STATUS_LABEL[z.status];
+    badge.className = 'algae-modal-status-badge badge-' + z.status;
+
+    document.getElementById('fire-modal-drivers').innerHTML = z.drivers.map(d =>
+      `<div class="algae-modal-obs-item">
+        <div class="algae-modal-obs-label">${escapeHtml(d.label)}</div>
+        <div class="algae-modal-obs-value ${fireSeverityClass(d.severity)}">${escapeHtml(d.value)}</div>
+      </div>`
+    ).join('');
+
+    document.getElementById('fire-modal-index').innerHTML =
+      `Modelled fire-risk index <strong style="color:${fireColor(z.index)}">${z.index} of 5</strong> · ${fireBand(z.index)} · ${escapeHtml(z.trend)} · modelled — no direct measurement`;
+
+    document.getElementById('fire-modal-rec').textContent = z.recommendation;
+    renderFireAudit(z);
+    renderFireStatusButtons(_firePendingStatus);
+
+    document.getElementById('fire-modal-message').value = '';
+    document.getElementById('fire-modal-sent').style.display = 'none';
+
+    document.getElementById('fire-modal').style.display = 'flex';
+  }
+
+  function closeFireModal() {
+    document.getElementById('fire-modal').style.display = 'none';
+    _fireModalZone = null;
+    _firePendingStatus = null;
+  }
+
+  function fireGenerateDraft() {
+    if (!_fireModalZone) return;
+    const z = _fireModalZone;
+    const s = _firePendingStatus || z.status;
+    const templates = {
+      ban:  `Stockholm stad informerar: Eldningsförbud råder i ${z.name} på grund av mycket hög brandrisk. Det är förbjudet att grilla och göra upp eld i naturen tills vidare. Följ utvecklingen på stockholm.se.`,
+      none: `Stockholm stad informerar: Förhöjd brandrisk i ${z.name}. Var mycket försiktig med all öppen eld, använd endast iordningställda grillplatser och släck noggrant. Inget eldningsförbud råder för närvarande.`,
+    };
+    document.getElementById('fire-modal-message').value = templates[s] || templates.none;
+  }
+
+  function fireSendNotice() {
+    if (!_fireModalZone) return;
+    const msg = document.getElementById('fire-modal-message').value.trim();
+    if (!msg) { document.getElementById('fire-modal-message').focus(); return; }
+    const z = _fireModalZone;
+
+    if (_firePendingStatus && _firePendingStatus !== z.status) {
+      const old = z.status;
+      z.status = _firePendingStatus;
+      z.audit.unshift({ time: 'just now', text: `Open-burning ban ${z.status === 'ban' ? 'declared' : 'lifted'}: ${FIRE_STATUS_LABEL[old]} → ${FIRE_STATUS_LABEL[z.status]}. Notice sent. Officer: You` });
+      const badge = document.getElementById('fire-modal-badge');
+      badge.textContent = FIRE_STATUS_LABEL[z.status];
+      badge.className = 'algae-modal-status-badge badge-' + z.status;
+    } else {
+      z.audit.unshift({ time: 'just now', text: 'Public notice sent (ban status unchanged). Officer: You' });
+    }
+
+    renderFireAudit(z);
+    document.getElementById('fire-modal-sent').style.display = 'block';
+  }
+
+  function activateFire(haz) {
+    hidePollen();
+    hideAirHero();
+    hideAlgaeHero();
+    hideAlgaeRiskStrip();
+    hideHeatHero();
+    hideHeatStrip();
+    hideFireHero();
+    hideFireStrip();
+    updateFireHero();
+    showFireStrip();
+    setLayerStatus([{ id: 'fire', label: haz.layers[0].label, state: 'offline', detail: 'modelled · no direct measurement' }]);
+    setProvenance(haz.provenance, haz.confidence, true);
+    if (haz.draw) haz.draw();
   }
 
   /* ---- Heat: apparent-temperature surface + vulnerable sites ----
@@ -1272,6 +1562,8 @@
     hideAirHero();
     hideAlgaeHero();
     hideAlgaeRiskStrip();
+    hideFireHero();
+    hideFireStrip();
     updateHeatHero();
     showHeatHero();
     showHeatStrip();
@@ -1492,7 +1784,7 @@
       ],
       buttons: ['Declare', 'Lift'], confidence: 'modelled', real: false,
       provenance: 'Modelled only — no direct measurement.',
-      draw: drawFire, activate: activatePlaceholder
+      draw: drawFire, activate: activateFire
     },
     heat: {
       eyebrow: 'Extreme heat', verb: 'Activate the municipal heat plan',
@@ -1549,6 +1841,8 @@
       activate: function(haz) {
         hideHeatHero();
         hideHeatStrip();
+        hideFireHero();
+        hideFireStrip();
         setLayerStatus([{ id: 'rain', label: 'Rainfall layer (simulated)', state: 'offline', detail: 'simulated · SMHI adapter not connected' }]);
         setProvenance(haz.provenance, haz.confidence, true);
         drawRain();
