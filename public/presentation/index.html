@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>We treated AI as a team member, not a tool.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg-soft: #161616;
+    --fg: #f0f0f0;
+    --muted: #8a8a8a;
+    --muted-dim: #5c5c5c;
+    --accent: #7ec8a0;
+    --accent-dim: rgba(126, 200, 160, 0.16);
+    --line: rgba(255, 255, 255, 0.10);
+    --placeholder: #e0a44d;
+    --placeholder-bg: rgba(224, 164, 77, 0.12);
+    --serif: "Newsreader", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- Deck + 16:9 stage ---------- */
+  .deck {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(1200px 600px at 78% -10%, rgba(126, 200, 160, 0.07), transparent 60%),
+      var(--bg);
+  }
+
+  .stage {
+    position: relative;
+    width: min(100vw, calc(100vh * 16 / 9));
+    height: min(100vh, calc(100vw * 9 / 16));
+    container-type: size;
+    font-size: clamp(11px, 2.1cqw, 34px);
+    overflow: hidden;
+  }
+
+  /* ---------- Slides ---------- */
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 7cqh 8cqw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(28px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    z-index: 2;
+  }
+  .slide.prev { transform: translateX(-28px); }
+
+  .label {
+    position: absolute;
+    top: 6cqh;
+    left: 8cqw;
+    font-size: 0.62em;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .label::before {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 1px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-right: 0.7em;
+    margin-bottom: 0.15em;
+  }
+
+  h1 { font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
+  h2.title {
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.7em;
+    max-width: 17em;
+  }
+
+  .body { max-width: 24em; }
+
+  ul.points { list-style: none; }
+  ul.points li {
+    font-size: 1.04em;
+    font-weight: 400;
+    line-height: 1.45;
+    color: #d8d8d8;
+    padding-left: 1.5em;
+    position: relative;
+    margin-bottom: 0.85em;
+    max-width: 22em;
+  }
+  ul.points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.5em;
+    height: 0.5em;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  ul.points li strong { color: var(--fg); font-weight: 600; }
+  ul.points li.dim { color: var(--muted); }
+
+  .lead { font-size: 1.25em; line-height: 1.4; color: var(--fg); max-width: 20em; }
+  .kicker { color: var(--accent); font-weight: 600; }
+
+  /* ---------- Title slide ---------- */
+  .title-slide { align-items: flex-start; justify-content: center; }
+  .title-slide h1 { font-size: 3.4em; max-width: 14em; }
+  .title-slide h1 .ax { color: var(--accent); }
+  .title-slide h1 .strike { color: var(--muted); }
+  .title-slide .sub {
+    font-size: 1.05em;
+    color: var(--muted);
+    margin-top: 1.1em;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+  }
+  .title-slide .team {
+    margin-top: 2.4em;
+    font-size: 0.82em;
+    color: #c4c4c4;
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+  }
+  .title-slide .team .org { display: block; color: var(--muted-dim); margin-top: 0.4em; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.85em; }
+
+  /* ---------- Divider slides ---------- */
+  .divider { justify-content: center; }
+  .divider .dnum {
+    font-size: 1.1em;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    margin-bottom: 0.5em;
+  }
+  .divider .dtitle {
+    font-size: 3em;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .divider .drule { width: 4em; height: 2px; background: var(--accent); margin-top: 1.2em; }
+
+  /* ---------- Two column ---------- */
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; max-width: none; }
+  .col h3 {
+    font-size: 0.66em;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    margin-bottom: 1em;
+    font-weight: 700;
+  }
+  .col.human h3 { color: var(--muted); }
+  .col ul { list-style: none; }
+  .col li {
+    font-size: 0.96em;
+    line-height: 1.4;
+    padding: 0.55em 0;
+    border-top: 1px solid var(--line);
+    color: #d4d4d4;
+  }
+  .col li:last-child { border-bottom: 1px solid var(--line); }
+  .footnote { margin-top: 1.6em; font-size: 0.78em; color: var(--muted); letter-spacing: 0.02em; }
+
+  /* ---------- Pull quote ---------- */
+  .quote-slide { align-items: center; text-align: center; justify-content: center; }
+  blockquote.pull {
+    font-family: var(--serif);
+    font-size: 2em;
+    line-height: 1.25;
+    font-weight: 400;
+    max-width: 16em;
+    letter-spacing: -0.01em;
+  }
+  blockquote.pull .src {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.4em;
+    color: var(--muted);
+    margin-top: 1.4em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .quote-slide .below { margin-top: 1.8em; font-size: 0.95em; color: var(--accent); max-width: 22em; }
+
+  .bigstat blockquote.pull { font-size: 2.6em; color: var(--fg); }
+
+  /* ---------- Checklist ---------- */
+  ul.checklist { list-style: none; max-width: 26em; }
+  ul.checklist li {
+    font-size: 0.98em;
+    line-height: 1.4;
+    padding: 0.65em 0 0.65em 2em;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    color: #d8d8d8;
+  }
+  ul.checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 1.1em;
+    height: 1.1em;
+    border: 1.5px solid var(--accent);
+    border-radius: 4px;
+  }
+  ul.checklist li::after {
+    content: "";
+    position: absolute;
+    left: 0.36em;
+    top: 0.78em;
+    width: 0.42em;
+    height: 0.7em;
+    border: solid var(--accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+    opacity: 0.0;
+  }
+
+  /* ---------- Closer ---------- */
+  .closer { align-items: center; justify-content: center; text-align: center; }
+  .closer h1 { font-size: 2.7em; max-width: 15em; letter-spacing: -0.025em; }
+  .closer h1 .ax { color: var(--accent); }
+  .closer .answer-num { font-size: 5em; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.03em; }
+  .closer .answer-sub { margin-top: 0.8em; font-size: 1em; color: var(--muted); max-width: 20em; }
+
+  /* ---------- Performance review (light, serif, form) ---------- */
+  .slide.review {
+    background: #f4f1ea;
+    color: #2a2a2a;
+    padding: 6cqh 9cqw;
+    justify-content: flex-start;
+  }
+  .slide.review .label { color: #9a9488; }
+  .slide.review .label::before { background: #b08d57; }
+  .review .form-head {
+    border-bottom: 2px solid #2a2a2a;
+    padding-bottom: 0.6em;
+    margin-bottom: 1em;
+    margin-top: 1.4em;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .review .form-head h2 { font-family: var(--serif); font-size: 1.5em; font-weight: 500; letter-spacing: 0; color: #1a1a1a; }
+  .review .form-head .stamp { font-family: var(--sans); font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.18em; color: #b08d57; font-weight: 700; }
+  .review .meta-row { display: flex; gap: 3em; font-family: var(--serif); font-size: 0.85em; margin-bottom: 1.4em; }
+  .review .meta-row span b { font-weight: 500; }
+  .review .meta-row .field { border-bottom: 1px solid #c9c2b4; padding: 0.1em 0.4em; min-width: 7em; display: inline-block; color: #555; }
+  .review .field-block { margin-bottom: 1em; }
+  .review .field-block .ftitle {
+    font-family: var(--sans);
+    font-size: 0.6em;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #8a8478;
+    font-weight: 700;
+    margin-bottom: 0.3em;
+  }
+  .review .field-block .fbody { font-family: var(--serif); font-size: 0.92em; line-height: 1.4; color: #333; max-width: 30em; }
+  .review .rating { font-family: var(--serif); font-style: italic; }
+
+  /* ---------- Placeholder tag ---------- */
+  .ph-tag {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 0.5em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--placeholder);
+    background: var(--placeholder-bg);
+    border: 1px solid var(--placeholder);
+    border-radius: 999px;
+    padding: 0.35em 0.9em;
+    margin-bottom: 1.2em;
+  }
+  .slide.review .ph-tag { background: rgba(176, 141, 87, 0.12); }
+  .ph-note { color: var(--placeholder); font-size: 0.82em; font-style: italic; opacity: 0.8; max-width: 24em; margin-top: 0.4em; }
+
+  /* ---------- Overlays ---------- */
+  .progress {
+    position: fixed;
+    left: 0; bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    z-index: 50;
+  }
+  .progress .bar {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .counter {
+    position: fixed;
+    right: 22px; bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+    z-index: 50;
+  }
+  .counter b { color: var(--fg); font-weight: 600; }
+
+  .hint {
+    position: fixed;
+    left: 22px; bottom: 14px;
+    font-size: 11px;
+    color: var(--muted-dim);
+    letter-spacing: 0.06em;
+    z-index: 50;
+  }
+  .hint kbd {
+    font-family: var(--sans);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .nav-arrow {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px; height: 48px;
+    border: none;
+    background: rgba(255,255,255,0.04);
+    color: var(--fg);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.2s ease;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .deck-wrap:hover .nav-arrow { opacity: 0.5; }
+  .nav-arrow:hover { opacity: 1 !important; background: rgba(126,200,160,0.18); }
+  .nav-arrow.left { left: 18px; }
+  .nav-arrow.right { right: 18px; }
+
+  /* ---------- Speaker notes panel ---------- */
+  .notes-panel {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #1a1a1a;
+    border-top: 1px solid var(--accent-dim);
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+    z-index: 60;
+    max-height: 32vh;
+    overflow-y: auto;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+  }
+  body.notes-open .notes-panel { transform: translateY(0); }
+  .notes-panel .np-inner { padding: 20px 28px 28px; max-width: 60em; margin: 0 auto; }
+  .notes-panel .np-head {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .notes-panel .np-head .np-slide { color: var(--muted); }
+  .notes-panel .np-body { font-size: 15px; line-height: 1.6; color: #cfcfcf; }
+  .notes-panel .np-body.empty { color: var(--muted-dim); font-style: italic; }
+
+  .notes-src { display: none; }
+
+  @media (max-width: 600px) {
+    .nav-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck-wrap">
+<div class="deck">
+  <div class="stage" id="stage">
+
+    <!-- 1 — TITLE -->
+    <section class="slide title-slide active">
+      <h1>We treated AI as a <span class="ax">team member,</span><br /><span class="strike">not a tool.</span></h1>
+      <div class="sub">A 40-minute case study in agentic product development</div>
+      <div class="team">
+        Jónas Valtýsson&nbsp;·&nbsp;Mike Pedersen&nbsp;·&nbsp;Natálie Kolářová&nbsp;·&nbsp;Pablo Santos&nbsp;·&nbsp;Pelle Kimvall
+        <span class="org">Hyperisland Digital Interactive&nbsp;·&nbsp;June 2026</span>
+      </div>
+      <div class="notes-src">Opening moment. Let it breathe. No need to say anything yet.</div>
+    </section>
+
+    <!-- DIVIDER 01 -->
+    <section class="slide divider">
+      <div class="dnum">01</div>
+      <div class="dtitle">Framing</div>
+      <div class="drule"></div>
+      <div class="notes-src">Pelle — 3 minutes. Set up the central decision: we built a company, not just a product.</div>
+    </section>
+
+    <!-- 2 — THE BRIEF -->
+    <section class="slide">
+      <div class="label">Framing</div>
+      <div class="content">
+        <h2 class="title">The brief asked for a product. We built a company.</h2>
+        <ul class="points body">
+          <li>We were asked to build a <strong>digital product</strong></li>
+          <li>We decided to build a <strong>company first</strong></li>
+          <li>A full-service <strong>agentic product company</strong> — with AI doing the coordination work humans usually do</li>
+        </ul>
+      </div>
+      <div class="notes-src">Pelle owns this. Position it as a systems-level choice, not just a product choice. The product is downstream of the company we chose to be.</div>
+    </section>
+
+    <!-- 3 — THE USER -->
+    <section class="slide">
+      <div class="label">Framing</div>
+      <div class="content">
+        <h2 class="title">Who it's for, and what it is</h2>
+        <ul class="points body">
+          <li><strong>Municipality environmental departments</strong></li>
+          <li>The need: real-time visibility of air quality, precipitation, heat, and algae risk</li>
+          <li>The product: <strong>Clean Path</strong> — a monitoring dashboard that surfaces environmental data by hazard type</li>
+          <li class="dim">"What we built is a future scenario — the prototype shows the direction, not the destination."</li>
+        </ul>
+      </div>
+      <div class="notes-src">Pelle. Frame Clean Path as a future scenario. The prototype shows direction, not destination — this protects us from "but the data isn't live" questions.</div>
+    </section>
+
+    <!-- DIVIDER 02 -->
+    <section class="slide divider">
+      <div class="dnum">02</div>
+      <div class="dtitle">How we organised</div>
+      <div class="drule"></div>
+      <div class="notes-src">Pelle — 6 minutes. The heart of the process story. This is what the talk is really about.</div>
+    </section>
+
+    <!-- 4 — HEADLESS TEAM -->
+    <section class="slide">
+      <div class="label">How we organised</div>
+      <div class="content">
+        <h2 class="title">A headless team</h2>
+        <ul class="points body">
+          <li>No traditional PM or project manager</li>
+          <li><strong>Stilla</strong> acted as coordinator: ran standups, wrote and assigned tickets, tracked blockers</li>
+          <li>Each human owned a vertical: design (Natálie), feature areas (Jónas, Mike, Pablo), framing (Pelle)</li>
+          <li>Decision-making was async and explicit — everything went through <strong>GitHub PRs</strong> and <strong>Linear</strong></li>
+        </ul>
+      </div>
+      <div class="notes-src">Pelle. "Headless" = the coordination role exists, but a human doesn't fill it. Emphasise: the work was made legible enough for an AI to coordinate.</div>
+    </section>
+
+    <!-- 5 — CONWAY'S LAW -->
+    <section class="slide quote-slide">
+      <div class="label">How we organised</div>
+      <blockquote class="pull">
+        "Any organisation that designs a system will produce a design whose structure is a copy of the organisation's communication structure."
+        <span class="src">Mel Conway · 1967</span>
+      </blockquote>
+      <div class="below">Our team structure and our tech stack are the same diagram.</div>
+      <div class="notes-src">This is the conceptual anchor. The modular codebase mirrors the modular team. Each person owned a tab; each tab was a separate component merged via PR. Don't rush it — this idea reappears in section 4.</div>
+    </section>
+
+    <!-- 6 — THE STACK -->
+    <section class="slide">
+      <div class="label">How we organised</div>
+      <h2 class="title" style="margin-bottom:1em;">Same tools, different roles</h2>
+      <div class="twocol body" style="width:100%;">
+        <div class="col human">
+          <h3>Humans do</h3>
+          <ul>
+            <li>Write and review code</li>
+            <li>Run demos</li>
+            <li>Make design calls</li>
+            <li>Present</li>
+          </ul>
+        </div>
+        <div class="col">
+          <h3>Stilla does</h3>
+          <ul>
+            <li>Writes tickets and acceptance criteria</li>
+            <li>Runs the standup</li>
+            <li>Reviews PRs and flags conflicts</li>
+            <li>Keeps the backlog current</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footnote">GitHub · Linear · Claude · Stilla — same tools, different roles</div>
+      <div class="notes-src">Don't linger. One pass through each column is enough. The punchline is the footnote: the tools are shared; the roles are split.</div>
+    </section>
+
+    <!-- 7 — OPERATING RHYTHM -->
+    <section class="slide">
+      <div class="label">How we organised</div>
+      <div class="content">
+        <h2 class="title">Operating rhythm</h2>
+        <ul class="points body">
+          <li>Weekly <strong>Monday check-in</strong> (18:00 GMT): progress, blockers, action items</li>
+          <li>Async throughout the week via <strong>Slack + GitHub</strong></li>
+          <li>Stilla synthesises notes and sends action lists after each session</li>
+        </ul>
+      </div>
+      <div style="position:absolute; bottom:6cqh; right:8cqw; font-size:0.62em; color:var(--muted-dim); max-width:14em; text-align:right; line-height:1.4;">Biggest blocker: which meeting tool to use</div>
+      <div class="notes-src">Pelle. The corner joke is real and lands — every team has lost a week to tooling debates. Use it to humanise the AI-coordination story.</div>
+    </section>
+
+    <!-- DIVIDER 03 -->
+    <section class="slide divider">
+      <div class="dnum">03</div>
+      <div class="dtitle">Demo</div>
+      <div class="drule"></div>
+      <div class="notes-src">Pablo — 5–6 minutes. Hand off to the live app after slide 9.</div>
+    </section>
+
+    <!-- 8 — THE APP -->
+    <section class="slide">
+      <div class="label">Demo</div>
+      <div class="content">
+        <h2 class="title">The app: Clean Path</h2>
+        <ul class="points body">
+          <li>Real-time environmental monitoring for municipalities</li>
+          <li>Four hazard tabs: <strong>Air</strong> (pollen), <strong>Rain</strong> (precipitation), <strong>Heat</strong>, <strong>Algae</strong></li>
+          <li>Each tab: a map with markers, relevant environmental data, severity indicators</li>
+          <li>Design unified under <strong>Natálie's pastel UI system</strong></li>
+        </ul>
+      </div>
+      <div class="notes-src">Pablo owns this. This slide is just a handoff. Pablo does the live demo from the actual app — switch to the browser tab now.</div>
+    </section>
+
+    <!-- 9 — THE SCENARIO -->
+    <section class="slide">
+      <div class="label">Demo</div>
+      <div class="content">
+        <p class="lead" style="margin-bottom:1em;"><span class="kicker">It's a hot July morning.</span> The city's environmental team gets to work.</p>
+        <ul class="points body">
+          <li><strong>Air quality:</strong> pollen levels spiking in three districts</li>
+          <li><strong>Rain:</strong> heavy precipitation forecast — drainage alert</li>
+          <li><strong>Heat index:</strong> two districts above threshold — city issues advisory</li>
+          <li class="dim">Clean Path surfaces all of this in one place. No phone calls. No spreadsheets.</li>
+        </ul>
+      </div>
+      <div class="notes-src">Walk through one realistic use case. Keep it tight — the point is value, not features. Tie each item back to the live demo Pablo just gave.</div>
+    </section>
+
+    <!-- DIVIDER 04 -->
+    <section class="slide divider">
+      <div class="dnum">04</div>
+      <div class="dtitle">What AI changed</div>
+      <div class="drule"></div>
+      <div class="notes-src">Mike — 5 minutes. The honest middle: where AI genuinely shifted how we worked.</div>
+    </section>
+
+    <!-- 10 — DESIGN DECISIONS (PLACEHOLDER) -->
+    <section class="slide">
+      <div class="label">What AI changed</div>
+      <div class="content">
+        <span class="ph-tag">Placeholder · Mike to fill in</span>
+        <h2 class="title">Design decisions</h2>
+        <ul class="points body">
+          <li class="dim">A specific design decision Stilla or Claude made (e.g. tab structure, component naming, data model)</li>
+          <li class="dim">Why it was unexpected or better than what the team would have chosen</li>
+          <li class="dim">What that tells you about AI as a collaborator</li>
+        </ul>
+        <p class="ph-note">Replace the three dimmed prompts above with one concrete story.</p>
+      </div>
+      <div class="notes-src">PLACEHOLDER — Mike to fill in. Pick ONE decision and tell it as a story: what AI proposed, why we doubted it, why it was right.</div>
+    </section>
+
+    <!-- 11 — MODULAR ARCHITECTURE (PLACEHOLDER) -->
+    <section class="slide">
+      <div class="label">What AI changed</div>
+      <div class="content">
+        <span class="ph-tag">Placeholder · Mike to fill in</span>
+        <h2 class="title">Modular architecture</h2>
+        <ul class="points body">
+          <li class="dim">Each team member owned one tab = one component</li>
+          <li class="dim">AI helped enforce this: separate files, clean props interfaces, no cross-tab coupling</li>
+          <li class="dim">Result: four people worked in parallel with very few merge conflicts</li>
+          <li class="dim">"Conway's Law working in our favour"</li>
+        </ul>
+        <p class="ph-note">Confirm the merge-conflict claim against the real Git history before presenting.</p>
+      </div>
+      <div class="notes-src">PLACEHOLDER — Mike to fill in. Callback to slide 5 (Conway's Law). The structure we chose for the team is the structure of the code.</div>
+    </section>
+
+    <!-- 12 — TOKEN ANXIETY -->
+    <section class="slide quote-slide bigstat">
+      <div class="label">What AI changed</div>
+      <blockquote class="pull">"We ran out of tokens."</blockquote>
+      <ul class="points" style="margin-top:1.6em; text-align:left; max-width:24em;">
+        <li>Mid-project, Claude's context window became a real constraint</li>
+        <li>Adapted: switched from Stilla's Claude interface to <strong>Claude Code</strong> for heavier coding tasks</li>
+        <li>Lesson: AI has resource limits. Planning around them is now a real project-management skill.</li>
+      </ul>
+      <div class="below">Token anxiety is the new deadline anxiety.</div>
+      <div class="notes-src">Mike owns this. This is the honest, relatable moment. Don't oversell it. The lesson is the management skill, not the failure.</div>
+    </section>
+
+    <!-- DIVIDER 05 -->
+    <section class="slide divider">
+      <div class="dnum">05</div>
+      <div class="dtitle">Stilla performance review</div>
+      <div class="drule"></div>
+      <div class="notes-src">Mike — 5 minutes. Narrated by an ElevenLabs voice. The next slide is the visual backdrop.</div>
+    </section>
+
+    <!-- 13 — PERFORMANCE REVIEW (PLACEHOLDER) -->
+    <section class="slide review">
+      <div class="label">Stilla performance review</div>
+      <div class="form-head">
+        <h2>Performance Review — Q2 2026</h2>
+        <span class="stamp">Confidential</span>
+      </div>
+      <div class="meta-row">
+        <span><b>Employee:</b> <span class="field">Stilla — AI Coordinator</span></span>
+        <span><b>Reviewer:</b> <span class="field">The Team</span></span>
+      </div>
+      <span class="ph-tag">Placeholder · Mike to write the review</span>
+      <div class="field-block">
+        <div class="ftitle">Strengths</div>
+        <div class="fbody">[ Specific things Stilla did well — tickets, standups, never dropped a blocker. ]</div>
+      </div>
+      <div class="field-block">
+        <div class="ftitle">Areas for development</div>
+        <div class="fbody">[ Honest limitations or friction points — where coordination broke down or needed a human. ]</div>
+      </div>
+      <div class="field-block">
+        <div class="ftitle">Overall rating</div>
+        <div class="fbody rating">[ Something wry and specific. ]</div>
+      </div>
+      <div class="notes-src">PLACEHOLDER — Mike to write the full review text. Narrated by an ElevenLabs voice; the slide is visual backdrop only. Keep text readable but don't crowd it — the voice carries the section.</div>
+    </section>
+
+    <!-- DIVIDER 06 -->
+    <section class="slide divider">
+      <div class="dnum">06</div>
+      <div class="dtitle">Summary</div>
+      <div class="drule"></div>
+      <div class="notes-src">3 minutes. Pull the threads together before the closer.</div>
+    </section>
+
+    <!-- 14 — WHAT WE LEARNED -->
+    <section class="slide">
+      <div class="label">Summary</div>
+      <div class="content">
+        <h2 class="title">What we learned</h2>
+        <ul class="points body">
+          <li>You can run a product team with <strong>AI doing the coordination layer</strong></li>
+          <li>The constraint is not the AI's capability — it's <strong>your ability to structure work</strong> so AI can act on it</li>
+          <li>Modular teams and modular code reinforce each other</li>
+          <li>Token limits, ambiguity, and meeting-tool debates are still very human problems</li>
+        </ul>
+      </div>
+      <div class="notes-src">The single most important line: the constraint is structure, not capability. If the audience remembers one thing, make it this.</div>
+    </section>
+
+    <!-- 15 — ONE FUTURE SCENARIO -->
+    <section class="slide">
+      <div class="label">Summary</div>
+      <div class="content">
+        <h2 class="title">One future scenario</h2>
+        <ul class="points body">
+          <li><strong>2027:</strong> a 3-person team ships a B2B SaaS product in 6 weeks</li>
+          <li>AI writes <strong>60% of the code, 100% of the tickets</strong>, and runs the retrospectives</li>
+          <li>The humans do: taste, judgment, stakeholder relationships, and the demo</li>
+          <li class="dim">"The question isn't whether AI joins the team. It's whether your team knows how to work with it."</li>
+        </ul>
+      </div>
+      <div class="notes-src">Deliver the closing line slowly. It's the bridge into the closer question.</div>
+    </section>
+
+    <!-- 16 — IMPLEMENTATION CHECKLIST -->
+    <section class="slide">
+      <div class="label">Summary</div>
+      <h2 class="title" style="margin-bottom:0.8em;">If you want to try this</h2>
+      <ul class="checklist body">
+        <li>Define your through-line before you start building</li>
+        <li>Assign AI a real role with real responsibilities</li>
+        <li>Use Conway's Law intentionally: design team = design system</li>
+        <li>Build async-first: everything documented, nothing lost in calls</li>
+        <li>Plan for token limits like you plan for deadlines</li>
+        <li>Treat the presentation as part of the product</li>
+      </ul>
+      <div class="notes-src">A practical takeaway slide. You can offer to share it. The last item sets up the closer.</div>
+    </section>
+
+    <!-- DIVIDER 07 -->
+    <section class="slide divider">
+      <div class="dnum">07</div>
+      <div class="dtitle">Closer</div>
+      <div class="drule"></div>
+      <div class="notes-src">The meta-moment. Slow down. Two slides only.</div>
+    </section>
+
+    <!-- 17 — THE QUESTION -->
+    <section class="slide closer">
+      <h1>How much of this presentation do you think was created by <span class="ax">AI?</span></h1>
+      <div class="notes-src">Hold it. Let the audience respond — actually take answers out loud. Don't reveal yet.</div>
+    </section>
+
+    <!-- 18 — THE ANSWER (PLACEHOLDER) -->
+    <section class="slide closer">
+      <span class="ph-tag">Placeholder · Fill in after the deck is final</span>
+      <div class="answer-num">—%</div>
+      <div class="answer-sub">Reveal the actual breakdown of AI vs human-created content: copy, structure, code, and design.</div>
+      <div class="notes-src">PLACEHOLDER — fill in after the presentation is built. The presentation is itself the artifact. The audience has just experienced what AI-assisted work looks and feels like — now you name it.</div>
+    </section>
+
+  </div>
+</div>
+
+  <!-- on-screen arrows -->
+  <button class="nav-arrow left" id="prevBtn" aria-label="Previous slide">‹</button>
+  <button class="nav-arrow right" id="nextBtn" aria-label="Next slide">›</button>
+</div>
+
+<!-- overlays -->
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="counter"><b id="cur">1</b> / <span id="total">18</span></div>
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd> move&nbsp;&nbsp;·&nbsp;&nbsp;<kbd>N</kbd> notes&nbsp;&nbsp;·&nbsp;&nbsp;<kbd>F</kbd> fullscreen</div>
+
+<!-- speaker notes -->
+<div class="notes-panel" id="notesPanel">
+  <div class="np-inner">
+    <div class="np-head"><span>Speaker notes</span><span class="np-slide" id="npSlide"></span></div>
+    <div class="np-body" id="npBody"></div>
+  </div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let current = 0;
+
+  const bar = document.getElementById('bar');
+  const curEl = document.getElementById('cur');
+  const totalEl = document.getElementById('total');
+  const npBody = document.getElementById('npBody');
+  const npSlide = document.getElementById('npSlide');
+  totalEl.textContent = total;
+
+  function render() {
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === current);
+      s.classList.toggle('prev', i < current);
+    });
+    curEl.textContent = current + 1;
+    bar.style.width = ((current + 1) / total * 100) + '%';
+
+    const src = slides[current].querySelector('.notes-src');
+    const text = src ? src.textContent.trim() : '';
+    npSlide.textContent = 'Slide ' + (current + 1) + ' / ' + total;
+    if (text) {
+      npBody.textContent = text;
+      npBody.classList.remove('empty');
+    } else {
+      npBody.textContent = 'No notes for this slide.';
+      npBody.classList.add('empty');
+    }
+  }
+
+  function go(n) {
+    current = Math.max(0, Math.min(total - 1, n));
+    render();
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', () => go(current - 1));
+  document.getElementById('nextBtn').addEventListener('click', () => go(current + 1));
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault(); go(current + 1); break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault(); go(current - 1); break;
+      case 'Home':
+        e.preventDefault(); go(0); break;
+      case 'End':
+        e.preventDefault(); go(total - 1); break;
+      case 'n':
+      case 'N':
+        document.body.classList.toggle('notes-open'); break;
+      case 'f':
+      case 'F':
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+        break;
+    }
+  });
+
+  render();
+</script>
+</body>
+</html>
