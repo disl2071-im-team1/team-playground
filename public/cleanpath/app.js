@@ -622,6 +622,8 @@
   function activateAlgae(haz) {
     hidePollen();
     hideAirHero();
+    hideHeatHero();
+    hideHeatStrip();
     updateAlgaeHero();
     showAlgaeRiskStrip();
     setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
@@ -709,6 +711,8 @@
   function activateAir(haz) {
     hideAlgaeHero();
     hideAlgaeRiskStrip();
+    hideHeatHero();
+    hideHeatStrip();
     setLayerStatus([
       { id: 'stations', label: 'WAQI stations' },
       { id: 'integration', label: 'Integration layer' },
@@ -733,6 +737,8 @@
     hideAirHero();
     hideAlgaeHero();
     hideAlgaeRiskStrip();
+    hideHeatHero();
+    hideHeatStrip();
     setLayerStatus([{ id: 'placeholder', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
     setProvenance(haz.provenance, haz.confidence, true);
     if (haz.draw) haz.draw();
@@ -894,6 +900,11 @@
     document.getElementById('algae-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAlgaeModal(); });
     document.getElementById('algae-modal-generate').addEventListener('click', algaeGenerateDraft);
     document.getElementById('algae-modal-send').addEventListener('click', alsgaeSendAdvisory);
+
+    document.getElementById('heat-modal-close').addEventListener('click', closeHeatModal);
+    document.getElementById('heat-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHeatModal(); });
+    document.getElementById('heat-modal-generate').addEventListener('click', heatGenerateDraft);
+    document.getElementById('heat-modal-send').addEventListener('click', heatSendAdvisory);
   });
 
   function drawFire() {
@@ -957,6 +968,7 @@
       const c = heatColor(t);
       L.circle([d.lat, d.lon], { radius: 1000, color: c, weight: 1, opacity: 0.5, fillColor: c, fillOpacity: 0.38 })
         .bindTooltip(`${d.name} — känns som ${t}°C · ${heatBand(t)} (sample)`, { sticky: true })
+        .on('click', () => openHeatModal(d))
         .addTo(gHazard);
     });
   }
@@ -965,12 +977,307 @@
       const isCare = v.type === 'care';
       L.marker(v.ll, { icon: L.divIcon({ className: 'vuln-pin' + (isCare ? '' : ' vp-pre'), html: isCare ? '♥' : '◆', iconSize: [18, 18] }) })
         .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} (sample vulnerable site)`, { sticky: true })
+        .on('click', () => openHeatModal(heatNearestDistrict(v.ll)))
         .addTo(gVulnerable);
     });
+  }
+
+  // Nearest district to a lat/lon (used to bin vulnerable sites and to open a
+  // pin's surrounding district). Plain squared-distance — districts are close.
+  function heatNearestDistrict(ll) {
+    let best = HEAT_DISTRICTS[0], bd = Infinity;
+    HEAT_DISTRICTS.forEach(d => {
+      const dist = (d.lat - ll[0]) ** 2 + (d.lon - ll[1]) ** 2;
+      if (dist < bd) { bd = dist; best = d; }
+    });
+    return best;
+  }
+  function heatVulnerableIn(d) {
+    return HEAT_VULNERABLE.filter(v => heatNearestDistrict(v.ll).name === d.name);
   }
   function drawHeat() {
     drawHeatZones(currentLeadHour());
     drawHeatVulnerable();
+  }
+
+  /* ---- Heat situation hero — mirrors the air/algae hero, bespoke to heat ----
+   * Recomputed at the current lead hour (so it tracks the slider): district
+   * band counts, the spatial peak känns-som value and the clock hour it falls
+   * on, and an officer verdict. Placeholder forecast — the shared PLACEHOLDER
+   * banner and provenance flag carry the honesty; nothing here reads as real. */
+  const HEAT_LEVEL_CLS = { Extreme: 'aq-level-vhigh', Warning: 'aq-level-high', Caution: 'aq-level-mod', Comfortable: 'aq-level-low' };
+
+  function updateHeatHero() {
+    const hero = document.getElementById('heat-hero');
+    if (!hero) return;
+    const lead = currentLeadHour();
+    const clock = (14 + lead) % 24;
+    const total = HEAT_DISTRICTS.length;
+    const temps = HEAT_DISTRICTS.map(d => ({ name: d.name, t: heatTempAt(d, lead) }));
+    const extreme = temps.filter(x => x.t >= 33);
+    const warning = temps.filter(x => x.t >= 30 && x.t < 33);
+    const caution = temps.filter(x => x.t >= 27 && x.t < 30);
+    const warningPlus = extreme.length + warning.length;
+    const peak = temps.reduce((a, b) => (b.t > a.t ? b : a), temps[0]);
+    const band = heatBand(peak.t);
+
+    const lvlEl = document.getElementById('heat-hero-level');
+    const hdEl  = document.getElementById('heat-hero-headline');
+    const bkEl  = document.getElementById('heat-hero-breakdown');
+    const vdEl  = document.getElementById('heat-hero-verdict');
+
+    if (lvlEl) { lvlEl.textContent = band; lvlEl.className = 'aq-hero-level ' + (HEAT_LEVEL_CLS[band] || 'aq-level-low'); }
+
+    if (hdEl) {
+      if (warningPlus > 0) {
+        hdEl.textContent = `${warningPlus} of ${total} districts at Warning or above`;
+      } else if (caution.length > 0) {
+        hdEl.textContent = `${caution.length} of ${total} districts in Caution`;
+      } else {
+        hdEl.textContent = 'Apparent temperature is comfortable across Stockholm';
+      }
+    }
+
+    if (bkEl) {
+      const bands = [
+        { label: 'Extreme', color: '#E24B4A', n: extreme.length },
+        { label: 'Warning', color: '#EF9F27', n: warning.length },
+        { label: 'Caution', color: '#FAC775', n: caution.length },
+      ];
+      const parts = bands.filter(b => b.n > 0).map(b =>
+        `<span class="aq-breakdown-item"><span class="aq-breakdown-dot" style="background:${b.color}"></span>${b.n} ${b.label}</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">Peak känns som ${peak.t}°C at ${fmtHour(clock)} (${escapeHtml(peak.name)}) · sample forecast</span>`);
+      bkEl.innerHTML = parts.join('');
+    }
+
+    if (vdEl) {
+      let verdict;
+      if (extreme.length > 0) verdict = 'Activate heat plan now — extreme apparent temperature in affected districts.';
+      else if (warningPlus > 0) verdict = 'Activate heat plan for care homes ahead of the peak.';
+      else if (caution.length > 0) verdict = 'Monitor closely. Prepare relief for vulnerable sites.';
+      else verdict = 'No heat action needed at this hour.';
+      vdEl.textContent = verdict;
+      vdEl.className = 'aq-hero-verdict';
+    }
+
+    hero.style.display = 'flex';
+  }
+
+  function showHeatHero() { const h = document.getElementById('heat-hero'); if (h) h.style.display = 'flex'; }
+  function hideHeatHero() { const h = document.getElementById('heat-hero'); if (h) h.style.display = 'none'; }
+
+  /* ---- Heat vulnerable-site strip — mirrors the algae risk strip ----
+   * Rolls up the vulnerable sites that sit inside Warning+ districts at the
+   * current lead hour, split care homes vs preschools, with severity colour. */
+  function updateHeatStrip() {
+    const grid = document.getElementById('heat-strip-grid');
+    const sub  = document.getElementById('heat-strip-sub');
+    if (!grid) return;
+    const lead = currentLeadHour();
+    const clock = (14 + lead) % 24;
+    const warnDistricts = HEAT_DISTRICTS.filter(d => heatTempAt(d, lead) >= 30);
+    const inWarn = HEAT_VULNERABLE.filter(v => heatTempAt(heatNearestDistrict(v.ll), lead) >= 30);
+
+    if (sub) sub.textContent = `${warnDistricts.length} of ${HEAT_DISTRICTS.length} districts at Warning or above · forecast ${fmtHour(clock)} · sample (SMHI adapter not connected)`;
+
+    const cats = [
+      { type: 'care', icon: '♥', label: 'Care homes' },
+      { type: 'pre',  icon: '◆', label: 'Preschools' },
+    ];
+    grid.innerHTML = cats.map(cat => {
+      const total = HEAT_VULNERABLE.filter(v => v.type === cat.type).length;
+      const count = inWarn.filter(v => v.type === cat.type).length;
+      const pct = total ? Math.round((count / total) * 100) : 0;
+      const color = pct >= 75 ? 'var(--red)' : pct > 0 ? 'var(--amber)' : 'var(--green)';
+      const glowColor = pct >= 75 ? '#F5CFCF' : pct > 0 ? '#F5E6C8' : '#C8EBD8';
+      const siteLabel = count === 1 ? 'site' : 'sites';
+      return `<div class="pollen-card algae-signal-card">
+        <div class="pollen-card-glow" style="background:${glowColor}"></div>
+        <span class="pollen-icon">${cat.icon}</span>
+        <div class="pollen-name">${cat.label} in heat-risk districts</div>
+        <div class="algae-signal-bottom">
+          <span class="pollen-count" style="color:${color}">${count}</span>
+          <span class="algae-signal-site-label">of ${total} ${siteLabel}</span>
+          <div class="pollen-bar-track">
+            <div class="pollen-bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function showHeatStrip() {
+    updateHeatStrip();
+    const s = document.getElementById('heat-strip');
+    if (s) s.style.display = 'block';
+  }
+  function hideHeatStrip() {
+    const s = document.getElementById('heat-strip');
+    if (s) s.style.display = 'none';
+  }
+
+  /* ---- Heat district modal — mirrors the algae modal ----
+   * Apparent-temp curve across the day (diurnal model), the vulnerable sites
+   * inside the district, an officer recommendation, audit trail, an Activate /
+   * Stand down state machine, and a public message with draft + send logged. */
+  const HEAT_STATUS_LABEL = { standby: 'Standby', activated: 'Activated' };
+  const HEAT_CURVE_HOURS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2];
+  const _heatState = {};
+  let _heatModalDistrict = null;
+  let _heatPendingStatus = null;
+
+  function heatStateFor(d) {
+    if (!_heatState[d.name]) {
+      _heatState[d.name] = {
+        status: 'standby',
+        audit: [{ time: 'start of shift', text: 'Monitoring forecast apparent temperature. No heat plan active.' }],
+      };
+    }
+    return _heatState[d.name];
+  }
+
+  function heatRecommendation(d, lead) {
+    const t = heatTempAt(d, lead);
+    const band = heatBand(t);
+    const vuln = heatVulnerableIn(d);
+    const care = vuln.filter(v => v.type === 'care').length;
+    const pre = vuln.filter(v => v.type === 'pre').length;
+    if (band === 'Extreme') return `Apparent temperature reaches känns som ${t}°C — extreme. Activate the heat plan now: prioritise the ${care} care home${care !== 1 ? 's' : ''} here, schedule welfare checks and extra fluids, and move preschool activity indoors through the afternoon peak.`;
+    if (band === 'Warning') return `Apparent temperature reaches känns som ${t}°C — warning level. Activate the heat plan for the ${care} care home${care !== 1 ? 's' : ''} in ${d.name} ahead of the peak, and brief the ${pre} preschool${pre !== 1 ? 's' : ''} on shade and hydration.`;
+    if (band === 'Caution') return `Apparent temperature is känns som ${t}°C — caution. No activation needed yet; keep the ${vuln.length} vulnerable site${vuln.length !== 1 ? 's' : ''} in ${d.name} on watch and re-check as the forecast firms up.`;
+    return `Apparent temperature is känns som ${t}°C — comfortable. No heat action needed for ${d.name} at this hour.`;
+  }
+
+  function renderHeatCurve(d, lead) {
+    const host = document.getElementById('heat-modal-curve');
+    if (!host) return;
+    const nowClock = (14 + lead) % 24;
+    const lo = 24, hi = 36;
+    host.innerHTML = HEAT_CURVE_HOURS.map(h => {
+      const bump = HEAT_DIURNAL[h] != null ? HEAT_DIURNAL[h] : -2;
+      const t = Math.round((d.base + bump) * 10) / 10;
+      const pct = Math.max(6, Math.min(100, Math.round(((t - lo) / (hi - lo)) * 100)));
+      const now = h === nowClock ? ' now' : '';
+      return `<div class="heat-curve-col${now}" title="${fmtHour(h)} · känns som ${t}°C · ${heatBand(t)}">
+        <div class="heat-curve-bar" style="height:${pct}%;background:${heatColor(t)}"></div>
+        <div class="heat-curve-hr">${String(h).padStart(2, '0')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderHeatAudit(d) {
+    const el = document.getElementById('heat-modal-audit');
+    if (!el) return;
+    el.innerHTML = heatStateFor(d).audit.map(e =>
+      `<div class="algae-modal-audit-entry"><span class="algae-modal-audit-time">${escapeHtml(e.time)}</span><span>${escapeHtml(e.text)}</span></div>`
+    ).join('');
+  }
+
+  function renderHeatStatusButtons(active) {
+    const row = document.getElementById('heat-modal-status-row');
+    if (!row) return;
+    row.innerHTML = ['standby', 'activated'].map(s =>
+      `<button class="algae-modal-status-btn ${active === s ? 'active-' + s : ''}" data-status="${s}">${HEAT_STATUS_LABEL[s]}</button>`
+    ).join('');
+    row.querySelectorAll('.algae-modal-status-btn').forEach(btn => {
+      btn.addEventListener('click', () => { _heatPendingStatus = btn.dataset.status; renderHeatStatusButtons(_heatPendingStatus); });
+    });
+  }
+
+  function openHeatModal(d) {
+    if (!d) return;
+    _heatModalDistrict = d;
+    const lead = currentLeadHour();
+    const st = heatStateFor(d);
+    _heatPendingStatus = st.status;
+
+    document.getElementById('heat-modal-eyebrow').textContent = 'District · Stockholm';
+    document.getElementById('heat-modal-title').textContent = d.name;
+
+    const badge = document.getElementById('heat-modal-badge');
+    badge.textContent = HEAT_STATUS_LABEL[st.status];
+    badge.className = 'algae-modal-status-badge badge-' + st.status;
+
+    renderHeatCurve(d, lead);
+
+    const t = heatTempAt(d, lead);
+    const clock = (14 + lead) % 24;
+    document.getElementById('heat-modal-now').innerHTML =
+      `Now (${fmtHour(clock)}): känns som <strong style="color:${heatColor(t)}">${t}°C</strong> · ${heatBand(t)} · sample forecast — SMHI adapter not connected`;
+
+    const vuln = heatVulnerableIn(d);
+    document.getElementById('heat-modal-vuln').innerHTML = vuln.length
+      ? vuln.map(v => {
+          const isCare = v.type === 'care';
+          return `<div class="heat-vuln-item">
+            <span class="heat-vuln-icon ${isCare ? '' : 'pre'}">${isCare ? '♥' : '◆'}</span>
+            <span class="heat-vuln-name">${escapeHtml(v.name)}</span>
+            <span class="heat-vuln-type">${isCare ? 'care home' : 'preschool'}</span>
+          </div>`;
+        }).join('')
+      : '<div class="heat-vuln-empty">No registered vulnerable sites in this district.</div>';
+
+    document.getElementById('heat-modal-rec').textContent = heatRecommendation(d, lead);
+    renderHeatAudit(d);
+    renderHeatStatusButtons(_heatPendingStatus);
+
+    document.getElementById('heat-modal-message').value = '';
+    document.getElementById('heat-modal-sent').style.display = 'none';
+
+    document.getElementById('heat-modal').style.display = 'flex';
+  }
+
+  function closeHeatModal() {
+    document.getElementById('heat-modal').style.display = 'none';
+    _heatModalDistrict = null;
+    _heatPendingStatus = null;
+  }
+
+  function heatGenerateDraft() {
+    if (!_heatModalDistrict) return;
+    const d = _heatModalDistrict;
+    const t = heatTempAt(d, currentLeadHour());
+    const s = _heatPendingStatus || heatStateFor(d).status;
+    const templates = {
+      activated: `Stockholm stad informerar: Värmeplanen är aktiverad för ${d.name}. Temperaturen väntas kännas som ${t}°C. Vi prioriterar äldreboenden och förskolor — drick vatten, sök skugga och se till om grannar och anhöriga.`,
+      standby:   `Stockholm stad informerar: Höga temperaturer väntas i ${d.name}, känns som upp till ${t}°C. Drick vatten regelbundet, sök skugga under eftermiddagen och håll koll på sårbara grannar.`,
+    };
+    document.getElementById('heat-modal-message').value = templates[s] || templates.standby;
+  }
+
+  function heatSendAdvisory() {
+    if (!_heatModalDistrict) return;
+    const msg = document.getElementById('heat-modal-message').value.trim();
+    if (!msg) { document.getElementById('heat-modal-message').focus(); return; }
+    const d = _heatModalDistrict;
+    const st = heatStateFor(d);
+
+    if (_heatPendingStatus && _heatPendingStatus !== st.status) {
+      const old = st.status;
+      st.status = _heatPendingStatus;
+      st.audit.unshift({ time: 'just now', text: `Heat plan ${old === 'standby' ? 'activated' : 'stood down'}: ${HEAT_STATUS_LABEL[old]} → ${HEAT_STATUS_LABEL[st.status]}. Advisory sent. Officer: You` });
+      const badge = document.getElementById('heat-modal-badge');
+      badge.textContent = HEAT_STATUS_LABEL[st.status];
+      badge.className = 'algae-modal-status-badge badge-' + st.status;
+    } else {
+      st.audit.unshift({ time: 'just now', text: 'Advisory message sent (status unchanged). Officer: You' });
+    }
+
+    renderHeatAudit(d);
+    document.getElementById('heat-modal-sent').style.display = 'block';
+  }
+
+  function activateHeat(haz) {
+    hidePollen();
+    hideAirHero();
+    hideAlgaeHero();
+    hideAlgaeRiskStrip();
+    updateHeatHero();
+    showHeatHero();
+    showHeatStrip();
+    setLayerStatus([{ id: 'heat', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · SMHI temperature adapter not yet connected' }]);
+    setProvenance(haz.provenance, haz.confidence, true);
+    if (haz.draw) haz.draw();
   }
 
   /* ============================================================
@@ -1209,8 +1516,8 @@
       buttons: ['Activate', 'Stand down'], confidence: 'high', real: false,
       provenance: 'Measured: SMHI temperature stations (dense). Forecast: värmebölja.',
       draw: drawHeat,
-      onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); },
-      activate: activatePlaceholder
+      onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); updateHeatHero(); updateHeatStrip(); },
+      activate: activateHeat
     },
     rain: {
       eyebrow: 'Precipitation',
@@ -1240,6 +1547,8 @@
       real: false,
       provenance: 'Simulated · SMHI-shaped district data. No live connection yet.',
       activate: function(haz) {
+        hideHeatHero();
+        hideHeatStrip();
         setLayerStatus([{ id: 'rain', label: 'Rainfall layer (simulated)', state: 'offline', detail: 'simulated · SMHI adapter not connected' }]);
         setProvenance(haz.provenance, haz.confidence, true);
         drawRain();
