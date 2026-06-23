@@ -75,6 +75,18 @@
       </div>
     </div>
 
+    <!-- Heat situation hero — visible only on Heat tab -->
+    <div class="aq-hero card" id="heat-hero" style="display:none">
+      <div class="aq-hero-left">
+        <div class="aq-hero-level" id="heat-hero-level">—</div>
+        <div class="aq-hero-headline" id="heat-hero-headline">—</div>
+        <div class="aq-hero-breakdown" id="heat-hero-breakdown"></div>
+      </div>
+      <div class="aq-hero-right">
+        <div class="aq-hero-verdict" id="heat-hero-verdict"></div>
+      </div>
+    </div>
+
     <div class="shell-grid">
 
       <!-- Map shell (dominant). Legend + layers panel are Leaflet controls added in JS. -->
@@ -124,6 +136,17 @@
         </div>
       </div>
       <div class="pollen-scroll" id="algae-risk-grid"></div>
+    </section>
+
+    <!-- Heat vulnerable-site strip — visible only on Heat tab, below the map -->
+    <section class="pollen-strip" id="heat-strip" style="display:none">
+      <div class="pollen-strip-head">
+        <div>
+          <div class="pollen-strip-title">Vulnerable sites in heat-risk districts</div>
+          <div class="pollen-strip-sub" id="heat-strip-sub">—</div>
+        </div>
+      </div>
+      <div class="pollen-scroll" id="heat-strip-grid"></div>
     </section>
 
     <!-- Pollen strip — Air tab only, hidden for other hazards -->
@@ -199,6 +222,68 @@
             <button class="algae-modal-btn algae-modal-btn-primary" id="algae-modal-send">Send advisory</button>
           </div>
           <div class="algae-modal-sent" id="algae-modal-sent" style="display:none">Advisory sent · logged to audit trail</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Heat district detail modal -->
+  <div id="heat-modal" class="algae-modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="heat-modal-title">
+    <div class="algae-modal">
+      <div class="algae-modal-header">
+        <div>
+          <div class="algae-modal-eyebrow" id="heat-modal-eyebrow">District</div>
+          <h3 class="algae-modal-title" id="heat-modal-title">—</h3>
+        </div>
+        <div class="algae-modal-header-right">
+          <span class="algae-modal-status-badge" id="heat-modal-badge">—</span>
+          <button class="algae-modal-close" id="heat-modal-close" aria-label="Close">✕</button>
+        </div>
+      </div>
+
+      <div class="algae-modal-body">
+
+        <!-- Apparent-temperature curve across the day -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Apparent temperature today · känns som</div>
+          <div class="heat-curve" id="heat-modal-curve"></div>
+          <div class="algae-modal-data-age" id="heat-modal-now"></div>
+        </div>
+
+        <!-- Vulnerable sites inside this district -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Vulnerable sites in this district</div>
+          <div class="heat-vuln-list" id="heat-modal-vuln"></div>
+        </div>
+
+        <!-- Officer recommendation -->
+        <div class="algae-modal-section algae-modal-recommendation" id="heat-modal-rec-box">
+          <div class="algae-modal-rec-label">Officer recommendation</div>
+          <div class="algae-modal-rec-text" id="heat-modal-rec"></div>
+        </div>
+
+        <!-- Audit trail -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Audit trail</div>
+          <div class="algae-modal-audit" id="heat-modal-audit"></div>
+        </div>
+
+        <!-- Heat plan state machine -->
+        <div class="algae-modal-section algae-modal-actions-section">
+          <div class="algae-modal-section-title">Heat plan status</div>
+          <div class="algae-modal-status-row" id="heat-modal-status-row"></div>
+        </div>
+
+        <!-- Public advisory message -->
+        <div class="algae-modal-section">
+          <div class="algae-modal-section-title">Public advisory message</div>
+          <textarea class="algae-modal-message" id="heat-modal-message" rows="3" placeholder="Draft citizen message…"></textarea>
+          <div class="algae-modal-msg-actions">
+            <button class="algae-modal-btn algae-modal-btn-ghost" id="heat-modal-generate">Generate draft</button>
+            <button class="algae-modal-btn algae-modal-btn-primary" id="heat-modal-send">Send advisory</button>
+          </div>
+          <div class="algae-modal-sent" id="heat-modal-sent" style="display:none">Advisory sent · logged to audit trail</div>
         </div>
 
       </div>
