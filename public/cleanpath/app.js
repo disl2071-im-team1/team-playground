@@ -618,21 +618,16 @@
    * Pollen — Air tab only
    * ========================================================== */
 
-  const POLLEN_DEMO = [
-    { name: 'Grass',   sv: 'Gräs',    count: 92,  icon: '🌾' },
-    { name: 'Mugwort', sv: 'Gråbo',   count: 38,  icon: '🌿' },
-    { name: 'Nettle',  sv: 'Nässla',  count: 14,  icon: '🍃' },
-    { name: 'Birch',   sv: 'Björk',   count: 6,   icon: '🌳' },
-    { name: 'Hazel',   sv: 'Hassel',  count: 2,   icon: '🌰' },
-    { name: 'Alder',   sv: 'Al',      count: 1,   icon: '🌱' }
-  ];
-
-  function pollenBand(count) {
-    if (count === 0) return { label: 'None',      cls: 'pollen-badge-none',  color: '#91A896' };
-    if (count <= 10) return { label: 'Low',       cls: 'pollen-badge-low',   color: '#2D8653' };
-    if (count <= 50) return { label: 'Moderate',  cls: 'pollen-badge-mod',   color: '#D4A042' };
-    if (count <= 100) return { label: 'High',     cls: 'pollen-badge-high',  color: '#C24F4F' };
-    return               { label: 'Very high',    cls: 'pollen-badge-vhigh', color: '#A03030' };
+  // Pollenrapporten reports an integer level on a 0–7 scale (0 Inga halter …
+  // 7 Mycket höga). Collapse the 8 steps onto the five existing card bands so
+  // the visuals are unchanged.
+  const POLLEN_MAX = 7;
+  function pollenBand(level) {
+    if (level <= 0) return { label: 'None',      cls: 'pollen-badge-none',  color: '#91A896' };
+    if (level <= 2) return { label: 'Low',       cls: 'pollen-badge-low',   color: '#2D8653' };
+    if (level <= 4) return { label: 'Moderate',  cls: 'pollen-badge-mod',   color: '#D4A042' };
+    if (level <= 6) return { label: 'High',      cls: 'pollen-badge-high',  color: '#C24F4F' };
+    return               { label: 'Very high',   cls: 'pollen-badge-vhigh', color: '#A03030' };
   }
 
   function renderPollen(types, updated) {
@@ -641,19 +636,19 @@
     const sub   = document.getElementById('pollen-updated');
     if (!strip || !grid) return;
 
-    if (updated) sub.textContent = 'Updated ' + updated;
+    if (sub && updated) sub.textContent = 'Updated ' + updated;
 
-    const max = Math.max(1, ...types.map(t => t.count));
     grid.innerHTML = types.map(t => {
-      const band = pollenBand(t.count);
-      const pct  = Math.round((t.count / max) * 100);
-      const icon = t.icon || '🌿';
+      const level = t.level;
+      const band  = pollenBand(level);
+      const pct   = Math.round((level / POLLEN_MAX) * 100); // absolute on the 0–7 scale
+      const icon  = t.icon || '🌿';
       return `<div class="pollen-card">
         <div class="pollen-card-glow" style="background:radial-gradient(circle at 20% 80%, ${band.color}, transparent 70%)"></div>
         <span class="pollen-icon">${icon}</span>
         <div class="pollen-name">${escapeHtml(t.name)}</div>
         <span class="pollen-name-sv">${escapeHtml(t.sv)}</span>
-        <span class="pollen-count" style="color:${band.color}">${t.count}</span>
+        <span class="pollen-count" style="color:${band.color}">${level}</span>
         <span class="pollen-badge ${band.cls}">${band.label}</span>
         <div class="pollen-bar-track">
           <div class="pollen-bar-fill" style="width:${pct}%;background:${band.color}"></div>
@@ -667,14 +662,20 @@
   }
 
   async function loadPollen() {
+    const strip = document.getElementById('pollen-strip');
+    const grid  = document.getElementById('pollen-grid');
+    const sub   = document.getElementById('pollen-updated');
     try {
       const res = await fetch('/api/pollen', { cache: 'no-store' });
-      if (!res.ok) throw new Error('no endpoint');
+      if (!res.ok) throw new Error('upstream');
       const data = await res.json();
-      if (!data.ok || !data.types) throw new Error('no data');
+      if (!data.ok || !Array.isArray(data.types) || !data.types.length) throw new Error('no data');
       renderPollen(data.types, data.updated);
     } catch {
-      renderPollen(POLLEN_DEMO, 'demo · pollenrapporten.se not yet connected');
+      // No synthetic pollen — say so honestly and show nothing fabricated.
+      if (sub) sub.textContent = 'pollen data unavailable';
+      if (grid) grid.innerHTML = '';
+      if (currentHazard === 'air' && strip) strip.style.display = 'block';
     }
   }
 
