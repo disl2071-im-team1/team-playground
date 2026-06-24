@@ -165,7 +165,7 @@
   async function loadStations() {
     setStatus('stations', 'pending', 'loading…');
     try {
-      const res = await fetch('/api/air-quality', { cache: 'no-store' });
+      const res = await fetch('/api/air-quality', { cache: 'no-cache' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (currentHazard !== 'air') return; // officer switched tabs mid-fetch
@@ -209,7 +209,7 @@
   async function loadIntegrationLayer() {
     setStatus('integration', 'pending', 'loading…');
     try {
-      const res = await fetch('/api/stockholm-air', { cache: 'no-store' });
+      const res = await fetch('/api/stockholm-air', { cache: 'no-cache' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
       if (currentHazard !== 'air') return; // don't clobber another tab's provenance/hero
@@ -239,7 +239,7 @@
     setStatus('cams', 'pending', 'fetching forecast…');
     try {
       const url = '/api/cams-pm25' + (hour != null ? `?hour=${hour}` : '');
-      const res = await fetch(url, { cache: 'no-store' });
+      const res = await fetch(url, { cache: 'no-cache' });
       const data = await res.json();
       if (currentHazard !== 'air') return; // don't draw the CAMS plume onto another tab
       if (!data.ok) {
@@ -544,7 +544,7 @@
   async function loadAlgaeStatus(haz) {
     setStatus('algae', 'pending', 'loading HaV sampling…');
     try {
-      const res = await fetch('/api/algae-status', { cache: 'no-store' });
+      const res = await fetch('/api/algae-status', { cache: 'no-cache' });
       const data = await res.json();
       if (currentHazard !== 'algae') return; // officer switched tabs mid-flight
       if (!data.ok) throw new Error(data.reason || 'unavailable');
@@ -630,7 +630,7 @@
     return               { label: 'Very high',   cls: 'pollen-badge-vhigh', color: '#A03030' };
   }
 
-  function renderPollen(types, updated) {
+  function renderPollen(types, updated, scaleMax) {
     const strip = document.getElementById('pollen-strip');
     const grid  = document.getElementById('pollen-grid');
     const sub   = document.getElementById('pollen-updated');
@@ -638,17 +638,18 @@
 
     if (sub && updated) sub.textContent = 'Updated ' + updated;
 
+    const max = scaleMax || POLLEN_MAX; // the API's level-scale max (Pollenrapporten = 7)
     grid.innerHTML = types.map(t => {
       const level = t.level;
       const band  = pollenBand(level);
-      const pct   = Math.round((level / POLLEN_MAX) * 100); // absolute on the 0–7 scale
+      const pct   = Math.round((level / max) * 100); // absolute on the level scale
       const icon  = t.icon || '🌿';
       return `<div class="pollen-card">
         <div class="pollen-card-glow" style="background:radial-gradient(circle at 20% 80%, ${band.color}, transparent 70%)"></div>
         <span class="pollen-icon">${icon}</span>
         <div class="pollen-name">${escapeHtml(t.name)}</div>
         <span class="pollen-name-sv">${escapeHtml(t.sv)}</span>
-        <span class="pollen-count" style="color:${band.color}">${level}</span>
+        <span class="pollen-count pollen-level" style="color:${band.color}">Level ${level} / ${max}</span>
         <span class="pollen-badge ${band.cls}">${band.label}</span>
         <div class="pollen-bar-track">
           <div class="pollen-bar-fill" style="width:${pct}%;background:${band.color}"></div>
@@ -666,11 +667,11 @@
     const grid  = document.getElementById('pollen-grid');
     const sub   = document.getElementById('pollen-updated');
     try {
-      const res = await fetch('/api/pollen', { cache: 'no-store' });
+      const res = await fetch('/api/pollen', { cache: 'no-cache' });
       if (!res.ok) throw new Error('upstream');
       const data = await res.json();
       if (!data.ok || !Array.isArray(data.types) || !data.types.length) throw new Error('no data');
-      renderPollen(data.types, data.updated);
+      renderPollen(data.types, data.updated, data.scaleMax);
     } catch {
       // No synthetic pollen — say so honestly and show nothing fabricated.
       if (sub) sub.textContent = 'pollen data unavailable';
@@ -682,6 +683,20 @@
   function hidePollen() {
     const strip = document.getElementById('pollen-strip');
     if (strip) strip.style.display = 'none';
+  }
+
+  // The CAMS plume is driven by the time slider; the station dots are not (WAQI
+  // has no forecast). At lead > 0 flag the hero as a forecast and say so, so the
+  // mixed now/forecast state is explicit.
+  function updateAirForecastLabel(lead) {
+    const el = document.getElementById('aq-hero-forecast');
+    if (!el) return;
+    if (lead > 0) {
+      el.textContent = `Forecast +${lead}h · CAMS plume only — station readings stay present-time`;
+      el.style.display = 'inline-block';
+    } else {
+      el.style.display = 'none'; // lead 0 = live
+    }
   }
 
   function activateAir(haz) {
@@ -703,6 +718,7 @@
     loadStations();
     loadIntegrationLayer();
     loadCams(currentLeadHour());
+    updateAirForecastLabel(currentLeadHour());
     loadPollen();
   }
 
@@ -849,7 +865,7 @@
     document.getElementById('algae-modal-message').value = templates[s] || '';
   }
 
-  function alsgaeSendAdvisory() {
+  function algaeSendAdvisory() {
     if (!_modalSite) return;
     const msg = document.getElementById('algae-modal-message').value.trim();
     if (!msg) { document.getElementById('algae-modal-message').focus(); return; }
@@ -885,7 +901,7 @@
     document.getElementById('algae-modal-close').addEventListener('click', closeAlgaeModal);
     document.getElementById('algae-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAlgaeModal(); });
     document.getElementById('algae-modal-generate').addEventListener('click', algaeGenerateDraft);
-    document.getElementById('algae-modal-send').addEventListener('click', alsgaeSendAdvisory);
+    document.getElementById('algae-modal-send').addEventListener('click', algaeSendAdvisory);
 
     document.getElementById('heat-modal-close').addEventListener('click', closeHeatModal);
     document.getElementById('heat-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHeatModal(); });
@@ -1259,7 +1275,7 @@
   async function loadFireRisk(haz) {
     setStatus('fire', 'pending', 'loading SMHI FWI…');
     try {
-      const res = await fetch('/api/fire-risk', { cache: 'no-store' });
+      const res = await fetch('/api/fire-risk', { cache: 'no-cache' });
       const data = await res.json();
       if (currentHazard !== 'fire') return; // officer switched tabs mid-flight
       if (!data.ok) throw new Error(data.reason || 'unavailable');
@@ -1802,7 +1818,7 @@
   async function loadHeatForecast(haz) {
     setStatus('heat', 'pending', 'loading SMHI forecast…');
     try {
-      const res = await fetch('/api/heat-forecast', { cache: 'no-store' });
+      const res = await fetch('/api/heat-forecast', { cache: 'no-cache' });
       const data = await res.json();
       if (currentHazard !== 'heat') return; // officer switched tabs mid-flight
       if (!data.ok) throw new Error(data.reason || 'unavailable');
@@ -2307,7 +2323,7 @@
   async function loadRainForecast(haz) {
     setStatus('rain', 'pending', 'loading SMHI forecast…');
     try {
-      const res = await fetch('/api/rain-forecast', { cache: 'no-store' });
+      const res = await fetch('/api/rain-forecast', { cache: 'no-cache' });
       const data = await res.json();
       if (currentHazard !== 'rain') return; // officer switched tabs mid-flight
       if (!data.ok) throw new Error(data.reason || 'unavailable');
@@ -2488,7 +2504,7 @@
       legend: { title: 'Fire-risk index (FWI)', items: [
         { c: '#1D9E75', t: 'Low' }, { c: '#FAC775', t: 'Moderate' },
         { c: '#EF9F27', t: 'High' }, { c: '#E24B4A', t: 'Extreme' }
-      ] },
+      ], cue: 'Zone-level FWI model, not street-level.' },
       layers: [
         { key: 'hazard', label: 'Fire-risk index (SMHI FWI, modelled)', on: true, dot: '#EF9F27' }
       ],
@@ -2632,6 +2648,7 @@
     slider.addEventListener('input', () => {
       update();
       if (currentHazard === 'air') {
+        updateAirForecastLabel(currentLeadHour());
         clearTimeout(debounce);
         debounce = setTimeout(() => loadCams(currentLeadHour()), 350);
       } else {
