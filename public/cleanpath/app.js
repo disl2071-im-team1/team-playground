@@ -365,14 +365,85 @@
   // Real observed bathing-water status from the HaV "Badplatser och badvatten"
   // API, fetched on tab activation (see /api/algae-status). This is OBSERVED
   // municipal sampling (periodic/seasonal), days old at times — never a live
+  /* ============================================================
+   * Officer-decision persistence (localStorage)
+   *
+   * The API provides the real baseline (HaV sampling, SMHI forecasts). The
+   * officer's actions — status changes, declared/lifted bans, audit entries —
+   * are a SEPARATE local layer stored here and merged on top of the baseline on
+   * load. We never persist or overwrite the API data itself, only decisions.
+   * Shape: { algae|fire|heat|rain: { <site/zone/district id>: { status, audit } } }
+   * ========================================================== */
+  const OFFICER_KEY = 'cleanpath.officerState.v1';
+  let _storageOK = true;
+  let _officer = { algae: {}, fire: {}, heat: {}, rain: {} };
+
+  function officerLoad() {
+    try {
+      const raw = localStorage.getItem(OFFICER_KEY);
+      if (raw) _officer = Object.assign({ algae: {}, fire: {}, heat: {}, rain: {} }, JSON.parse(raw));
+    } catch (e) {
+      _storageOK = false; // private mode / disabled storage — fall back to memory
+      console.warn('[cleanpath] officer-state storage unavailable; using in-memory only.', e);
+    }
+  }
+  function officerSave() {
+    if (!_storageOK) return;
+    try {
+      localStorage.setItem(OFFICER_KEY, JSON.stringify(_officer));
+    } catch (e) {
+      _storageOK = false;
+      console.warn('[cleanpath] officer-state save failed; using in-memory only.', e);
+      officerStoreNote();
+    }
+  }
+  function officerGet(hazard, id) {
+    return (_officer[hazard] && _officer[hazard][id]) || null;
+  }
+  // Persist only the officer's decision (status + audit), never API data.
+  function officerSet(hazard, id, status, audit) {
+    if (!_officer[hazard]) _officer[hazard] = {};
+    _officer[hazard][id] = { status, audit };
+    officerSave();
+  }
+  function officerClear() {
+    _officer = { algae: {}, fire: {}, heat: {}, rain: {} };
+    officerSave();
+  }
+  // Surface a one-line note when storage is unavailable (decisions won't persist).
+  function officerStoreNote() {
+    const el = document.getElementById('officer-store-note');
+    if (!el) return;
+    if (_storageOK) { el.style.display = 'none'; return; }
+    el.textContent = 'Browser storage unavailable — officer decisions are kept for this session only.';
+    el.style.display = 'block';
+  }
+  // Wipe the local officer layer (after confirm) and redraw from the API baseline.
+  function clearShiftHistory() {
+    const ok = window.confirm(
+      'Clear all officer decisions and audit trails stored in this browser?\n\n' +
+      'The live API data (HaV sampling, SMHI forecasts) is not affected. This cannot be undone.');
+    if (!ok) return;
+    officerClear();
+    Object.keys(_heatState).forEach(k => delete _heatState[k]);
+    Object.keys(_rainState).forEach(k => delete _rainState[k]);
+    Object.keys(_algaeAudit).forEach(k => delete _algaeAudit[k]);
+    FIRE_ZONES.forEach(z => { z.status = 'none'; z.audit = fireAuditSeed(); });
+    if (currentHazard) selectHazard(currentHazard); // re-activate → redraw from baseline
+  }
+
   // sensor and never a forecast. Sites are populated from the real response.
   let ALGAE_SITES = [];
   let algaeOk = null; // null while loading, true once populated, false on failure
   let _algaeRetrieved = null;
   const _algaeAudit = {}; // per-site officer audit, persists across redraws
 
+  // Seed a site's audit from the persisted officer layer, else the shift-start line.
   function algaeAuditFor(id) {
-    if (!_algaeAudit[id]) _algaeAudit[id] = [{ time: 'start of shift', text: 'Monitoring HaV bathing-water sampling. No advisory posted.' }];
+    if (!_algaeAudit[id]) {
+      const saved = officerGet('algae', id);
+      _algaeAudit[id] = saved ? saved.audit.slice() : [{ time: 'start of shift', text: 'Monitoring HaV bathing-water sampling. No advisory posted.' }];
+    }
     return _algaeAudit[id];
   }
   function algaeDataAge(ageDays) {
@@ -551,13 +622,17 @@
 
       ALGAE_SITES = (data.sites || [])
         .filter(s => s.ok !== false && s.lat != null && s.lon != null)
-        .map(s => ({
-          id: s.id, name: s.name, ll: [s.lat, s.lon], status: s.status,
-          bloom: s.bloom, advisory: s.advisory, classification: s.classification,
-          lastSampled: s.lastSampled, ageDays: s.ageDays,
-          dataAge: algaeDataAge(s.ageDays), stale: (s.ageDays != null && s.ageDays > 14),
-          observed: s.observed || {}, audit: algaeAuditFor(s.id),
-        }));
+        .map(s => {
+          // API status is the baseline; a persisted officer decision overrides it.
+          const saved = officerGet('algae', s.id);
+          return {
+            id: s.id, name: s.name, ll: [s.lat, s.lon], status: saved ? saved.status : s.status,
+            bloom: s.bloom, advisory: s.advisory, classification: s.classification,
+            lastSampled: s.lastSampled, ageDays: s.ageDays,
+            dataAge: algaeDataAge(s.ageDays), stale: (s.ageDays != null && s.ageDays > 14),
+            observed: s.observed || {}, audit: algaeAuditFor(s.id),
+          };
+        });
       algaeOk = true;
       _algaeRetrieved = data.retrieved;
       algaeSyncSiteOptions(); // align the decision-panel Site dropdown to resolved names
@@ -940,6 +1015,7 @@
     } else {
       _modalSite.audit.unshift({ time: 'just now', text: `Advisory message sent (status unchanged). Officer: You` });
     }
+    officerSet('algae', _modalSite.id, _modalSite.status, _modalSite.audit);
 
     document.getElementById('algae-modal-audit').innerHTML = _modalSite.audit.map(e =>
       `<div class="algae-modal-audit-entry"><span class="algae-modal-audit-time">${e.time}</span><span>${e.text}</span></div>`
@@ -1316,6 +1392,7 @@
     } else {
       z.audit.unshift({ time: 'just now', text: 'Public notice sent (ban status unchanged). Officer: You' });
     }
+    officerSet('fire', z.id, z.status, z.audit);
 
     renderFireAudit(z);
     document.getElementById('fire-modal-sent').style.display = 'block';
@@ -1720,10 +1797,10 @@
 
   function heatStateFor(d) {
     if (!_heatState[d.name]) {
-      _heatState[d.name] = {
-        status: 'standby',
-        audit: [{ time: 'start of shift', text: 'Monitoring forecast apparent temperature. No heat plan active.' }],
-      };
+      const saved = officerGet('heat', d.name);
+      _heatState[d.name] = saved
+        ? { status: saved.status, audit: saved.audit.slice() }
+        : { status: 'standby', audit: [{ time: 'start of shift', text: 'Monitoring forecast apparent temperature. No heat plan active.' }] };
     }
     return _heatState[d.name];
   }
@@ -1860,6 +1937,7 @@
     } else {
       st.audit.unshift({ time: 'just now', text: 'Advisory message sent (status unchanged). Officer: You' });
     }
+    officerSet('heat', d.name, st.status, st.audit);
 
     renderHeatAudit(d);
     document.getElementById('heat-modal-sent').style.display = 'block';
@@ -2215,10 +2293,10 @@
 
   function rainStateFor(d) {
     if (!_rainState[d.id]) {
-      _rainState[d.id] = {
-        status: 'none',
-        audit: [{ time: 'start of shift', text: 'Monitoring SMHI rainfall forecast. No advisory active.' }],
-      };
+      const saved = officerGet('rain', d.id);
+      _rainState[d.id] = saved
+        ? { status: saved.status, audit: saved.audit.slice() }
+        : { status: 'none', audit: [{ time: 'start of shift', text: 'Monitoring SMHI rainfall forecast. No advisory active.' }] };
     }
     return _rainState[d.id];
   }
@@ -2367,6 +2445,7 @@
     } else {
       st.audit.unshift({ time: 'just now', text: 'Advisory message sent (status unchanged). Officer: You' });
     }
+    officerSet('rain', d.id, st.status, st.audit);
 
     renderRainAudit(d);
     document.getElementById('rain-modal-sent').style.display = 'block';
@@ -2721,10 +2800,18 @@
    * Boot
    * ========================================================== */
   function boot() {
+    officerLoad();
+    // Fire zones are a static array; merge any persisted officer decisions on top.
+    FIRE_ZONES.forEach(z => {
+      const saved = officerGet('fire', z.id);
+      if (saved) { z.status = saved.status; z.audit = saved.audit.slice(); }
+    });
+    officerStoreNote();
     initMap();
     initSlider();
     startClock();
     document.getElementById('export-report').addEventListener('click', exportReport);
+    document.getElementById('clear-shift').addEventListener('click', clearShiftHistory);
     document.querySelectorAll('#hazard-tabs .tab').forEach(t =>
       t.addEventListener('click', () => selectHazard(t.dataset.hazard)));
     // Wait for the map to be ready, then open the Air tab.
