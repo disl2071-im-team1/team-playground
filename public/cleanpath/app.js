@@ -362,145 +362,82 @@
    * Algae hero
    * ========================================================== */
 
-  const ALGAE_SITES = [
-    {
-      name: 'Brunnsviken', ll: [59.368, 18.012], status: 'none',
-      obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '4 µg/L', visibility: '2.8 m', temp: '18 °C' },
-      dataAge: '2h ago', stale: false,
-      factors: [
-        { icon: '🌡️', text: 'Water temperature within normal range for season', tag: null },
-        { icon: '💨', text: 'Northerly wind dispersing surface accumulation',   tag: 'wind-dispersal' },
-        { icon: '☀️', text: 'Moderate sunlight — bloom growth unlikely today',  tag: null },
-      ],
-      recommendation: 'No action needed. Continue routine weekly sampling. Next scheduled check: Friday.',
-      audit: [
-        { time: '2 days ago', text: 'Status confirmed Clear after field sample. Officer: A. Lindqvist' },
-        { time: '9 days ago', text: 'Routine check — no change' },
-      ],
-    },
-    {
-      name: 'Hellasgården', ll: [59.260, 18.171], status: 'watch',
-      obs: { cyanobacteria: '2 400 cells/mL', chlorophyll: '18 µg/L', visibility: '1.2 m', temp: '22 °C' },
-      dataAge: '5h ago', stale: false,
-      factors: [
-        { icon: '🦠', text: 'Cyanobacteria count elevated — approaching advisory threshold (10 000 cells/mL)', tag: 'watch-threshold' },
-        { icon: '🌡️', text: 'Water temp 22 °C — favourable for bloom growth',                                 tag: 'high-temp' },
-        { icon: '🌬️', text: 'Low wind speed, calm surface — accumulation risk high',                          tag: 'calm-surface' },
-        { icon: '📈', text: 'Count up 3× vs last week — upward trend',                                        tag: 'upward-trend' },
-      ],
-      recommendation: 'Recommend escalating to Advisory if next sample confirms count > 5 000 cells/mL. Consider posting watch signage at site entry. Re-sample within 48 h.',
-      audit: [
-        { time: '5h ago',    text: 'Status changed: Clear → Watch. Count 2 400 cells/mL. Officer: M. Eriksson' },
-        { time: '8 days ago', text: 'Routine check — Clear confirmed' },
-      ],
-    },
-    {
-      name: 'Lilla Värtan', ll: [59.345, 18.110], status: 'advisory',
-      obs: { cyanobacteria: '28 000 cells/mL', chlorophyll: '52 µg/L', visibility: '0.4 m', temp: '24 °C' },
-      dataAge: '1h ago', stale: false,
-      factors: [
-        { icon: '⚠️', text: 'Cyanobacteria count well above advisory threshold',                    tag: 'high-count' },
-        { icon: '🌡️', text: 'Highest water temperature in network — bloom conditions peak',         tag: 'high-temp' },
-        { icon: '🌊', text: 'Surface scum visible on SE shore — direct contact risk',               tag: 'surface-scum' },
-        { icon: '🔬', text: 'Species identified: Microcystis aeruginosa — toxin-producing strain',  tag: 'toxin-species' },
-      ],
-      recommendation: 'Maintain Advisory. Issue public notification. Re-sample every 24 h. Escalate to Closed if scum covers > 30% of bathing area or count exceeds 100 000 cells/mL.',
-      audit: [
-        { time: '1h ago',    text: 'Re-sample confirmed — count remains elevated. Officer: A. Lindqvist' },
-        { time: '2 days ago', text: 'Status changed: Watch → Advisory. Count 28 000 cells/mL. Officer: M. Eriksson' },
-        { time: '5 days ago', text: 'Status changed: Clear → Watch. Officer: M. Eriksson' },
-      ],
-    },
-    {
-      name: 'Smedsuddsbadet', ll: [59.318, 18.020], status: 'none',
-      obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '3 µg/L', visibility: '3.1 m', temp: '17 °C' },
-      dataAge: '3 days ago', stale: true,
-      factors: [
-        { icon: '🕐', text: 'Data is 3 days old — last sample overdue. Confidence: low.', tag: 'stale-data' },
-        { icon: '🌊', text: 'Sheltered inlet — historically prone to accumulation in calm periods', tag: 'calm-surface' },
-      ],
-      recommendation: 'Schedule urgent re-sample. Current Clear status cannot be confirmed — data is stale. Do not issue Clear confirmation until fresh sample received.',
-      audit: [
-        { time: '3 days ago', text: 'Routine sample — Clear confirmed. Officer: P. Holm' },
-        { time: '10 days ago', text: 'Routine sample — Clear confirmed' },
-      ],
-    },
-    {
-      name: 'Flatenbadet', ll: [59.258, 18.115], status: 'none',
-      obs: { cyanobacteria: '300 cells/mL', chlorophyll: '6 µg/L', visibility: '2.1 m', temp: '20 °C' },
-      dataAge: '6h ago', stale: false,
-      factors: [
-        { icon: '✅', text: 'Count well below watch threshold',          tag: null },
-        { icon: '💨', text: 'Good wind mixing — low accumulation risk',  tag: 'wind-dispersal' },
-      ],
-      recommendation: 'No action. Continue routine sampling.',
-      audit: [
-        { time: '6h ago',    text: 'Routine sample — Clear. Officer: S. Bergström' },
-        { time: '8 days ago', text: 'Routine sample — Clear' },
-      ],
-    },
-    {
-      name: 'Långsjön', ll: [59.300, 17.940], status: 'none',
-      obs: { cyanobacteria: '150 cells/mL', chlorophyll: '5 µg/L', visibility: '2.5 m', temp: '19 °C' },
-      dataAge: '1 day ago', stale: false,
-      factors: [
-        { icon: '✅', text: 'Count within safe range',                                    tag: null },
-        { icon: '🌿', text: 'Dense reed bed on north shore provides natural filtration',  tag: null },
-      ],
-      recommendation: 'No action. Next routine sample due in 6 days.',
-      audit: [
-        { time: '1 day ago',  text: 'Routine sample — Clear. Officer: A. Lindqvist' },
-        { time: '8 days ago', text: 'Routine sample — Clear' },
-      ],
-    },
-    {
-      name: 'Råstasjön', ll: [59.369, 17.990], status: 'advisory',
-      obs: { cyanobacteria: '15 000 cells/mL', chlorophyll: '38 µg/L', visibility: '0.6 m', temp: '23 °C' },
-      dataAge: '4h ago', stale: false,
-      factors: [
-        { icon: '⚠️', text: 'Count above advisory threshold — active bloom confirmed',   tag: 'high-count' },
-        { icon: '🏊', text: 'High visitor volume site — public health risk elevated',    tag: 'high-footfall' },
-        { icon: '🌡️', text: 'Sustained warm temperatures forecast for next 5 days',     tag: 'high-temp' },
-      ],
-      recommendation: 'Maintain Advisory. Signs posted. Re-sample tomorrow. Consider pre-emptive Closed status given forecast heat and high visitor numbers.',
-      audit: [
-        { time: '4h ago',    text: 'Re-sample confirmed bloom. Count 15 000 cells/mL. Officer: M. Eriksson' },
-        { time: '3 days ago', text: 'Status changed: Clear → Advisory. Officer: P. Holm' },
-      ],
-    },
-    {
-      name: 'Judarn', ll: [59.345, 17.980], status: 'none',
-      obs: { cyanobacteria: '< 100 cells/mL', chlorophyll: '4 µg/L', visibility: '3.0 m', temp: '18 °C' },
-      dataAge: '1 day ago', stale: false,
-      factors: [
-        { icon: '✅', text: 'All indicators within normal range',                          tag: null },
-        { icon: '🌲', text: 'Forested catchment — lower nutrient runoff than urban sites', tag: null },
-      ],
-      recommendation: 'No action. Model forecasts low bloom risk for next 7 days.',
-      audit: [
-        { time: '1 day ago',  text: 'Routine sample — Clear. Officer: S. Bergström' },
-        { time: '8 days ago', text: 'Routine sample — Clear' },
-      ],
-    },
-  ];
+  // Real observed bathing-water status from the HaV "Badplatser och badvatten"
+  // API, fetched on tab activation (see /api/algae-status). This is OBSERVED
+  // municipal sampling (periodic/seasonal), days old at times — never a live
+  // sensor and never a forecast. Sites are populated from the real response.
+  let ALGAE_SITES = [];
+  let algaeOk = null; // null while loading, true once populated, false on failure
+  let _algaeRetrieved = null;
+  const _algaeAudit = {}; // per-site officer audit, persists across redraws
+
+  function algaeAuditFor(id) {
+    if (!_algaeAudit[id]) _algaeAudit[id] = [{ time: 'start of shift', text: 'Monitoring HaV bathing-water sampling. No advisory posted.' }];
+    return _algaeAudit[id];
+  }
+  function algaeDataAge(ageDays) {
+    if (ageDays == null) return 'unknown';
+    if (ageDays <= 0) return 'today';
+    if (ageDays === 1) return '1 day ago';
+    return `${ageDays} days ago`;
+  }
+  function algaeRecommendation(site) {
+    if (site.status === 'closed') return `HaV records a season-long advice against bathing at ${site.name}. Keep the closure notice posted and re-check the next sampling round.`;
+    if (site.status === 'advisory') return `HaV records an ongoing advice against bathing at ${site.name}${site.advisory ? ' (' + site.advisory + ')' : ''}. Maintain the public advisory and monitor the next sample.`;
+    if (site.status === 'watch') return `HaV flags a bloom risk at ${site.name} with no advisory in force. Keep the site on watch and consider precautionary signage.`;
+    return `${site.name} is clear in the latest HaV sample. No advisory needed; continue routine seasonal sampling.`;
+  }
+  function algaeFactors(site) {
+    const o = site.observed || {};
+    const f = [];
+    if (site.advisory) f.push({ icon: '⚠️', text: `Ongoing advice against bathing (HaV): ${site.advisory}` });
+    if (site.bloom) f.push({ icon: '🦠', text: 'Algae / cyanobacteria bloom risk flagged by HaV' });
+    if (site.classification) f.push({ icon: '🏅', text: `EU bathing-water classification: ${site.classification}` });
+    if (o.assessment) f.push({ icon: '🔬', text: `Latest sample assessment: ${o.assessment}` });
+    if (site.stale) f.push({ icon: '🕐', text: `Last sample ${site.dataAge} — overdue, treat as low confidence` });
+    if (!f.length) f.push({ icon: '✅', text: 'No bloom risk or advisory in the latest HaV sampling.' });
+    return f;
+  }
+  function algaeSignals(site) {
+    const s = [];
+    if (site.status === 'closed') s.push('closed');
+    if (site.status === 'advisory') s.push('advisory');
+    if (site.status === 'watch') s.push('watch');
+    if (site.bloom) s.push('bloom');
+    if (site.stale) s.push('stale');
+    return s;
+  }
 
   function updateAlgaeHero() {
     const hero = document.getElementById('algae-hero');
     if (!hero) return;
-    const total = ALGAE_SITES.length;
-    const advisories = ALGAE_SITES.filter(s => s.status === 'advisory' || s.status === 'closed').length;
-    const watches = ALGAE_SITES.filter(s => s.status === 'watch').length;
-
     const lvlEl  = document.getElementById('algae-hero-level');
     const hdEl   = document.getElementById('algae-hero-headline');
     const bkEl   = document.getElementById('algae-hero-breakdown');
     const vdEl   = document.getElementById('algae-hero-verdict');
 
+    if (algaeOk !== true) {
+      const failed = algaeOk === false;
+      if (lvlEl) { lvlEl.textContent = '—'; lvlEl.className = 'aq-hero-level aq-level-low'; }
+      if (hdEl) hdEl.textContent = failed ? 'Sampling data unavailable' : 'Loading HaV sampling…';
+      if (bkEl) bkEl.innerHTML = '';
+      if (vdEl) { vdEl.textContent = failed ? 'HaV Badplatser och badvatten API did not respond.' : ''; vdEl.className = 'aq-hero-verdict'; }
+      hero.style.display = 'flex';
+      return;
+    }
+
+    const total = ALGAE_SITES.length;
+    const advisories = ALGAE_SITES.filter(s => s.status === 'advisory' || s.status === 'closed').length;
+    const watches = ALGAE_SITES.filter(s => s.status === 'watch').length;
+    // Freshness note from the real sample dates (oldest sample across the network).
+    const maxAge = ALGAE_SITES.reduce((m, s) => (s.ageDays != null && s.ageDays > m ? s.ageDays : m), 0);
+    const fresh = `<span class="aq-breakdown-item" style="color:var(--text-tertiary)">HaV sampling · oldest sample ${algaeDataAge(maxAge)}</span>`;
+
     if (advisories === 0 && watches === 0) {
       if (lvlEl)  { lvlEl.textContent = 'Clear'; lvlEl.className = 'aq-hero-level aq-level-low'; }
       if (hdEl)   hdEl.textContent = 'All bathing sites are clear across Stockholm';
-      if (bkEl)   bkEl.innerHTML = `<span class="aq-breakdown-item">${total} sites monitored — no active advisories</span>`;
-      if (vdEl)   { vdEl.textContent = 'Safe to swim at all monitored sites.'; vdEl.className = 'aq-hero-verdict'; }
+      if (bkEl)   bkEl.innerHTML = `<span class="aq-breakdown-item">${total} sites monitored — no active advisories</span>` + fresh;
+      if (vdEl)   { vdEl.textContent = 'No bathing advisories in the latest HaV sampling.'; vdEl.className = 'aq-hero-verdict'; }
     } else {
       const lvl = advisories > 0 ? 'Advisory' : 'Watch';
       const cls = advisories > 0 ? 'aq-level-high' : 'aq-level-mod';
@@ -512,6 +449,7 @@
       if (advisories) parts.push(`<span class="aq-breakdown-item" style="color:var(--band-high)">${advisories} advisory</span>`);
       if (watches)    parts.push(`<span class="aq-breakdown-item" style="color:var(--band-mod)">${watches} watch</span>`);
       parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total - advisories - watches} clear</span>`);
+      parts.push(fresh);
       if (bkEl)   bkEl.innerHTML = parts.join('');
       if (vdEl)   { vdEl.textContent = advisories ? 'Avoid swimming at affected sites.' : 'Exercise caution at watch sites.'; vdEl.className = 'aq-hero-verdict'; }
     }
@@ -522,31 +460,30 @@
   function showAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'flex'; }
   function hideAlgaeHero() { const h = document.getElementById('algae-hero'); if (h) h.style.display = 'none'; }
 
+  // Real signal rollups derived from the HaV per-site status.
   const ALGAE_SIGNAL_META = {
-    'high-count':     { icon: '⚠️', shortLabel: 'Above threshold',   label: 'sites above advisory threshold',        severity: 3 },
-    'toxin-species':  { icon: '🔬', shortLabel: 'Toxin species',     label: 'sites with toxin-producing species',    severity: 3 },
-    'surface-scum':   { icon: '🌊', shortLabel: 'Surface scum',      label: 'sites with visible surface scum',       severity: 3 },
-    'high-temp':      { icon: '🌡️', shortLabel: 'High temperature',  label: 'sites with elevated water temperature', severity: 2 },
-    'watch-threshold':{ icon: '🦠', shortLabel: 'Watch level',       label: 'sites approaching advisory threshold',  severity: 2 },
-    'upward-trend':   { icon: '📈', shortLabel: 'Rising count',      label: 'sites with rising cyanobacteria count', severity: 2 },
-    'calm-surface':   { icon: '🌬️', shortLabel: 'Calm surface',      label: 'sites with low wind — accumulation risk', severity: 1 },
-    'stale-data':     { icon: '🕐', shortLabel: 'Stale data',        label: 'sites with overdue sampling data',      severity: 1 },
-    'high-footfall':  { icon: '🏊', shortLabel: 'High footfall',     label: 'high-footfall sites — elevated risk',   severity: 2 },
-    'wind-dispersal': { icon: '💨', shortLabel: 'Wind dispersal',    label: 'sites with wind-assisted dispersal',    severity: 0 },
+    'advisory': { icon: '⚠️', shortLabel: 'Bathing advisory', severity: 3 },
+    'closed':   { icon: '⛔', shortLabel: 'Closed (season)',   severity: 3 },
+    'bloom':    { icon: '🦠', shortLabel: 'Bloom risk',        severity: 2 },
+    'watch':    { icon: '👁️', shortLabel: 'On watch',          severity: 2 },
+    'stale':    { icon: '🕐', shortLabel: 'Overdue sample',    severity: 1 },
   };
 
   function updateAlgaeRiskStrip() {
     const grid = document.getElementById('algae-risk-grid');
     if (!grid) return;
 
+    if (algaeOk !== true) {
+      grid.innerHTML = `<div style="color:var(--text-tertiary);font-size:13px;padding:8px 0">${algaeOk === false ? 'Sampling data unavailable.' : 'Loading HaV sampling…'}</div>`;
+      return;
+    }
+
     const total = ALGAE_SITES.length;
 
-    // Count sites per tag
+    // Count sites per real signal (advisory / closed / bloom / watch / stale).
     const counts = {};
     ALGAE_SITES.forEach(site => {
-      site.factors.forEach(f => {
-        if (f.tag) counts[f.tag] = (counts[f.tag] || 0) + 1;
-      });
+      algaeSignals(site).forEach(tag => { counts[tag] = (counts[tag] || 0) + 1; });
     });
 
     // Sort by severity desc, then count desc — take top 6
@@ -595,6 +532,48 @@
     if (s) s.style.display = 'none';
   }
 
+  async function loadAlgaeStatus(haz) {
+    setStatus('algae', 'pending', 'loading HaV sampling…');
+    try {
+      const res = await fetch('/api/algae-status', { cache: 'no-store' });
+      const data = await res.json();
+      if (currentHazard !== 'algae') return; // officer switched tabs mid-flight
+      if (!data.ok) throw new Error(data.reason || 'unavailable');
+
+      ALGAE_SITES = (data.sites || [])
+        .filter(s => s.lat != null && s.lon != null)
+        .map(s => ({
+          id: s.id, name: s.name, ll: [s.lat, s.lon], status: s.status,
+          bloom: s.bloom, advisory: s.advisory, classification: s.classification,
+          lastSampled: s.lastSampled, ageDays: s.ageDays,
+          dataAge: algaeDataAge(s.ageDays), stale: (s.ageDays != null && s.ageDays > 14),
+          observed: s.observed || {}, audit: algaeAuditFor(s.id),
+        }));
+      algaeOk = true;
+      _algaeRetrieved = data.retrieved;
+
+      const n = ALGAE_SITES.length;
+      const latest = ALGAE_SITES.reduce((m, s) => (s.lastSampled && (!m || s.lastSampled > m) ? s.lastSampled : m), null);
+      const latestLabel = latest ? new Date(latest).toISOString().slice(0, 10) : '—';
+      setStatus('algae', 'ok', `HaV sampling · ${n} sites · last sample ${latestLabel}`);
+      setProvenance(`Observed: HaV Badplatser och badvatten API v2.3 — municipal sampling (periodic, seasonal). Latest sample ${latestLabel}. Observed sampling, not a live sensor and not a forecast.`, 'observed', false);
+
+      gHazard.clearLayers();
+      updateAlgaeHero();
+      showAlgaeRiskStrip();
+      if (haz.draw) haz.draw();
+    } catch (err) {
+      if (currentHazard !== 'algae') return;
+      algaeOk = false;
+      ALGAE_SITES = [];
+      gHazard.clearLayers();
+      setStatus('algae', 'offline', 'sampling data unavailable (' + err.message + ')');
+      setProvenance('Sampling data unavailable — HaV Badplatser och badvatten API did not respond.', 'observed', false);
+      updateAlgaeHero();
+      updateAlgaeRiskStrip();
+    }
+  }
+
   function activateAlgae(haz) {
     hidePollen();
     hideAirHero();
@@ -604,11 +583,15 @@
     hideFireStrip();
     hideRainHero();
     hideRainStrip();
-    updateAlgaeHero();
+    algaeOk = null;
+    ALGAE_SITES = [];
+    showAlgaeHero();
     showAlgaeRiskStrip();
-    setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · adapter not yet connected' }]);
-    setProvenance(haz.provenance, haz.confidence, true);
-    if (haz.draw) haz.draw();
+    updateAlgaeHero();  // shows "Loading HaV sampling…"
+    updateAlgaeRiskStrip();
+    setLayerStatus([{ id: 'algae', label: haz.layers[0].label, state: 'pending', detail: 'loading HaV sampling…' }]);
+    setProvenance(haz.provenance, haz.confidence, false);
+    loadAlgaeStatus(haz);
   }
 
   // Air provenance computed from the real data (honest counts), not hardcoded.
@@ -736,7 +719,7 @@
         L.circle(site.ll, {
           radius: r, color, weight: 1, opacity: 0.5, fillColor: color, fillOpacity: 0.12, dashArray: '4 4'
         })
-          .bindTooltip(`${site.name} — modelled local spread · ~${r} m (sample)`, { sticky: true })
+          .bindTooltip(`${site.name} — modelled local spread · ~${r} m`, { sticky: true })
           .on('click', () => openAlgaeModal(site))
           .addTo(gHazard);
       }
@@ -775,35 +758,36 @@
     badge.textContent = ALGAE_STATUS_LABEL[site.status];
     badge.className = 'algae-modal-status-badge badge-' + site.status;
 
-    // Observations
+    // Observed sample values — real HaV fields only (no synthetic numbers).
+    const o = site.observed || {};
     const obsEl = document.getElementById('algae-modal-obs');
     const obsMap = {
-      'Cyanobacteria': site.obs.cyanobacteria,
-      'Chlorophyll-a': site.obs.chlorophyll,
-      'Visibility':    site.obs.visibility,
-      'Water temp':    site.obs.temp,
+      'E. coli':       o.eColi != null ? `${o.eColiPrefix || ''}${o.eColi} cfu/100ml` : '—',
+      'Enterococci':   o.enterococci != null ? `${o.enterococciPrefix || ''}${o.enterococci} cfu/100ml` : '—',
+      'Water temp':    o.waterTemp != null ? `${o.waterTemp} °C` : '—',
+      'Sample result': o.assessment || '—',
     };
     const valClass = site.status === 'advisory' || site.status === 'closed' ? 'val-high'
                    : site.status === 'watch' ? 'val-warn' : 'val-ok';
     obsEl.innerHTML = Object.entries(obsMap).map(([k, v]) =>
       `<div class="algae-modal-obs-item">
-        <div class="algae-modal-obs-label">${k}</div>
-        <div class="algae-modal-obs-value ${k === 'Cyanobacteria' ? valClass : ''}">${v}</div>
+        <div class="algae-modal-obs-label">${escapeHtml(k)}</div>
+        <div class="algae-modal-obs-value ${k === 'Sample result' ? valClass : ''}">${escapeHtml(v)}</div>
       </div>`
     ).join('');
 
     const ageEl = document.getElementById('algae-modal-age');
-    ageEl.textContent = `Last sample: ${site.dataAge}`;
+    ageEl.textContent = `Last HaV sample: ${site.dataAge}`;
     ageEl.className = 'algae-modal-data-age' + (site.stale ? ' stale' : '');
-    if (site.stale) ageEl.textContent += ' · ⚠ Data stale — re-sample urgently';
+    if (site.stale) ageEl.textContent += ' · ⚠ Sample overdue — treat as low confidence';
 
-    // Risk factors
-    document.getElementById('algae-modal-factors').innerHTML = site.factors.map(f =>
-      `<div class="algae-modal-factor"><span class="algae-modal-factor-icon">${f.icon}</span><span>${f.text}</span></div>`
+    // Risk factors — derived from the real HaV signals.
+    document.getElementById('algae-modal-factors').innerHTML = algaeFactors(site).map(f =>
+      `<div class="algae-modal-factor"><span class="algae-modal-factor-icon">${f.icon}</span><span>${escapeHtml(f.text)}</span></div>`
     ).join('');
 
-    // Recommendation
-    document.getElementById('algae-modal-rec').textContent = site.recommendation;
+    // Recommendation (derived from the observed status).
+    document.getElementById('algae-modal-rec').textContent = algaeRecommendation(site);
 
     // Audit
     document.getElementById('algae-modal-audit').innerHTML = site.audit.map(e =>
@@ -2404,6 +2388,7 @@
       real: !!haz.real,
       note: haz.real
         ? (currentHazard === 'air' ? 'Live source-tagged readings.'
+          : haz.confidence === 'observed' ? 'Source-tagged observed sampling — periodic, not live/real-time.'
           : haz.confidence === 'modelled' ? 'Live source-tagged modelled data (not measured).'
           : 'Live source-tagged forecast (not measured).')
         : 'PLACEHOLDER hazard — sample data, not a real measurement.',
@@ -2447,13 +2432,13 @@
     algae: {
       eyebrow: 'Bathing water', verb: 'Open or lift a bathing-water advisory, site by site',
       decisionTitle: 'Bathing-water advisory',
-      sources: 'In-situ samples · satellite (Copernicus Marine)',
-      legend: { title: 'Bloom status', items: [
+      sources: 'HaV Badplatser och badvatten API v2.3 (municipal sampling)',
+      legend: { title: 'Bathing status (HaV)', items: [
         { c: '#9CA3AF', t: 'None' }, { c: '#FAC775', t: 'Watch' },
         { c: '#EF9F27', t: 'Advisory' }, { c: '#E24B4A', t: 'Closed' }
       ] },
       layers: [
-        { key: 'hazard', label: 'Bloom status (placeholder)', on: true, dot: '#EF9F27' },
+        { key: 'hazard', label: 'Bloom status (HaV sampling)', on: true, dot: '#EF9F27' },
         { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' },
         { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
       ],
@@ -2463,8 +2448,8 @@
         { label: 'Scope', kind: 'text', placeholder: 'this site only' },
         { label: 'Message', kind: 'textarea', placeholder: 'Notice text…' }
       ],
-      buttons: ['Post', 'Lift'], confidence: 'thin', real: false,
-      provenance: 'Observed: local samples (few). Modelled: Copernicus Marine / SMHI satellite.',
+      buttons: ['Post', 'Lift'], confidence: 'observed', real: true,
+      provenance: 'Observed: HaV Badplatser och badvatten API v2.3 — municipal sampling (periodic, seasonal). Not a live sensor and not a forecast.',
       draw: drawAlgae, activate: activateAlgae
     },
     fire: {
