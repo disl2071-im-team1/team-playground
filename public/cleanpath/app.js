@@ -2427,8 +2427,7 @@
       ], cue: 'soft fill = modelled (CAMS) · dots = measured stations' },
       layers: [
         { key: 'hazard', label: 'PM2.5 plume (CAMS) + stations', on: true, dot: '#E24B4A' },
-        { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' },
-        { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
+        { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' }
       ],
       fields: [
         { label: 'Area', kind: 'draw' },
@@ -2448,9 +2447,7 @@
         { c: '#EF9F27', t: 'Advisory' }, { c: '#E24B4A', t: 'Closed' }
       ] },
       layers: [
-        { key: 'hazard', label: 'Bloom status (HaV sampling)', on: true, dot: '#EF9F27' },
-        { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' },
-        { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
+        { key: 'hazard', label: 'Bloom status (HaV sampling)', on: true, dot: '#EF9F27' }
       ],
       fields: [
         { label: 'Site', kind: 'select', options: ['Brunnsvikens Strandbad', 'Smedsuddsbadet V', 'Långholmens strandbad', 'Tanto, strand 1', 'Flatenbadet, allmänna', 'Fredhällsbadet, Mälaren', 'Kristinebergsbadet', 'Johannelundsbadet (Minneberg), Mälaren'] },
@@ -2471,9 +2468,7 @@
         { c: '#EF9F27', t: 'High' }, { c: '#E24B4A', t: 'Extreme' }
       ] },
       layers: [
-        { key: 'hazard', label: 'Fire-risk index (SMHI FWI, modelled)', on: true, dot: '#EF9F27' },
-        { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' },
-        { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
+        { key: 'hazard', label: 'Fire-risk index (SMHI FWI, modelled)', on: true, dot: '#EF9F27' }
       ],
       fields: [
         { label: 'Zone', kind: 'select', options: ['NW', 'NE', 'SW', 'SE'] },
@@ -2495,8 +2490,7 @@
       ] },
       layers: [
         { key: 'hazard', label: 'Apparent-temp surface (SMHI forecast)', on: true, dot: '#EF9F27' },
-        { key: 'vulnerable', label: 'Vulnerable sites', on: true, dot: '#A32D2D' },
-        { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' }
+        { key: 'vulnerable', label: 'Vulnerable sites', on: true, dot: '#A32D2D' }
       ],
       fields: [
         { label: 'Priority', kind: 'select', options: ['Care homes', 'Preschools', 'Both'] },
