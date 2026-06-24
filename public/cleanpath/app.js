@@ -21,52 +21,7 @@
     ));
   }
 
-  /* ---- Seeded RNG (ported from precipitation.html) ---- */
-  function seededRand(seed) {
-    let h = seed ^ 0xdeadbeef;
-    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
-    h = Math.imul(h ^ (h >>> 16), 0x45d9f3b);
-    h ^= h >>> 16;
-    return (h >>> 0) / 0xffffffff;
-  }
-  function dSeed(id, offset) {
-    const today = new Date();
-    const base = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-    let h = 0;
-    for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
-    return base + Math.abs(h) % 10000 + (offset || 0);
-  }
-  function mean(arr) { return arr.reduce((s, v) => s + v, 0) / arr.length; }
   function fmtHour(h) { return String(Math.min(23, h)).padStart(2, '0') + ':00'; }
-  function durBarHtml(startH, durH, onClass) {
-    const nowH = new Date().getHours();
-    return Array.from({ length: 24 }, (_, h) => {
-      const cls = ['dur-hr'];
-      if (h >= startH && h < startH + durH) cls.push(onClass);
-      if (h === nowH) cls.push('dur-now');
-      return `<div class="${cls.join(' ')}" title="${fmtHour(h)}"></div>`;
-    }).join('');
-  }
-  function aggDurBar(data, onClass) {
-    const counts = Array(24).fill(0);
-    data.forEach(d => {
-      for (let h = d.startHour; h < Math.min(24, d.startHour + d.durationHours); h++) counts[h]++;
-    });
-    const maxC = Math.max(1, ...counts);
-    const nowH = new Date().getHours();
-    const html = Array.from({ length: 24 }, (_, h) => {
-      const cls = ['dur-hr'];
-      if (counts[h] > 0) cls.push(onClass);
-      if (h === nowH) cls.push('dur-now');
-      const style = counts[h] > 0 ? ` style="opacity:${(0.3 + (counts[h] / maxC) * 0.7).toFixed(2)}"` : '';
-      return `<div class="${cls.join(' ')}"${style} title="${fmtHour(h)} · ${counts[h]} districts"></div>`;
-    }).join('');
-    const peakHours = counts.reduce((a, c, h) => { if (c === maxC && maxC > 0) a.push(h); return a; }, []);
-    const peakLabel = peakHours.length > 0
-      ? `<strong>Peak:</strong> ${fmtHour(peakHours[0])} – ${fmtHour(peakHours[peakHours.length - 1] + 1)} · ${maxC} district${maxC !== 1 ? 's' : ''}`
-      : 'No precipitation expected';
-    return { html, peakLabel };
-  }
 
   /* ---- PM2.5 (air) colour scales, ported from the kept air stack ---- */
   function indexToColor(idx) {
@@ -1847,7 +1802,7 @@
   }
 
   /* ============================================================
-   * Rain hazard — simulated precipitation data
+   * Rain hazard — real SMHI precipitation forecast (snow1g v1)
    * ========================================================== */
 
   const RAIN_DISTRICTS = [
@@ -1862,171 +1817,197 @@
     { id: 'bromma',      name: 'Bromma',      lat: 59.3380, lon: 17.9450 },
   ];
 
-  function rainfallColor(pct) {
-    if (pct < 30) return '#bfdbfe';
-    if (pct < 50) return '#60a5fa';
-    if (pct < 65) return '#2563eb';
-    return '#1e3a8a';
+  // Real SMHI precipitation forecast (metfcst snow1g v1), fetched on tab
+  // activation (see /api/rain-forecast). NWP forecast data — high confidence,
+  // but forecast, never a measurement. SMHI gives an amount (mm/h), not a
+  // probability, so everything here is intensity, not likelihood.
+  // Forecast state: { ok, approvedTime, byName: { [name]: { [leadHour]: hour } } }.
+  // null while loading; { ok:false } on failure — we never fall back to synthetic.
+  let rainForecast = null;
+  function rainSeries(name) {
+    return (rainForecast && rainForecast.ok && rainForecast.byName[name]) || null;
   }
-  function rainfallLabel(pct) {
-    if (pct < 30) return 'Low chance';
-    if (pct < 50) return 'Moderate';
-    if (pct < 65) return 'Likely';
-    return 'Very likely';
+  function rainAt(d, lead) {
+    const s = rainSeries(d.name);
+    return s ? (s[lead] || null) : null;
+  }
+  function rainMm(d, lead) {
+    const h = rainAt(d, lead);
+    return h ? h.mmMean : null;
+  }
+  // Real forecast valid time (HH:00, viewer-local) for a lead, from the shared
+  // timegrid — so the hero/strip/modal show the model's hours.
+  function rainValidTime(lead) {
+    if (!rainForecast || !rainForecast.ok) return null;
+    const first = Object.values(rainForecast.byName)[0];
+    const h = first && first[lead];
+    if (!h) return null;
+    return String(new Date(h.validTime).getHours()).padStart(2, '0') + ':00';
   }
 
-  // Forecast is re-seeded by the lead hour so the time slider moves it (offset
-  // the seed by lead, the way Heat re-seeds). lead 0 reproduces the base draw.
-  function generateRainData(lead) {
-    const o = (lead || 0) * 10;
-    return RAIN_DISTRICTS.map(d => ({
-      ...d,
-      rainfall:         Math.round(20  + seededRand(dSeed(d.id, o + 0)) * 55),
-      dewPoint:         Math.round((7  + seededRand(dSeed(d.id, o + 1)) * 7) * 10) / 10,
-      humidity:         Math.round(55  + seededRand(dSeed(d.id, o + 2)) * 27),
-      totalRainfall_mm: Math.round(     seededRand(dSeed(d.id, o + 3)) * 90),
-      startHour:        Math.floor(     seededRand(dSeed(d.id, o + 4)) * 21),
-      durationHours:    Math.round(1  + seededRand(dSeed(d.id, o + 5)) * 7),
-    }));
+  // Intensity bands by mean amount (mm/h): None <0.1, Light 0.1–<2.5,
+  // Moderate 2.5–<7.6, Heavy 7.6+. This is intensity, never likelihood.
+  function rainBand(mm) {
+    if (mm == null) return null;
+    if (mm < 0.1) return 'None';
+    if (mm < 2.5) return 'Light';
+    if (mm < 7.6) return 'Moderate';
+    return 'Heavy';
+  }
+  // Blue ramp by band (reuses the existing palette).
+  function rainColor(mm) {
+    if (mm == null || mm < 0.1) return '#bfdbfe'; // None
+    if (mm < 2.5) return '#60a5fa';               // Light
+    if (mm < 7.6) return '#2563eb';               // Moderate
+    return '#1e3a8a';                             // Heavy
   }
 
-  // Radar-style precipitation front (light → deep blue). Low end fades to
-  // transparent so dry ground reads as a gap, not a faint wash.
+  // Radar-field gradient: light → deep blue, low end fades to transparent so
+  // dry ground reads as a gap. Normalised against ~6 mm/h (Heavy saturates).
   const RAIN_GRADIENT = {
     0.00: 'rgba(191,219,254,0.00)',
-    0.25: 'rgba(191,219,254,0.65)', // #bfdbfe light
-    0.50: 'rgba(96,165,250,0.78)',  // #60a5fa
-    0.75: 'rgba(37,99,235,0.86)',   // #2563eb
-    1.00: 'rgba(30,58,138,0.92)'    // #1e3a8a deep
+    0.10: 'rgba(191,219,254,0.65)', // #bfdbfe Light
+    0.42: 'rgba(96,165,250,0.80)',  // #60a5fa
+    0.70: 'rgba(37,99,235,0.88)',   // #2563eb Moderate
+    1.00: 'rgba(30,58,138,0.94)'    // #1e3a8a Heavy
   };
-
-  // Active fraction (0..1) for a district at a clock hour: zero outside its
-  // [startHour, startHour+durationHours) window, a sine bump inside it so rain
-  // ramps up at onset, peaks mid-window and passes at the tail. The window can
-  // run past midnight (the slider clock wraps 14:00 → 02:00).
-  function rainActiveFrac(d, clock) {
-    const end = d.startHour + d.durationHours;
-    let pos = null;
-    if (clock >= d.startHour && clock < end) pos = clock - d.startHour;
-    else if (clock + 24 >= d.startHour && clock + 24 < end) pos = clock + 24 - d.startHour;
-    if (pos === null || d.durationHours <= 0) return 0;
-    return Math.sin(Math.PI * (pos / d.durationHours));
-  }
-  // Effective probability 0..1 = the district's peak probability × active fraction.
-  function rainActiveProb(d, clock) {
-    return (d.rainfall / 100) * rainActiveFrac(d, clock);
-  }
+  const RAIN_MAX_MM = 6; // heat-layer normalisation ceiling (mm/h)
 
   function drawRain() {
-    const clock = (14 + currentLeadHour()) % 24;
-    // Stable base storm — movement comes from the per-district window ramp, not
-    // from re-seeding, so the front arrives, peaks and passes coherently.
-    const data = generateRainData();
+    if (!rainForecast || !rainForecast.ok) return; // loading/unavailable — empty layer
+    const lead = currentLeadHour();
+    const items = RAIN_DISTRICTS
+      .map(d => ({ d, mm: rainMm(d, lead) }))
+      .filter(x => x.mm != null);
 
-    // Front field: one weighted point per district plus a few interpolated
-    // midpoints between near neighbours so adjacent cells merge into one front
-    // shape rather than separate discs.
-    const pts = data.map(d => [d.lat, d.lon, rainActiveProb(d, clock)]);
-    for (let i = 0; i < data.length; i++) {
-      for (let j = i + 1; j < data.length; j++) {
-        const a = data[i], b = data[j];
-        if (Math.hypot(a.lat - b.lat, a.lon - b.lon) >= 0.045) continue;
-        const pa = rainActiveProb(a, clock), pb = rainActiveProb(b, clock);
-        if (pa + pb <= 0) continue;
-        pts.push([(a.lat + b.lat) / 2, (a.lon + b.lon) / 2, ((pa + pb) / 2) * 0.9]);
+    // Front field: one weighted point per district (weight = mm/h) plus a few
+    // interpolated midpoints between near neighbours so adjacent cells merge
+    // into one front shape rather than separate discs.
+    const pts = items.map(x => [x.d.lat, x.d.lon, x.mm]);
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const a = items[i], b = items[j];
+        if (Math.hypot(a.d.lat - b.d.lat, a.d.lon - b.d.lon) >= 0.045) continue;
+        if (a.mm + b.mm <= 0) continue;
+        pts.push([(a.d.lat + b.d.lat) / 2, (a.d.lon + b.d.lon) / 2, ((a.mm + b.mm) / 2) * 0.9]);
       }
     }
     if (typeof L.heatLayer === 'function') {
-      gHazard.addLayer(L.heatLayer(pts, { radius: 65, blur: 50, minOpacity: 0.18, max: 0.7, gradient: RAIN_GRADIENT }));
+      gHazard.addLayer(L.heatLayer(pts, { radius: 65, blur: 50, minOpacity: 0.18, max: RAIN_MAX_MM, gradient: RAIN_GRADIENT }));
     } else {
       // Graceful fallback to soft discs where leaflet.heat is unavailable.
-      data.forEach(d => {
-        const c = rainfallColor(Math.round(rainActiveProb(d, clock) * 100));
-        L.circle([d.lat, d.lon], { radius: 1800, color: c, weight: 0, fillColor: c, fillOpacity: 0.22, interactive: false }).addTo(gHazard);
+      items.forEach(x => {
+        const c = rainColor(x.mm);
+        L.circle([x.d.lat, x.d.lon], { radius: 1800, color: c, weight: 0, fillColor: c, fillOpacity: 0.22, interactive: false }).addTo(gHazard);
       });
     }
 
-    // District markers kept on top as small dots, coloured by the active
-    // probability so they agree with the front; click opens the detail modal.
-    data.forEach(d => {
-      const pct = Math.round(rainActiveProb(d, clock) * 100);
-      const color = rainfallColor(pct);
+    // District markers kept on top as small dots, coloured by intensity so they
+    // agree with the front; click opens the detail modal.
+    RAIN_DISTRICTS.forEach(d => {
+      const mm = rainMm(d, lead);
+      if (mm == null) return;
+      const color = rainColor(mm);
       L.circleMarker([d.lat, d.lon], { radius: 5, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 0.95 })
-        .bindTooltip(`${d.name} — ${pct}% now · ${rainfallLabel(pct)} (simulated)`, { sticky: true })
+        .bindTooltip(`${d.name} — ${mm.toFixed(1)} mm/h · ${rainBand(mm)} (SMHI forecast)`, { sticky: true })
         .on('click', () => openRainModal(d))
         .addTo(gHazard);
     });
   }
 
   /* ---- Rain situation hero — mirrors the air/algae hero, bespoke to rain ----
-   * Re-seeded at the current lead hour so it tracks the slider: how many
-   * districts are Likely+, the peak rainfall window, and an officer verdict. */
-  const RAIN_LEVEL_CLS = { 'Very likely': 'aq-level-high', 'Likely': 'aq-level-mod', 'Moderate': 'aq-level-low', 'Low chance': 'aq-level-low' };
+   * Tracks the slider: how many districts are at Moderate+ intensity at the
+   * current lead, the peak rainfall window from the real series, and a verdict.
+   * SMHI forecast (snow1g v1) — real NWP precipitation, never a measurement. */
+  const RAIN_LEVEL_CLS = { Heavy: 'aq-level-vhigh', Moderate: 'aq-level-high', Light: 'aq-level-mod', None: 'aq-level-low' };
 
-  // Peak window across districts (hours with the most districts raining).
-  function rainPeakWindow(data) {
-    const counts = Array(24).fill(0);
-    data.forEach(d => { for (let h = d.startHour; h < Math.min(24, d.startHour + d.durationHours); h++) counts[h]++; });
-    const maxC = Math.max(0, ...counts);
-    if (maxC === 0) return null;
-    const peakHours = counts.reduce((a, c, h) => { if (c === maxC) a.push(h); return a; }, []);
-    return { start: peakHours[0], end: peakHours[peakHours.length - 1] + 1, count: maxC };
+  // Area-aggregate mean amount (mm/h) per leadHour across all districts.
+  function rainAggregate() {
+    if (!rainForecast || !rainForecast.ok) return [];
+    const leads = new Set();
+    Object.values(rainForecast.byName).forEach(m => Object.keys(m).forEach(k => leads.add(+k)));
+    return [...leads].sort((a, b) => a - b).map(lead => {
+      const vals = RAIN_DISTRICTS.map(d => rainMm(d, lead)).filter(v => v != null);
+      const mean = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+      return { lead, mean };
+    });
+  }
+  // Contiguous run of hours where the area-aggregate sits at Moderate+ (>=2.5),
+  // falling back to Light+ (>=0.1) if nothing reaches Moderate. null when dry.
+  function rainPeakWindow() {
+    const agg = rainAggregate();
+    if (!agg.length) return null;
+    const peak = agg.reduce((a, b) => (b.mean > a.mean ? b : a), agg[0]);
+    if (peak.mean < 0.1) return null;
+    const thr = peak.mean >= 2.5 ? 2.5 : 0.1;
+    const byLead = {}; agg.forEach(a => { byLead[a.lead] = a.mean; });
+    let s = peak.lead, e = peak.lead;
+    while (byLead[s - 1] != null && byLead[s - 1] >= thr) s--;
+    while (byLead[e + 1] != null && byLead[e + 1] >= thr) e++;
+    return { startLead: s, endLead: e, band: thr >= 2.5 ? 'Moderate' : 'Light' };
   }
 
   function updateRainHero() {
     const hero = document.getElementById('rain-hero');
     if (!hero) return;
-    // Same moving storm the map draws: each district's probability is its
-    // active value at the current clock, so the hero tracks the front rather
-    // than re-seeding. Window fields stay intact for the peak-window readout.
-    const clock = (14 + currentLeadHour()) % 24;
-    const data = generateRainData().map(d => ({ ...d, rainfall: Math.round(rainActiveProb(d, clock) * 100) }));
-    const total = data.length;
-    const veryLikely = data.filter(d => d.rainfall >= 65);
-    const likely = data.filter(d => d.rainfall >= 50 && d.rainfall < 65);
-    const moderate = data.filter(d => d.rainfall >= 30 && d.rainfall < 50);
-    const likelyPlus = data.filter(d => d.rainfall >= 50);
-    const peakPct = data.reduce((m, d) => Math.max(m, d.rainfall), 0);
-    const band = rainfallLabel(peakPct);
-    const peak = rainPeakWindow(data);
-
     const lvlEl = document.getElementById('rain-hero-level');
     const hdEl  = document.getElementById('rain-hero-headline');
     const bkEl  = document.getElementById('rain-hero-breakdown');
     const vdEl  = document.getElementById('rain-hero-verdict');
 
+    if (!rainForecast || !rainForecast.ok) {
+      const failed = rainForecast && rainForecast.ok === false;
+      if (lvlEl) { lvlEl.textContent = '—'; lvlEl.className = 'aq-hero-level aq-level-low'; }
+      if (hdEl) hdEl.textContent = failed ? 'Forecast unavailable' : 'Loading SMHI forecast…';
+      if (bkEl) bkEl.innerHTML = '';
+      if (vdEl) { vdEl.textContent = failed ? 'SMHI metfcst snow1g v1 did not respond.' : ''; vdEl.className = 'aq-hero-verdict'; }
+      hero.style.display = 'flex';
+      return;
+    }
+
+    const lead = currentLeadHour();
+    const total = RAIN_DISTRICTS.length;
+    const mms = RAIN_DISTRICTS.map(d => ({ name: d.name, mm: rainMm(d, lead) })).filter(x => x.mm != null);
+    const heavy = mms.filter(x => x.mm >= 7.6);
+    const moderate = mms.filter(x => x.mm >= 2.5 && x.mm < 7.6);
+    const light = mms.filter(x => x.mm >= 0.1 && x.mm < 2.5);
+    const modPlus = heavy.length + moderate.length;
+    const peakMm = mms.reduce((m, x) => Math.max(m, x.mm), 0);
+    const band = rainBand(peakMm) || 'None';
+    const win = rainPeakWindow();
+
     if (lvlEl) { lvlEl.textContent = band; lvlEl.className = 'aq-hero-level ' + (RAIN_LEVEL_CLS[band] || 'aq-level-low'); }
 
     if (hdEl) {
-      if (likelyPlus.length > 0 && peak) {
-        hdEl.textContent = `Rain likely in ${likelyPlus.length} of ${total} districts, peak ${fmtHour(peak.start)} to ${fmtHour(peak.end)}`;
-      } else if (moderate.length > 0) {
-        hdEl.textContent = `Moderate rain chance in ${moderate.length} of ${total} districts`;
+      if (modPlus > 0 && win) {
+        hdEl.textContent = `Moderate+ rain in ${modPlus} of ${total} districts, peak ${rainValidTime(win.startLead)} to ${rainValidTime(win.endLead)}`;
+      } else if (light.length > 0) {
+        hdEl.textContent = `Light rain in ${light.length} of ${total} districts`;
       } else {
-        hdEl.textContent = `Low rain chance across all ${total} districts`;
+        hdEl.textContent = `No significant rain across the ${total} districts`;
       }
     }
 
     if (bkEl) {
       const bands = [
-        { label: 'Very likely', color: '#1e3a8a', n: veryLikely.length },
-        { label: 'Likely',      color: '#2563eb', n: likely.length },
-        { label: 'Moderate',    color: '#60a5fa', n: moderate.length },
+        { label: 'Heavy',    color: '#1e3a8a', n: heavy.length },
+        { label: 'Moderate', color: '#2563eb', n: moderate.length },
+        { label: 'Light',    color: '#60a5fa', n: light.length },
       ];
       const parts = bands.filter(b => b.n > 0).map(b =>
         `<span class="aq-breakdown-item"><span class="aq-breakdown-dot" style="background:${b.color}"></span>${b.n} ${b.label}</span>`);
-      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} districts · simulated (no live data)</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} districts · SMHI forecast</span>`);
       bkEl.innerHTML = parts.join('');
     }
 
     if (vdEl) {
       let verdict;
-      if (likelyPlus.length > 0) {
-        const names = likelyPlus.map(d => d.name);
+      if (modPlus > 0) {
+        const names = heavy.concat(moderate).map(x => x.name);
         const shown = names.slice(0, 3).join(', ');
         verdict = `Advisory for ${shown}${names.length > 3 ? ` and ${names.length - 3} more` : ''}.`;
-      } else if (moderate.length > 0) {
-        verdict = 'Monitor — moderate rain chance. No advisory needed yet.';
+      } else if (light.length > 0) {
+        verdict = 'Monitor — light rain only. No advisory needed yet.';
       } else {
         verdict = 'No rainfall advisory needed.';
       }
@@ -2040,21 +2021,47 @@
   function showRainHero() { const h = document.getElementById('rain-hero'); if (h) h.style.display = 'flex'; }
   function hideRainHero() { const h = document.getElementById('rain-hero'); if (h) h.style.display = 'none'; }
 
-  /* ---- Rain duration strip — a district duration overview from aggDurBar() ---- */
+  /* ---- Rain duration strip — district rain count across the forecast hours ---- */
+  // Bar cell per leadHour (0..23), shaded by how many districts are at Light+.
+  function rainStripBarHtml() {
+    const counts = Array(24).fill(0);
+    for (let lead = 0; lead < 24; lead++) {
+      RAIN_DISTRICTS.forEach(d => { const mm = rainMm(d, lead); if (mm != null && mm >= 0.1) counts[lead]++; });
+    }
+    const maxC = Math.max(1, ...counts);
+    const nowLead = currentLeadHour();
+    return counts.map((c, lead) => {
+      const cls = ['dur-hr'];
+      if (c > 0) cls.push('on-rain');
+      if (lead === nowLead) cls.push('dur-now');
+      const style = c > 0 ? ` style="opacity:${(0.3 + (c / maxC) * 0.7).toFixed(2)}"` : '';
+      return `<div class="${cls.join(' ')}"${style} title="+${lead}h · ${c} district${c !== 1 ? 's' : ''}"></div>`;
+    }).join('');
+  }
+
   function updateRainStrip() {
     const body = document.getElementById('rain-strip-body');
     const sub  = document.getElementById('rain-strip-sub');
     if (!body) return;
-    // Stable storm windows give the duration overview; "raining" counts the
-    // districts active at the current clock so the sub line tracks the front.
-    const clock = (14 + currentLeadHour()) % 24;
-    const data = generateRainData();
-    const raining = data.filter(d => rainActiveProb(d, clock) * 100 >= 30).length;
-    const { html, peakLabel } = aggDurBar(data, 'on-rain');
-    if (sub) sub.textContent = `${raining} of ${data.length} districts with rain · simulated (no live connection)`;
+
+    if (!rainForecast || !rainForecast.ok) {
+      if (sub) sub.textContent = rainForecast && rainForecast.ok === false
+        ? 'Forecast unavailable · SMHI metfcst snow1g v1'
+        : 'Loading SMHI forecast…';
+      body.innerHTML = '';
+      return;
+    }
+
+    const lead = currentLeadHour();
+    const raining = RAIN_DISTRICTS.filter(d => { const mm = rainMm(d, lead); return mm != null && mm >= 0.1; }).length;
+    const win = rainPeakWindow();
+    const peakLabel = win
+      ? `<strong>Peak:</strong> ${rainValidTime(win.startLead)} – ${rainValidTime(win.endLead)} · ${win.band}+`
+      : 'No significant rain in the forecast window';
+    if (sub) sub.textContent = `${raining} of ${RAIN_DISTRICTS.length} districts with rain · SMHI forecast ${rainValidTime(lead) || ''}`.trim();
     body.innerHTML =
-      `<div class="dur-bar rain-strip-bar">${html}</div>
-       <div class="dur-ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>
+      `<div class="dur-bar rain-strip-bar">${rainStripBarHtml()}</div>
+       <div class="dur-ticks"><span>+0h</span><span>+6h</span><span>+12h</span><span>+18h</span><span>+23h</span></div>
        <div class="rain-strip-peak">${peakLabel}</div>`;
   }
 
@@ -2083,22 +2090,24 @@
     if (!_rainState[d.id]) {
       _rainState[d.id] = {
         status: 'none',
-        audit: [{ time: 'start of shift', text: 'Monitoring simulated rainfall forecast. No advisory active.' }],
+        audit: [{ time: 'start of shift', text: 'Monitoring SMHI rainfall forecast. No advisory active.' }],
       };
     }
     return _rainState[d.id];
   }
 
-  function rainSeverityClass(pct) {
-    return pct >= 65 ? 'val-high' : pct >= 50 ? 'val-warn' : 'val-ok';
+  function rainSeverityClass(mm) {
+    return mm >= 7.6 ? 'val-high' : mm >= 2.5 ? 'val-warn' : 'val-ok';
   }
 
   function rainRecommendation(d) {
-    const end = Math.min(23, d.startHour + d.durationHours);
-    if (d.rainfall >= 65) return `Heavy rain likely in ${d.name} — ${d.rainfall}% probability, up to ${d.totalRainfall_mm} mm. Issue a rainfall advisory: warn of local flooding and surface water, and alert drainage and operations for the ${fmtHour(d.startHour)}–${fmtHour(end)} window.`;
-    if (d.rainfall >= 50) return `Rain likely in ${d.name} (${d.rainfall}%, up to ${d.totalRainfall_mm} mm). Consider a precautionary advisory; monitor the forecast and ready drainage crews for the ${fmtHour(d.startHour)}–${fmtHour(end)} window.`;
-    if (d.rainfall >= 30) return `Moderate rain chance in ${d.name} (${d.rainfall}%). No advisory needed yet; keep watching the simulated forecast.`;
-    return `Low rain chance in ${d.name} (${d.rainfall}%). No action needed.`;
+    const mm = rainMm(d, currentLeadHour());
+    if (mm == null) return `Forecast unavailable for ${d.name} at this hour.`;
+    const band = rainBand(mm);
+    if (band === 'Heavy') return `Heavy rain forecast for ${d.name} — ${mm.toFixed(1)} mm/h. Issue a rainfall advisory: warn of local flooding and surface water, and alert drainage and operations.`;
+    if (band === 'Moderate') return `Moderate rain forecast for ${d.name} (${mm.toFixed(1)} mm/h). Consider a precautionary advisory and ready drainage crews.`;
+    if (band === 'Light') return `Light rain forecast for ${d.name} (${mm.toFixed(1)} mm/h). No advisory needed yet; keep watching the SMHI forecast.`;
+    return `No significant rain forecast for ${d.name} at this hour.`;
   }
 
   function renderRainAudit(d) {
@@ -2120,6 +2129,31 @@
     });
   }
 
+  // This district's forecast intensity across the next hours (mm/h per leadHour).
+  function rainModalCurve(d, lead) {
+    const s = rainSeries(d.name);
+    if (!s) return '<div style="font-size:12px;color:var(--text-tertiary);padding:8px 0">Forecast unavailable</div>';
+    const leads = Object.keys(s).map(Number).sort((a, b) => a - b);
+    const maxMm = Math.max(0.1, ...leads.map(l => s[l].mmMean));
+    const bars = Array.from({ length: 24 }, (_, l) => {
+      const h = s[l];
+      if (!h) return '<div class="dur-hr"></div>';
+      const cls = ['dur-hr'];
+      if (h.mmMean >= 0.1) cls.push('on-rain');
+      if (l === lead) cls.push('dur-now');
+      const style = h.mmMean >= 0.1 ? ` style="opacity:${(0.3 + (h.mmMean / maxMm) * 0.7).toFixed(2)}"` : '';
+      return `<div class="${cls.join(' ')}"${style} title="+${l}h · ${h.mmMean.toFixed(1)} mm/h · ${h.band}"></div>`;
+    }).join('');
+    const wettest = leads.reduce((a, l) => (s[l].mmMean > s[a].mmMean ? l : a), leads[0]);
+    const wmm = s[wettest].mmMean;
+    const label = wmm >= 0.1
+      ? `Wettest: ${rainValidTime(wettest)} · ${wmm.toFixed(1)} mm/h`
+      : 'No significant rain over the forecast';
+    return `<div class="rain-modal-dur-label">${label}</div>
+       <div class="dur-bar rain-strip-bar">${bars}</div>
+       <div class="dur-ticks"><span>+0h</span><span>+6h</span><span>+12h</span><span>+18h</span><span>+23h</span></div>`;
+  }
+
   function openRainModal(d) {
     if (!d) return;
     _rainModalDistrict = d;
@@ -2133,11 +2167,18 @@
     badge.textContent = RAIN_STATUS_LABEL[st.status];
     badge.className = 'algae-modal-status-badge badge-' + st.status;
 
+    const lead = currentLeadHour();
+    const h = rainAt(d, lead);
+    const mm = h ? h.mmMean : null;
+    const band = rainBand(mm);
+    // Default render uses the mean amount only; min/max are kept in the payload
+    // for a future uncertainty band (their snow1g semantics aren't a clean
+    // bound around the mean, so they are not surfaced here).
     const metrics = [
-      { label: 'Rainfall probability', value: `${d.rainfall}%`, cls: rainSeverityClass(d.rainfall) },
-      { label: 'Total expected',       value: `${d.totalRainfall_mm} mm`, cls: '' },
-      { label: 'Dew point',            value: `${d.dewPoint} °C`, cls: '' },
-      { label: 'Humidity',             value: `${d.humidity}%`, cls: '' },
+      { label: 'Forecast amount',   value: mm != null ? `${mm.toFixed(1)} mm/h` : '—', cls: mm != null ? rainSeverityClass(mm) : '' },
+      { label: 'Intensity',         value: band || '—', cls: '' },
+      { label: 'Valid time',        value: rainValidTime(lead) || '—', cls: '' },
+      { label: 'Forecast horizon',  value: `+${lead}h`, cls: '' },
     ];
     document.getElementById('rain-modal-metrics').innerHTML = metrics.map(m =>
       `<div class="algae-modal-obs-item">
@@ -2146,14 +2187,10 @@
       </div>`
     ).join('');
 
-    document.getElementById('rain-modal-note').innerHTML =
-      `${rainfallLabel(d.rainfall)} · simulated SMHI-shaped forecast — no live connection`;
+    document.getElementById('rain-modal-note').textContent =
+      `${band || '—'} · SMHI metfcst snow1g v1 forecast — not a measurement`;
 
-    const end = Math.min(23, d.startHour + d.durationHours);
-    document.getElementById('rain-modal-duration').innerHTML =
-      `<div class="rain-modal-dur-label">${fmtHour(d.startHour)} – ${fmtHour(end)} · ${d.durationHours} hr${d.durationHours > 1 ? 's' : ''}</div>
-       <div class="dur-bar rain-strip-bar">${durBarHtml(d.startHour, d.durationHours, 'on-rain')}</div>
-       <div class="dur-ticks"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div>`;
+    document.getElementById('rain-modal-duration').innerHTML = rainModalCurve(d, lead);
 
     document.getElementById('rain-modal-rec').textContent = rainRecommendation(d);
     renderRainAudit(d);
@@ -2174,10 +2211,12 @@
   function rainGenerateDraft() {
     if (!_rainModalDistrict) return;
     const d = _rainModalDistrict;
+    const mm = rainMm(d, currentLeadHour());
+    const amt = mm != null ? mm.toFixed(1) : '0';
     const s = _rainPendingStatus || rainStateFor(d).status;
     const templates = {
-      advisory: `Stockholm stad informerar: Risk för kraftigt regn i ${d.name}, ${d.rainfall}% sannolikhet och upp till ${d.totalRainfall_mm} mm. Var beredd på lokala översvämningar och vatten på vägbanan. Undvik källarutrymmen vid skyfall.`,
-      none:     `Stockholm stad informerar: Regn väntas i ${d.name} under dagen (${d.rainfall}% sannolikhet). Ingen varning råder för närvarande. Håll dig uppdaterad via stockholm.se.`,
+      advisory: `Stockholm stad informerar: Risk för kraftigt regn i ${d.name}, prognos upp till ${amt} mm/h enligt SMHI. Var beredd på lokala översvämningar och vatten på vägbanan. Undvik källarutrymmen vid skyfall.`,
+      none:     `Stockholm stad informerar: Regn väntas i ${d.name} (prognos ${amt} mm/h enligt SMHI). Ingen varning råder för närvarande. Håll dig uppdaterad via stockholm.se.`,
     };
     document.getElementById('rain-modal-message').value = templates[s] || templates.none;
   }
@@ -2204,6 +2243,48 @@
     document.getElementById('rain-modal-sent').style.display = 'block';
   }
 
+  // Format an ISO model time as "HH:MM UTC YYYY-MM-DD" for status/provenance.
+  function rainBaseLabel(iso) {
+    if (!iso) return 'unknown';
+    return `${iso.slice(11, 16)} UTC ${iso.slice(0, 10)}`;
+  }
+
+  async function loadRainForecast(haz) {
+    setStatus('rain', 'pending', 'loading SMHI forecast…');
+    try {
+      const res = await fetch('/api/rain-forecast', { cache: 'no-store' });
+      const data = await res.json();
+      if (currentHazard !== 'rain') return; // officer switched tabs mid-flight
+      if (!data.ok) throw new Error(data.reason || 'unavailable');
+
+      const byName = {};
+      data.districts.forEach(dist => {
+        const m = {};
+        dist.hours.forEach(h => { m[h.leadHour] = h; });
+        byName[dist.name] = m;
+      });
+      rainForecast = { ok: true, approvedTime: data.approvedTime, byName };
+
+      const horizon = Math.max(0, ...Object.values(byName).flatMap(m => Object.keys(m).map(Number)));
+      const base = rainBaseLabel(data.approvedTime);
+      setStatus('rain', 'ok', `SMHI forecast +${horizon}h · base ${base}`);
+      setProvenance(`Forecast: SMHI metfcst snow1g v1 (NWP precipitation, not measured). Model run ${base}.`, 'high', false);
+
+      gHazard.clearLayers();
+      updateRainHero();
+      updateRainStrip();
+      if (haz.draw) haz.draw();
+    } catch (err) {
+      if (currentHazard !== 'rain') return;
+      rainForecast = { ok: false };
+      gHazard.clearLayers();
+      setStatus('rain', 'offline', 'forecast unavailable (' + err.message + ')');
+      setProvenance('Forecast unavailable — SMHI metfcst snow1g v1 did not respond.', 'high', false);
+      updateRainHero();
+      updateRainStrip();
+    }
+  }
+
   function activateRain(haz) {
     hidePollen();
     hideAirHero();
@@ -2213,11 +2294,14 @@
     hideHeatStrip();
     hideFireHero();
     hideFireStrip();
-    updateRainHero();
+    rainForecast = null; // reset to loading state
+    showRainHero();
     showRainStrip();
-    setLayerStatus([{ id: 'rain', label: haz.layers[0].label, state: 'offline', detail: 'simulated · SMHI adapter not connected' }]);
-    setProvenance(haz.provenance, haz.confidence, true);
-    if (haz.draw) haz.draw();
+    updateRainHero();  // shows "Loading SMHI forecast…"
+    updateRainStrip();
+    setLayerStatus([{ id: 'rain', label: haz.layers[0].label, state: 'pending', detail: 'loading SMHI forecast…' }]);
+    setProvenance(haz.provenance, haz.confidence, false);
+    loadRainForecast(haz);
   }
 
   /* ============================================================
@@ -2392,18 +2476,18 @@
       eyebrow: 'Precipitation',
       verb: 'Issue or lift a rainfall advisory',
       decisionTitle: 'Rainfall advisory',
-      sources: 'SMHI-shaped simulated data',
+      sources: 'SMHI metfcst snow1g v1 (forecast)',
       legend: {
-        title: 'Rain · Probability',
+        title: 'Rain · Intensity (mm/h)',
         items: [
-          { c: '#bfdbfe', t: 'Low (<30%)' },
-          { c: '#60a5fa', t: 'Moderate (30–49%)' },
-          { c: '#2563eb', t: 'Likely (50–64%)' },
-          { c: '#1e3a8a', t: 'Very likely (65%+)' }
+          { c: '#bfdbfe', t: 'None (<0.1)' },
+          { c: '#60a5fa', t: 'Light (0.1–2.5)' },
+          { c: '#2563eb', t: 'Moderate (2.5–7.6)' },
+          { c: '#1e3a8a', t: 'Heavy (7.6+)' }
         ]
       },
       layers: [
-        { key: 'hazard', label: 'Rainfall probability (simulated)', on: true, dot: '#2563eb' }
+        { key: 'hazard', label: 'Rainfall (SMHI forecast)', on: true, dot: '#2563eb' }
       ],
       fields: [
         { label: 'Area', kind: 'draw' },
@@ -2412,9 +2496,9 @@
         { label: 'Message', kind: 'textarea', placeholder: 'Advisory text…' }
       ],
       buttons: ['Issue', 'Lift'],
-      confidence: 'thin',
-      real: false,
-      provenance: 'Simulated · SMHI-shaped district data. No live connection yet.',
+      confidence: 'high',
+      real: true,
+      provenance: 'Forecast: SMHI metfcst snow1g v1 (NWP precipitation forecast, not measured).',
       draw: drawRain,
       onLead: (lead) => { gHazard.clearLayers(); drawRain(); updateRainHero(); updateRainStrip(); },
       activate: activateRain
