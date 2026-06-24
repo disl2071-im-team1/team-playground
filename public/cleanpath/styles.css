@@ -2087,6 +2087,14 @@ textarea.dp-input { resize: vertical; }
   margin-top: 8px; font-size: 11px; line-height: 1.4;
   color: var(--amber);
 }
+/* Unmissable honesty caption: this panel is illustrative — the real, persisted
+   flow lives in the map markers. */
+.dp-illustrative {
+  margin: 8px 0 14px; padding: 8px 10px;
+  font-size: 11px; line-height: 1.45; font-weight: 500;
+  color: #8A5A00; background: #FBF1DC;
+  border-left: 3px solid var(--amber); border-radius: var(--radius-sm);
+}
 .dp-export:hover { color: var(--text-secondary); border-color: var(--green); background: var(--green-soft); }
 
 .dp-receipt {

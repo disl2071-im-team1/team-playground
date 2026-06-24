@@ -603,15 +603,6 @@
     if (s) s.style.display = 'none';
   }
 
-  // Align the OFFICER DECISION Site dropdown to the real resolved site names.
-  function algaeSyncSiteOptions() {
-    const sel = document.getElementById('fld-site');
-    if (!sel || !ALGAE_SITES.length) return;
-    const cur = sel.value;
-    sel.innerHTML = ALGAE_SITES.map(s => `<option>${escapeHtml(s.name)}</option>`).join('');
-    if (ALGAE_SITES.some(s => s.name === cur)) sel.value = cur;
-  }
-
   async function loadAlgaeStatus(haz) {
     setStatus('algae', 'pending', 'loading HaV sampling…');
     try {
@@ -635,7 +626,8 @@
         });
       algaeOk = true;
       _algaeRetrieved = data.retrieved;
-      algaeSyncSiteOptions(); // align the decision-panel Site dropdown to resolved names
+      // Re-render the decision panel so the Site dropdown reflects the live sites.
+      if (currentHazard === 'algae') renderDecisionPanel(haz);
 
       const n = ALGAE_SITES.length;
       const latest = ALGAE_SITES.reduce((m, s) => (s.lastSampled && (!m || s.lastSampled > m) ? s.lastSampled : m), null);
@@ -2546,6 +2538,14 @@
       return `<label class="dp-field"><span class="dp-field-label">${escapeHtml(f.label)}</span>${control}</label>`;
     }).join('');
 
+    // The algae Site dropdown is built entirely from the live HaV response, so it
+    // can never show stale hardcoded names. Empty until the first load resolves;
+    // loadAlgaeStatus re-renders this panel once ALGAE_SITES is populated.
+    if (currentHazard === 'algae') {
+      const siteSel = document.getElementById('fld-site');
+      if (siteSel) siteSel.innerHTML = ALGAE_SITES.map(s => `<option>${escapeHtml(s.name)}</option>`).join('');
+    }
+
     const primary = document.getElementById('action-primary');
     const secondary = document.getElementById('action-secondary');
     primary.textContent = haz.buttons[0];
@@ -2625,7 +2625,7 @@
         { key: 'hazard', label: 'Bloom status (HaV sampling)', on: true, dot: '#EF9F27' }
       ],
       fields: [
-        { label: 'Site', kind: 'select', options: ['Brunnsvikens Strandbad', 'Smedsuddsbadet V', 'Långholmens strandbad', 'Tanto, strand 1', 'Flatenbadet, allmänna', 'Fredhällsbadet, Mälaren', 'Kristinebergsbadet', 'Johannelundsbadet (Minneberg), Mälaren'] },
+        { label: 'Site', kind: 'select', options: [] }, // populated from live ALGAE_SITES in renderDecisionPanel
         { label: 'Status', kind: 'select', options: ['None', 'Watch', 'Advisory', 'Closed'] },
         { label: 'Scope', kind: 'text', placeholder: 'this site only' },
         { label: 'Message', kind: 'textarea', placeholder: 'Notice text…' }
