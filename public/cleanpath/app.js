@@ -177,7 +177,8 @@
     el.innerHTML = `<strong>${escapeHtml(haz.legend.title)}</strong>` +
       haz.legend.items.map(i =>
         `<div><span class="swatch" style="background:${i.c}"></span>${escapeHtml(i.t)}</div>`
-      ).join('');
+      ).join('') +
+      (haz.legend.cue ? `<div class="legend-cue">${escapeHtml(haz.legend.cue)}</div>` : '');
   }
 
   /* ============================================================
@@ -216,17 +217,30 @@
         if (data.configured === false) throw new Error('API token not configured');
         throw new Error(data.reason || 'unknown error');
       }
+      // Measured points: crisp dots that sit on top of the modelled fill.
+      // Label the three highest-index stations permanently so the worst
+      // measured readings are legible without a click.
+      const topThree = new Set(
+        [...data.stations]
+          .filter(s => s.pm25 != null && s.pm25.index != null)
+          .sort((a, b) => b.pm25.index - a.pm25.index)
+          .slice(0, 3)
+      );
       let withPm25 = 0;
       data.stations.forEach(s => {
         const idx = s.pm25 != null ? s.pm25.index : null;
         const marker = L.circleMarker([s.lat, s.lon], {
-          radius: 6, fillColor: indexToColor(idx), color: '#FFFFFF', weight: 1.5, fillOpacity: 0.95
+          radius: 8, fillColor: indexToColor(idx), color: '#FFFFFF', weight: 2.5, fillOpacity: 0.95,
+          className: 'air-station-dot'
         });
         const valueHtml = idx != null
           ? `<div class="station-value" style="color:${indexToColor(idx)}">PM2.5 index ${idx} · ${indexBand(idx)}</div>`
           : `<div class="station-value" style="color:#9CA3AF">No PM2.5 reading</div>`;
         marker.bindPopup(`<div class="station-popup"><strong>${escapeHtml(s.name)}</strong>
           <div class="station-meta">${escapeHtml(s.code)} · ${escapeHtml(s.siteType || '')}</div>${valueHtml}</div>`);
+        if (idx != null && topThree.has(s)) {
+          marker.bindTooltip(String(idx), { permanent: true, direction: 'top', offset: [0, -6], className: 'air-station-label' });
+        }
         marker.addTo(gHazard);
         if (idx != null) withPm25 += 1;
       });
@@ -246,8 +260,9 @@
       integrationData = data;
       data.stations.forEach(s => {
         const color = SOURCE_COLORS[s.source] || '#5F5E5A';
-        L.circle([s.lat, s.lon], { radius: 450, fillColor: color, color, weight: 0, fillOpacity: 0.1, interactive: false }).addTo(gIntegration);
-        const marker = L.circleMarker([s.lat, s.lon], { radius: 7, fillColor: '#FFFFFF', color, weight: 3, fillOpacity: 0.9 });
+        // Demoted to small hollow ticks (no fill circles) so it no longer
+        // competes with the measured stations; off by default in the panel.
+        const marker = L.circleMarker([s.lat, s.lon], { radius: 4, fillColor: color, fillOpacity: 0, color, weight: 1.5 });
         const rows = s.pollutants.map(p => `<div class="station-value" style="color:${color}">${escapeHtml(p.metric.toUpperCase())} ${p.value} ${escapeHtml(p.unit)}</div>`).join('');
         const when = (s.pollutants[0] || {}).timestamp || '';
         marker.bindPopup(`<div class="station-popup"><strong>${escapeHtml(s.station)}</strong>
@@ -294,7 +309,10 @@
     const max = Math.max(15, ...data.grid.map(p => p[2]));
     const heatData = data.grid.map(([lat, lon, v]) => [lat, lon, Math.min(1, v / max)]);
     camsHeat = L.heatLayer(heatData, {
-      radius: 28, blur: 24, minOpacity: 0.25, max: 1.0,
+      // Modelled field: wide radius + heavy blur + low minOpacity so clean
+      // districts fade fully to transparent and the plume reads as one
+      // coherent surface, not separate halos. Stays the modelled CAMS layer.
+      radius: 42, blur: 30, minOpacity: 0.15, max: 1.0,
       gradient: { 0.0: 'rgba(151,196,89,0)', 0.2: 'rgba(151,196,89,0.7)', 0.4: 'rgba(250,199,117,0.75)', 0.6: 'rgba(239,159,39,0.8)', 0.8: 'rgba(226,75,74,0.85)', 1.0: 'rgba(127,29,29,0.9)' }
     });
     gHazard.addLayer(camsHeat);
@@ -1984,10 +2002,10 @@
       legend: { title: 'PM2.5', items: [
         { c: '#1D9E75', t: 'Low (1–3)' }, { c: '#EF9F27', t: 'Moderate (4–6)' },
         { c: '#E24B4A', t: 'High (7–9)' }, { c: '#7F1D1D', t: 'Very high (10)' }
-      ] },
+      ], cue: 'soft fill = modelled (CAMS) · dots = measured stations' },
       layers: [
         { key: 'hazard', label: 'PM2.5 plume (CAMS) + stations', on: true, dot: '#E24B4A' },
-        { key: 'integration', label: 'Integration layer', on: true, dot: '#534AB7' },
+        { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' },
         { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
       ],
       fields: [

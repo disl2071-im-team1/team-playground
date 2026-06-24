@@ -2917,3 +2917,26 @@ textarea.dp-input { resize: vertical; }
   margin-bottom: 5px;
 }
 
+/* ============================================================
+   Air map — measured points read crisp on top of the modelled
+   CAMS fill (renderer-side only; provenance grammar is the point).
+   ============================================================ */
+.air-station-dot {
+  filter: drop-shadow(0 1px 2px rgba(15, 23, 42, 0.45));
+}
+.leaflet-tooltip.air-station-label {
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #111827;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+}
+.legend-cue {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--text-tertiary);
+}
+
