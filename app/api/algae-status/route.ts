@@ -3,55 +3,58 @@ import { NextResponse } from "next/server";
 export const revalidate = 2700; // 45 min — HaV sampling changes at most daily
 
 const SOURCE = "HaV Badplatser och badvatten API v2.3 (municipal sampling)";
-const BASE =
-  "https://gw.havochvatten.se/external-public/bathing-waters/v2/bathing-waters";
+// Confirmed working host (the gw.havochvatten.se gateway is unreachable from
+// the deploy environment). This per-site detail endpoint returns Swedish fields.
+const BASE = "https://badplatsen.havochvatten.se/badplatsen/api/detail";
 
-// 8 real, verified Stockholm bathing sites (HaV badplats IDs). Only the IDs are
-// hardcoded; name, coordinates and all status come from the live API.
-const SITE_IDS = [
-  "SE0110180000001864", // Brunnsvikens Strandbad
-  "SE0110180000001845", // Smedsuddsbadet V
-  "SE0110180000001832", // Långholmens strandbad
-  "SE0110180000007141", // Tanto, strand 1
-  "SE0110180000001867", // Flatenbadet, allmänna
-  "SE0110180000004457", // Fredhällsbadet, Mälaren
-  "SE0110180000004555", // Kristinebergsbadet
-  "SE0110180000004020", // Johannelundsbadet (Minneberg), Mälaren
+const DISSUASION_WHOLE_SEASON = 99; // "Avrådan hel badsäsong" → a season-long closure
+const DISSUASION_ALGAE = 2; // "Algblomning"
+
+// 8 real, verified Stockholm bathing sites. The detail payload has NO
+// coordinates, so lat/lon are hardcoded from each site's known public location;
+// name is taken live (locationName) with this as a fallback.
+const SITES = [
+  { id: "SE0110180000001864", name: "Brunnsvikens Strandbad", lat: 59.3618, lon: 18.0485 },
+  { id: "SE0110180000001845", name: "Smedsuddsbadet V", lat: 59.3251, lon: 18.0209 },
+  { id: "SE0110180000001832", name: "Långholmens strandbad", lat: 59.322, lon: 18.0241 },
+  { id: "SE0110180000007141", name: "Tanto, strand 1", lat: 59.3119, lon: 18.0383 },
+  { id: "SE0110180000001867", name: "Flatenbadet, allmänna", lat: 59.2525, lon: 18.1588 },
+  { id: "SE0110180000004457", name: "Fredhällsbadet, Mälaren", lat: 59.3304, lon: 17.9959 },
+  { id: "SE0110180000004555", name: "Kristinebergsbadet", lat: 59.3382, lon: 18.0009 },
+  { id: "SE0110180000004020", name: "Johannelundsbadet (Minneberg), Mälaren", lat: 59.341071, lon: 17.986475 },
 ];
 
-const ADVICE_WHOLE_SEASON = 99; // "Avrådan hel badsäsong" → a season-long closure
-
-type Advice = { typeId?: number; typeIdText?: string; description?: string; startsAt?: string };
-type Result = {
-  takenAt?: string;
-  sampleAssessIdText?: string;
-  algalIdText?: string;
-  escherichiaColiCount?: number;
-  escherichiaColiPrefix?: string;
-  intestinalEnterococciCount?: number;
-  intestinalEnterococciPrefix?: string;
-  waterTemp?: string;
+type Dissuasion = { type?: number; dissuasionTypeText?: string; description?: string; startdate?: number };
+type TestResult = {
+  sampleText?: string;
+  algalText?: string;
+  ecoliValue?: number;
+  ecoliPrefix?: string;
+  ecoliClassText?: string;
+  enteroValue?: number;
+  enteroPrefix?: string;
+  enteroClassText?: string;
+  tempValue?: string;
+  weatherText?: string;
+  sampleDate?: number;
 };
-type Detail = {
-  adviceAgainstBathing?: Advice[];
-  bathingWater?: {
-    name?: string;
-    samplingPointPosition?: { latitude?: string; longitude?: string };
-  };
-  profile?: {
-    bloomRisk?: { algae?: boolean; cyano?: boolean };
-    lastFourClassifications?: { qualityClassIdText?: string; year?: number }[];
-  };
-  results?: Result[];
+type HavDetail = {
+  locationName?: string;
+  algalValue?: number;
+  algalText?: string;
+  dissuasion?: Dissuasion[];
+  classificationText?: string;
+  classificationYear?: number;
+  sampleDate?: number; // epoch ms
+  sampleTemperature?: string;
+  testResult?: TestResult[];
 };
 
-// Map the real HaV signals onto the app's status enum. A whole-season advisory
-// is a closure; any other ongoing advice against bathing is an advisory; a
-// bloom risk with no advice is a watch; otherwise none.
-function mapStatus(advice: Advice[], bloomRisk: { algae?: boolean; cyano?: boolean }): string {
-  if (advice.some((a) => a.typeId === ADVICE_WHOLE_SEASON)) return "closed";
-  if (advice.length > 0) return "advisory";
-  if (bloomRisk.algae || bloomRisk.cyano) return "watch";
+// Map the real HaV signals onto the app's status enum.
+function mapStatus(dissuasion: Dissuasion[], algalValue: number | undefined): string {
+  if (dissuasion.some((d) => d.type === DISSUASION_WHOLE_SEASON)) return "closed";
+  if (dissuasion.length > 0) return "advisory";
+  if (algalValue != null && algalValue >= 1 && algalValue <= 3) return "watch";
   return "none";
 }
 
@@ -59,74 +62,79 @@ function num(v: number | undefined): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
-async function fetchSite(id: string) {
-  const res = await fetch(`${BASE}/${id}`, {
+async function fetchSite(site: (typeof SITES)[number]) {
+  const res = await fetch(`${BASE}/${site.id}`, {
     headers: { Accept: "application/json", "User-Agent": "CleanPath/1.0 (municipal monitor)" },
     next: { revalidate: 2700 },
   });
-  if (!res.ok) throw new Error(`HaV ${res.status} for ${id}`);
-  const d = (await res.json()) as Detail;
-  const bw = d.bathingWater || {};
-  const pos = bw.samplingPointPosition || {};
-  const advice = Array.isArray(d.adviceAgainstBathing) ? d.adviceAgainstBathing : [];
-  const bloomRisk = d.profile?.bloomRisk || {};
-  const status = mapStatus(advice, bloomRisk);
+  if (!res.ok) throw new Error(`HaV ${res.status} for ${site.id}`);
+  const d = (await res.json()) as HavDetail;
 
-  // Latest sample (results sorted newest-first).
-  const results = (Array.isArray(d.results) ? d.results : [])
-    .slice()
-    .sort((a, b) => String(b.takenAt || "").localeCompare(String(a.takenAt || "")));
-  const last = results[0] || {};
-  const lastSampled = last.takenAt || null;
-  const ageDays = lastSampled
-    ? Math.floor((Date.now() - Date.parse(lastSampled)) / 86400000)
+  const dissuasion = Array.isArray(d.dissuasion) ? d.dissuasion : [];
+  const status = mapStatus(dissuasion, d.algalValue);
+  const bloom =
+    (d.algalValue != null && d.algalValue >= 1 && d.algalValue <= 3) ||
+    dissuasion.some((x) => x.type === DISSUASION_ALGAE);
+  const advisory = dissuasion.length
+    ? dissuasion.map((x) => x.dissuasionTypeText).filter(Boolean).join(" · ")
+    : null;
+  const classification = d.classificationText
+    ? `${d.classificationText}${d.classificationYear ? " " + d.classificationYear : ""}`
     : null;
 
-  const classification =
-    d.profile?.lastFourClassifications?.[0]?.qualityClassIdText || null;
-  const bloom = !!(bloomRisk.algae || bloomRisk.cyano) || advice.some((a) => a.typeId === 2);
-  const advisory = advice.length
-    ? advice.map((a) => a.typeIdText).filter(Boolean).join(" · ")
-    : null;
+  const sampleMs = num(d.sampleDate);
+  const lastSampled = sampleMs ? new Date(sampleMs).toISOString() : null;
+  const ageDays = sampleMs ? Math.floor((Date.now() - sampleMs) / 86400000) : null;
 
-  const lat = pos.latitude != null ? parseFloat(pos.latitude) : null;
-  const lon = pos.longitude != null ? parseFloat(pos.longitude) : null;
+  const t = (Array.isArray(d.testResult) ? d.testResult : [])[0] || {};
+  const observed = {
+    assessment: t.sampleText || null,
+    algae: t.algalText || d.algalText || null,
+    eColi: num(t.ecoliValue),
+    eColiPrefix: t.ecoliPrefix || "",
+    eColiClass: t.ecoliClassText || null,
+    enterococci: num(t.enteroValue),
+    enterococciPrefix: t.enteroPrefix || "",
+    enteroClass: t.enteroClassText || null,
+    waterTemp: t.tempValue != null ? parseFloat(t.tempValue) : d.sampleTemperature != null ? parseFloat(d.sampleTemperature) : null,
+    weather: t.weatherText || null,
+  };
 
   return {
-    id,
-    name: bw.name || id,
-    lat,
-    lon,
+    id: site.id,
+    name: d.locationName || site.name,
+    lat: site.lat,
+    lon: site.lon,
+    ok: true,
     status,
     bloom,
     advisory,
     classification,
     lastSampled,
     ageDays,
-    // Real observed sample values (HaV), for the detail modal — never synthetic.
-    observed: {
-      assessment: last.sampleAssessIdText || null,
-      algae: last.algalIdText || null,
-      eColi: num(last.escherichiaColiCount),
-      eColiPrefix: last.escherichiaColiPrefix || "",
-      enterococci: num(last.intestinalEnterococciCount),
-      enterococciPrefix: last.intestinalEnterococciPrefix || "",
-      waterTemp: last.waterTemp != null ? parseFloat(last.waterTemp) : null,
-    },
+    observed,
   };
 }
 
 export async function GET() {
-  try {
-    const sites = await Promise.all(SITE_IDS.map(fetchSite));
+  // allSettled so one failed site does not 502 the whole response.
+  const settled = await Promise.allSettled(SITES.map(fetchSite));
+  const sites = settled.map((r, i) =>
+    r.status === "fulfilled"
+      ? r.value
+      : { id: SITES[i].id, name: SITES[i].name, lat: SITES[i].lat, lon: SITES[i].lon, ok: false },
+  );
+
+  if (!sites.some((s) => s.ok)) {
+    const reason = settled.find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
     return NextResponse.json(
-      { ok: true, source: SOURCE, retrieved: new Date().toISOString(), sites },
-      { headers: { "Cache-Control": "s-maxage=2700, stale-while-revalidate=5400" } },
-    );
-  } catch (err) {
-    return NextResponse.json(
-      { ok: false, reason: err instanceof Error ? err.message : "unknown" },
+      { ok: false, reason: reason ? String(reason.reason?.message || reason.reason) : "all sites failed" },
       { status: 502 },
     );
   }
+
+  return NextResponse.json(
+    { ok: true, source: SOURCE, retrieved: new Date().toISOString(), sites },
+    { headers: { "Cache-Control": "s-maxage=2700, stale-while-revalidate=5400" } },
+  );
 }
