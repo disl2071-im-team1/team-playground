@@ -1003,10 +1003,62 @@
     },
   ];
 
+  // Coarse, feathered fire-risk surface — reads like a modelled index map, not
+  // a survey. One feathered blob per zone, in its fire-legend band colour, so
+  // zones read cleanly instead of bleeding through a shared rainbow ramp.
+  // Per-band single-hue gradient: transparent at the edge → opaque band colour
+  // at the hot core.
+  const FIRE_ZONE_GRADIENTS = {
+    Low:      { 0.0: 'rgba(29,158,117,0)',  0.4: 'rgba(29,158,117,0.45)',  1.0: 'rgba(29,158,117,0.85)' },  // #1D9E75
+    Moderate: { 0.0: 'rgba(250,199,117,0)', 0.4: 'rgba(250,199,117,0.50)', 1.0: 'rgba(250,199,117,0.90)' }, // #FAC775
+    High:     { 0.0: 'rgba(239,159,39,0)',  0.4: 'rgba(239,159,39,0.55)',  1.0: 'rgba(239,159,39,0.92)' },  // #EF9F27
+    Extreme:  { 0.0: 'rgba(226,75,74,0)',   0.4: 'rgba(226,75,74,0.60)',   1.0: 'rgba(226,75,74,0.95)' }    // #E24B4A
+  };
+  // Centroid-biased cluster (degree offsets + weight): the centre gives the hot
+  // core, the ring/corner points feather the edges over the zone extent so the
+  // blob never forms a hard rectangle line.
+  const FIRE_CLUSTER = [
+    [0.000,  0.000, 1.00],
+    [0.012,  0.000, 0.55], [-0.012, 0.000, 0.55],
+    [0.000,  0.018, 0.55], [0.000, -0.018, 0.55],
+    [0.009,  0.013, 0.40], [-0.009, 0.013, 0.40],
+    [0.009, -0.013, 0.40], [-0.009, -0.013, 0.40]
+  ];
+  // Index → intensity across the band range (index 2–5 → ~0.25–1.0); scales how
+  // saturated/hot a zone's blob is, so higher risk reads bolder.
+  function fireIntensity(index) { return Math.max(0, Math.min(1, (index - 1) / 4)); }
+  function fireCentroid(latlngs) {
+    let la = 0, lo = 0;
+    latlngs.forEach(p => { la += p[0]; lo += p[1]; });
+    return [la / latlngs.length, lo / latlngs.length];
+  }
+
   function drawFire() {
+    // Feathered modelled risk surface (reuses the heat-layer pattern). Radius
+    // and blur are kept coarse on purpose so it reads as a low-resolution
+    // model, never per-block precision.
+    if (typeof L.heatLayer === 'function') {
+      FIRE_ZONES.forEach(z => {
+        const grad = FIRE_ZONE_GRADIENTS[fireBand(z.index)] || FIRE_ZONE_GRADIENTS.Low;
+        const scale = 0.55 + 0.45 * fireIntensity(z.index); // bolder core for higher index
+        const [clat, clon] = fireCentroid(z.latlngs);
+        // A future hexbin version could read sub-cell values per zone here; not
+        // built now — this PR keeps a single feathered blob per zone.
+        const pts = FIRE_CLUSTER.map(([dla, dlo, w]) => [clat + dla, clon + dlo, w * scale]);
+        gHazard.addLayer(L.heatLayer(pts, { radius: 58, blur: 30, minOpacity: 0.05, max: 0.85, gradient: grad }));
+      });
+    } else {
+      // Graceful fallback to soft discs where leaflet.heat is unavailable.
+      FIRE_ZONES.forEach(z => {
+        const [clat, clon] = fireCentroid(z.latlngs);
+        const c = fireColor(z.index);
+        L.circle([clat, clon], { radius: 2600, color: c, weight: 0, fillColor: c, fillOpacity: 0.3 }).addTo(gHazard);
+      });
+    }
+    // leaflet.heat isn't clickable — keep a transparent hit-area polygon per
+    // zone (reusing the zone geometry) on top so clicking still opens the modal.
     FIRE_ZONES.forEach(z => {
-      const c = fireColor(z.index);
-      L.polygon(z.latlngs, { color: c, weight: 1, opacity: 0.6, fillColor: c, fillOpacity: 0.35 })
+      L.polygon(z.latlngs, { stroke: false, fill: true, fillColor: '#000', fillOpacity: 0, interactive: true })
         .bindTooltip(`${z.name} — ${fireBand(z.index)} (sample)`, { sticky: true })
         .on('click', () => openFireModal(z))
         .addTo(gHazard);
