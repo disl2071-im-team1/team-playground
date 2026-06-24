@@ -757,13 +757,45 @@
   const ALGAE_STATUS_COLOR = { none: '#9CA3AF', watch: '#FAC775', advisory: '#EF9F27', closed: '#E24B4A' };
   const ALGAE_STATUS_LABEL = { none: 'Clear', watch: 'Watch', advisory: 'Advisory', closed: 'Closed' };
 
+  // Marker size by severity (closed/advisory larger than watch/none).
+  const ALGAE_PIN_SIZE = { none: 14, watch: 16, advisory: 20, closed: 22 };
+  // Affected-area radius (metres) for advisory/closed sites only.
+  const ALGAE_SPREAD_M = { advisory: 350, closed: 500 };
+
+  // Discrete bathing-site markers. The sites are independent samples on
+  // hydrologically separate lakes, so NOTHING is interpolated between them —
+  // no bloom surface, no smear. The honest signal here is density, not a field.
   function drawAlgae() {
     ALGAE_SITES.forEach(site => {
       const color = ALGAE_STATUS_COLOR[site.status] || '#9CA3AF';
-      const marker = L.circleMarker(site.ll, {
-        radius: 9, fillColor: color, color: '#FFFFFF', weight: 2, fillOpacity: 0.95
-      });
-      marker.bindTooltip(`<strong>${site.name}</strong><br>${ALGAE_STATUS_LABEL[site.status]}`, { sticky: true });
+      const severe = site.status === 'advisory' || site.status === 'closed';
+
+      // Affected-area indicator — a low-opacity, dashed (modelled) circle
+      // anchored to THIS site alone. Small enough that it never reaches a
+      // neighbouring lake; drawn under the marker so the pin stays on top.
+      if (severe) {
+        const r = ALGAE_SPREAD_M[site.status];
+        L.circle(site.ll, {
+          radius: r, color, weight: 1, opacity: 0.5, fillColor: color, fillOpacity: 0.12, dashArray: '4 4'
+        })
+          .bindTooltip(`${site.name} — modelled local spread · ~${r} m (sample)`, { sticky: true })
+          .on('click', () => openAlgaeModal(site))
+          .addTo(gHazard);
+      }
+
+      // Status-ringed marker: status fill, white ring, sized by severity. Stale
+      // sites read low-confidence (dashed ring + faded); fresh sites read solid.
+      // Advisory/closed sites carry a pulsing severity halo (CSS).
+      const size = ALGAE_PIN_SIZE[site.status] || 14;
+      const halo = severe ? `<span class="algae-pin-halo" style="background:${color}"></span>` : '';
+      const html = `<span class="algae-pin${site.stale ? ' algae-pin-stale' : ''}" style="width:${size}px;height:${size}px">` +
+        `${halo}<span class="algae-pin-dot" style="background:${color}"></span></span>`;
+      const marker = L.marker(site.ll, { icon: L.divIcon({ className: 'algae-pin-icon', html, iconSize: [size, size] }) });
+      marker.bindTooltip(
+        `<strong>${site.name}</strong><br>${ALGAE_STATUS_LABEL[site.status]}` +
+        (site.stale ? ` · data ${site.dataAge} (low confidence)` : ''),
+        { sticky: true }
+      );
       marker.on('click', () => openAlgaeModal(site));
       marker.addTo(gHazard);
     });

@@ -2961,3 +2961,37 @@ textarea.dp-input { resize: vertical; }
   color: var(--text-tertiary);
 }
 
+/* ============================================================
+   Algae bathing-site markers — discrete samples, never a smeared
+   surface. Status fill + white ring, sized by severity; stale reads
+   low-confidence (dashed + faded); advisory/closed pulse a severity halo.
+   ============================================================ */
+.algae-pin-icon { background: transparent; border: none; }
+.algae-pin { position: relative; display: block; }
+.algae-pin-dot {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid #fff;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.4);
+}
+.algae-pin-stale .algae-pin-dot {
+  border-style: dashed;
+  opacity: 0.6;
+  box-shadow: none;
+}
+.algae-pin-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.55;
+  pointer-events: none;
+  animation: algae-halo-pulse 1.8s ease-out infinite;
+}
+@keyframes algae-halo-pulse {
+  0%   { transform: scale(0.8); opacity: 0.5; }
+  70%  { transform: scale(2.6); opacity: 0; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
