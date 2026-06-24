@@ -1448,6 +1448,25 @@
         .addTo(gHazard);
     });
   }
+  // Inline-SVG pictograms for vulnerable sites: a medical cross (care/eldercare)
+  // and a child figure (preschool). Inline SVG keeps rendering consistent across
+  // browsers and legible at the ~18px pin size. Care = round badge, preschool =
+  // rounded-square badge, so they read apart even before colour. Used by the map
+  // pin, the modal and the strip legend so the legend matches the map.
+  function vulnIconSVG(type, opts) {
+    const o = opts || {};
+    const size = o.size || 16;
+    const fill = o.fill || 'currentColor'; // badge colour (band colour on the map)
+    const mark = o.mark || '#fff';          // pictogram colour
+    const stroke = o.stroke ? ` stroke="${o.stroke}" stroke-width="1.5"` : '';
+    const rx = type === 'care' ? 7 : 3;
+    const badge = o.badge === false ? '' : `<rect x="1" y="1" width="14" height="14" rx="${rx}" fill="${fill}"${stroke}/>`;
+    const glyph = type === 'care'
+      ? `<path d="M7 4h2v3h3v2H9v3H7V9H4V7h3z" fill="${mark}"/>`
+      : `<circle cx="8" cy="5" r="1.8" fill="${mark}"/><path d="M8 7.4c-1.8 0-3.1 1.3-3.1 3V12h6.2v-1.6c0-1.7-1.3-3-3.1-3z" fill="${mark}"/>`;
+    return `<svg viewBox="0 0 16 16" width="${size}" height="${size}" aria-hidden="true" style="display:block">${badge}${glyph}</svg>`;
+  }
+
   function drawHeatVulnerable(lead) {
     HEAT_VULNERABLE.forEach(v => {
       const isCare = v.type === 'care';
@@ -1457,7 +1476,9 @@
       const color = heatColor(t);
       const warnPlus = t >= 30; // Warning or Extreme
       const ring = warnPlus ? `<i class="vuln-ring" style="border-color:${color}"></i>` : '';
-      const html = `<span class="vuln-glyph" style="color:${color}">${ring}${isCare ? '♥' : '◆'}</span>`;
+      // fill = currentColor → the band colour set inline below; white outline keeps
+      // the badge legible over the thermal surface (replaces the old text halo).
+      const html = `<span class="vuln-glyph" style="color:${color}">${ring}${vulnIconSVG(v.type, { size: 16, stroke: '#fff' })}</span>`;
       L.marker(v.ll, { icon: L.divIcon({ className: 'vuln-pin' + (isCare ? '' : ' vp-pre'), html, iconSize: [18, 18] }) })
         .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} · ${heatBand(t)} (SMHI forecast)`, { sticky: true })
         .on('click', () => openHeatModal(d))
@@ -1582,8 +1603,8 @@
     if (sub) sub.textContent = `${warnDistricts.length} of ${HEAT_DISTRICTS.length} districts at Warning or above · SMHI forecast ${heatValidTime(lead) || ''}`.trim();
 
     const cats = [
-      { type: 'care', icon: '♥', label: 'Care homes' },
-      { type: 'pre',  icon: '◆', label: 'Preschools' },
+      { type: 'care', color: '#A32D2D', label: 'Care homes' },
+      { type: 'pre',  color: '#534AB7', label: 'Preschools' },
     ];
     grid.innerHTML = cats.map(cat => {
       const total = HEAT_VULNERABLE.filter(v => v.type === cat.type).length;
@@ -1594,7 +1615,7 @@
       const siteLabel = count === 1 ? 'site' : 'sites';
       return `<div class="pollen-card algae-signal-card">
         <div class="pollen-card-glow" style="background:${glowColor}"></div>
-        <span class="pollen-icon">${cat.icon}</span>
+        <span class="pollen-icon">${vulnIconSVG(cat.type, { size: 22, fill: cat.color })}</span>
         <div class="pollen-name">${cat.label} in heat-risk districts</div>
         <div class="algae-signal-bottom">
           <span class="pollen-count" style="color:${color}">${count}</span>
@@ -1714,7 +1735,7 @@
       ? vuln.map(v => {
           const isCare = v.type === 'care';
           return `<div class="heat-vuln-item">
-            <span class="heat-vuln-icon ${isCare ? '' : 'pre'}">${isCare ? '♥' : '◆'}</span>
+            <span class="heat-vuln-icon ${isCare ? '' : 'pre'}">${vulnIconSVG(v.type, { size: 12, badge: false })}</span>
             <span class="heat-vuln-name">${escapeHtml(v.name)}</span>
             <span class="heat-vuln-type">${isCare ? 'care home' : 'preschool'}</span>
           </div>`;
