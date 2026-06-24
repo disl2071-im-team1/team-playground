@@ -2610,7 +2610,7 @@
         { label: 'Affected districts', kind: 'text', placeholder: 'e.g. Södermalm, Kungsholmen' },
         { label: 'Message', kind: 'textarea', placeholder: 'Advisory text…' }
       ],
-      buttons: ['Issue', 'Lift'], confidence: 'mixed', real: true,
+      buttons: ['Issue', 'Lift'], confidence: 'mixed', real: true, temporal: true,
       activate: activateAir
     },
     algae: {
@@ -2630,7 +2630,7 @@
         { label: 'Scope', kind: 'text', placeholder: 'this site only' },
         { label: 'Message', kind: 'textarea', placeholder: 'Notice text…' }
       ],
-      buttons: ['Post', 'Lift'], confidence: 'observed', real: true,
+      buttons: ['Post', 'Lift'], confidence: 'observed', real: true, temporal: false,
       provenance: 'Observed: HaV Badplatser och badvatten API v2.3 — municipal sampling (periodic, seasonal). Not a live sensor and not a forecast.',
       draw: drawAlgae, activate: activateAlgae
     },
@@ -2651,7 +2651,7 @@
         { label: 'Scope', kind: 'text', placeholder: 'by zone' },
         { label: 'Notice', kind: 'textarea', placeholder: 'Ban notice…' }
       ],
-      buttons: ['Declare', 'Lift'], confidence: 'modelled', real: true,
+      buttons: ['Declare', 'Lift'], confidence: 'modelled', real: true, temporal: false,
       provenance: 'Modelled: SMHI fwif1g v1 (Canadian FWI), computed for MSB.',
       draw: drawFire, activate: activateFire
     },
@@ -2673,7 +2673,7 @@
         { label: 'Scope', kind: 'text', placeholder: 'areas + sites' },
         { label: 'Message', kind: 'textarea', placeholder: 'Activation message…' }
       ],
-      buttons: ['Activate', 'Stand down'], confidence: 'high', real: true,
+      buttons: ['Activate', 'Stand down'], confidence: 'high', real: true, temporal: true,
       provenance: 'Forecast: SMHI metfcst snow1g v1 (NWP forecast, not measured).',
       draw: drawHeat,
       onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); gVulnerable.clearLayers(); drawHeatVulnerable(lead); updateHeatHero(); updateHeatStrip(); },
@@ -2705,6 +2705,7 @@
       buttons: ['Issue', 'Lift'],
       confidence: 'high',
       real: true,
+      temporal: true,
       provenance: 'Forecast: SMHI metfcst snow1g v1 (NWP precipitation forecast, not measured).',
       draw: drawRain,
       onLead: (lead) => { gHazard.clearLayers(); drawRain(); updateRainHero(); updateRainStrip(); },
@@ -2741,6 +2742,17 @@
     renderLegend(haz);
     renderLayersPanel(haz);
     renderDecisionPanel(haz);
+
+    // The time slider only means something on temporal tabs (forecast / plume).
+    // Hide it on the others and reset the lead to 0 so they render at the base
+    // hour and don't carry a stale +Nh in from a forecast tab.
+    const sliderRow = document.getElementById('slider-row');
+    if (sliderRow) sliderRow.style.display = haz.temporal ? '' : 'none';
+    if (!haz.temporal) {
+      const slider = document.getElementById('time-slider');
+      if (slider && slider.value !== '0') { slider.value = '0'; slider.dispatchEvent(new Event('input', { bubbles: true })); }
+    }
+
     haz.activate(haz);
     setTimeout(() => map.invalidateSize(), 50);
   }
