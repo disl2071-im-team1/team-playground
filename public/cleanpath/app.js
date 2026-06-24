@@ -213,6 +213,7 @@
       const res = await fetch('/api/air-quality', { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
+      if (currentHazard !== 'air') return; // officer switched tabs mid-fetch
       if (!data.ok) {
         if (data.configured === false) throw new Error('API token not configured');
         throw new Error(data.reason || 'unknown error');
@@ -256,6 +257,7 @@
       const res = await fetch('/api/stockholm-air', { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const data = await res.json();
+      if (currentHazard !== 'air') return; // don't clobber another tab's provenance/hero
       if (!data.ok) throw new Error(data.reason || 'unavailable');
       integrationData = data;
       data.stations.forEach(s => {
@@ -284,6 +286,7 @@
       const url = '/api/cams-pm25' + (hour != null ? `?hour=${hour}` : '');
       const res = await fetch(url, { cache: 'no-store' });
       const data = await res.json();
+      if (currentHazard !== 'air') return; // don't draw the CAMS plume onto another tab
       if (!data.ok) {
         setStatus('cams', 'offline', data.configured === false ? 'API key not configured' : (data.reason || 'unavailable'));
         return;
@@ -1322,18 +1325,18 @@
   }
 
   /* ---- Heat: apparent-temperature surface + vulnerable sites ----
-   * Demo forecast shaped like SMHI output. Labelled placeholder until the
-   * SMHI temperature adapter lands; never dressed up as real measurement.
-   * Temperature is the deliberately high-confidence layer (largely measured),
-   * a contrast to the modelled algae and fire surfaces. */
+   * Real SMHI forecast (metfcst snow1g v1), fetched per district on tab
+   * activation (see /api/heat-forecast). This is NWP forecast data — high
+   * confidence, but never an in-situ measurement, so it is labelled "forecast",
+   * not "measured". heatTempAt() reads the fetched känns-som series by leadHour. */
   const HEAT_DISTRICTS = [
-    { name: 'Norrmalm',    lat: 59.337, lon: 18.058, base: 30.5 },
-    { name: 'Södermalm',   lat: 59.314, lon: 18.072, base: 30.0 },
-    { name: 'Östermalm',   lat: 59.337, lon: 18.085, base: 29.5 },
-    { name: 'Vasastan',    lat: 59.346, lon: 18.045, base: 29.5 },
-    { name: 'Kungsholmen', lat: 59.330, lon: 18.030, base: 28.5 },
-    { name: 'Skärholmen',  lat: 59.277, lon: 17.907, base: 28.0 },
-    { name: 'Älvsjö',      lat: 59.278, lon: 18.010, base: 27.0 }
+    { name: 'Norrmalm',    lat: 59.337, lon: 18.058 },
+    { name: 'Södermalm',   lat: 59.314, lon: 18.072 },
+    { name: 'Östermalm',   lat: 59.337, lon: 18.085 },
+    { name: 'Vasastan',    lat: 59.346, lon: 18.045 },
+    { name: 'Kungsholmen', lat: 59.330, lon: 18.030 },
+    { name: 'Skärholmen',  lat: 59.277, lon: 17.907 },
+    { name: 'Älvsjö',      lat: 59.278, lon: 18.010 }
   ];
   const HEAT_VULNERABLE = [
     { ll: [59.339, 18.061], type: 'care', name: 'Solgården äldreboende' },
@@ -1347,8 +1350,21 @@
     { ll: [59.280, 17.912], type: 'pre',  name: 'Förskolan Galaxen' },
     { ll: [59.279, 18.010], type: 'care', name: 'Älvsjö äldreboende' }
   ];
-  // Diurnal apparent-temperature bump by clock hour: peaks mid-afternoon.
-  const HEAT_DIURNAL = { 12: 1, 13: 1.5, 14: 2, 15: 2.5, 16: 2.5, 17: 2, 18: 1, 19: 0, 20: -1, 21: -1.5, 22: -2, 23: -2.5, 0: -3, 1: -3, 2: -3.5 };
+  // Forecast state: { ok, approvedTime, byName: { [name]: { [leadHour]: hour } } }.
+  // null while loading; { ok:false } on failure — we never fall back to synthetic.
+  let heatForecast = null;
+  function heatSeries(name) {
+    return (heatForecast && heatForecast.ok && heatForecast.byName[name]) || null;
+  }
+  // Real forecast valid time (HH:00, viewer-local) for a lead, from the shared
+  // timegrid — so the hero/modal show the model's hours, not a synthetic clock.
+  function heatValidTime(lead) {
+    if (!heatForecast || !heatForecast.ok) return null;
+    const first = Object.values(heatForecast.byName)[0];
+    const h = first && first[lead];
+    if (!h) return null;
+    return String(new Date(h.validTime).getHours()).padStart(2, '0') + ':00';
+  }
 
   function heatColor(t) {
     if (t >= 33) return '#E24B4A'; // Extreme
@@ -1362,10 +1378,14 @@
     if (t >= 27) return 'Caution';
     return 'Comfortable';
   }
+  // Apparent temperature (känns som) for a district at a forecast lead hour,
+  // read from the fetched SMHI series. null when the forecast is missing for
+  // that district/lead (loading or unavailable) — callers must handle null.
   function heatTempAt(d, lead) {
-    const clock = (14 + lead) % 24;
-    const bump = HEAT_DIURNAL[clock] != null ? HEAT_DIURNAL[clock] : -2;
-    return Math.round((d.base + bump) * 10) / 10;
+    const s = heatSeries(d.name);
+    if (!s) return null;
+    const h = s[lead];
+    return h ? h.apparentC : null;
   }
   // Central water and large-park centroids (Riddarfjärden, Djurgården, the
   // bigger lakes). Injected as low-intensity points so the thermal surface
@@ -1399,21 +1419,23 @@
   function heatPoints(lead) {
     const pts = [];
     HEAT_DISTRICTS.forEach(d => {
-      const inten = heatIntensity(heatTempAt(d, lead));
+      const t = heatTempAt(d, lead);
+      if (t == null) return; // no forecast for this district — leave it out
+      const inten = heatIntensity(t);
       pts.push([d.lat, d.lon, inten]);
       const dy = STOCKHOLM[0] - d.lat, dx = STOCKHOLM[1] - d.lon;
       const len = Math.hypot(dy, dx) || 1;
       pts.push([d.lat + (dy / len) * 0.006, d.lon + (dx / len) * 0.006, inten * 0.95]);
       pts.push([d.lat - (dx / len) * 0.004, d.lon + (dy / len) * 0.004, inten * 0.82]);
     });
-    WATER_PARK_COOL.forEach(w => pts.push([w[0], w[1], 0.12]));
+    if (pts.length) WATER_PARK_COOL.forEach(w => pts.push([w[0], w[1], 0.12]));
     return pts;
   }
 
   function drawHeatZones(lead) {
     // Continuous apparent-temperature surface (reuses the Air CAMS heat
     // pattern). Districts are sparse, so a wide radius + heavy blur keep the
-    // field continuous rather than dotty. Still a sample forecast.
+    // field continuous rather than dotty. SMHI forecast (snow1g v1).
     if (typeof L.heatLayer === 'function') {
       gHazard.addLayer(L.heatLayer(heatPoints(lead), {
         radius: 60, blur: 45, minOpacity: 0.20, max: 1.0, gradient: HEAT_GRADIENT
@@ -1421,7 +1443,9 @@
     } else {
       // Graceful fallback to flat discs where leaflet.heat is unavailable.
       HEAT_DISTRICTS.forEach(d => {
-        const t = heatTempAt(d, lead), c = heatColor(t);
+        const t = heatTempAt(d, lead);
+        if (t == null) return;
+        const c = heatColor(t);
         L.circle([d.lat, d.lon], { radius: 1000, color: c, weight: 1, opacity: 0.5, fillColor: c, fillOpacity: 0.38 }).addTo(gHazard);
       });
     }
@@ -1429,8 +1453,9 @@
     // behaviour now that the visible disc is gone.
     HEAT_DISTRICTS.forEach(d => {
       const t = heatTempAt(d, lead);
+      if (t == null) return;
       L.circleMarker([d.lat, d.lon], { radius: 18, stroke: false, fillColor: '#000', fillOpacity: 0 })
-        .bindTooltip(`${d.name} — känns som ${t}°C · ${heatBand(t)} (sample)`, { sticky: true })
+        .bindTooltip(`${d.name} — känns som ${t}°C · ${heatBand(t)} (SMHI forecast)`, { sticky: true })
         .on('click', () => openHeatModal(d))
         .addTo(gHazard);
     });
@@ -1440,12 +1465,13 @@
       const isCare = v.type === 'care';
       const d = heatNearestDistrict(v.ll);
       const t = heatTempAt(d, lead);
+      if (t == null) return; // no forecast — don't draw a misleading pin
       const color = heatColor(t);
       const warnPlus = t >= 30; // Warning or Extreme
       const ring = warnPlus ? `<i class="vuln-ring" style="border-color:${color}"></i>` : '';
       const html = `<span class="vuln-glyph" style="color:${color}">${ring}${isCare ? '♥' : '◆'}</span>`;
       L.marker(v.ll, { icon: L.divIcon({ className: 'vuln-pin' + (isCare ? '' : ' vp-pre'), html, iconSize: [18, 18] }) })
-        .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} · ${heatBand(t)} (sample vulnerable site)`, { sticky: true })
+        .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} · ${heatBand(t)} (SMHI forecast)`, { sticky: true })
         .on('click', () => openHeatModal(d))
         .addTo(gVulnerable);
     });
@@ -1471,16 +1497,30 @@
 
   /* ---- Heat situation hero — mirrors the air/algae hero, bespoke to heat ----
    * Recomputed at the current lead hour (so it tracks the slider): district
-   * band counts, the spatial peak känns-som value and the clock hour it falls
-   * on, and an officer verdict. Placeholder forecast — the shared PLACEHOLDER
-   * banner and provenance flag carry the honesty; nothing here reads as real. */
+   * band counts, the spatial peak känns-som value and the valid time it falls
+   * on, and an officer verdict. SMHI forecast (snow1g v1) — real NWP data, but
+   * forecast, never a measurement. */
   const HEAT_LEVEL_CLS = { Extreme: 'aq-level-vhigh', Warning: 'aq-level-high', Caution: 'aq-level-mod', Comfortable: 'aq-level-low' };
 
   function updateHeatHero() {
     const hero = document.getElementById('heat-hero');
     if (!hero) return;
+    const lvlEl = document.getElementById('heat-hero-level');
+    const hdEl  = document.getElementById('heat-hero-headline');
+    const bkEl  = document.getElementById('heat-hero-breakdown');
+    const vdEl  = document.getElementById('heat-hero-verdict');
+
+    // No forecast yet (loading) or unavailable — never imply a reading.
+    if (!heatForecast || !heatForecast.ok) {
+      const failed = heatForecast && heatForecast.ok === false;
+      if (lvlEl) { lvlEl.textContent = '—'; lvlEl.className = 'aq-hero-level aq-level-low'; }
+      if (hdEl) hdEl.textContent = failed ? 'Forecast unavailable' : 'Loading SMHI forecast…';
+      if (bkEl) bkEl.innerHTML = '';
+      if (vdEl) { vdEl.textContent = failed ? 'SMHI metfcst snow1g v1 did not respond.' : ''; vdEl.className = 'aq-hero-verdict'; }
+      return;
+    }
+
     const lead = currentLeadHour();
-    const clock = (14 + lead) % 24;
     const total = HEAT_DISTRICTS.length;
     const temps = HEAT_DISTRICTS.map(d => ({ name: d.name, t: heatTempAt(d, lead) }));
     const extreme = temps.filter(x => x.t >= 33);
@@ -1489,11 +1529,7 @@
     const warningPlus = extreme.length + warning.length;
     const peak = temps.reduce((a, b) => (b.t > a.t ? b : a), temps[0]);
     const band = heatBand(peak.t);
-
-    const lvlEl = document.getElementById('heat-hero-level');
-    const hdEl  = document.getElementById('heat-hero-headline');
-    const bkEl  = document.getElementById('heat-hero-breakdown');
-    const vdEl  = document.getElementById('heat-hero-verdict');
+    const peakTime = heatValidTime(lead) || fmtHour((14 + lead) % 24);
 
     if (lvlEl) { lvlEl.textContent = band; lvlEl.className = 'aq-hero-level ' + (HEAT_LEVEL_CLS[band] || 'aq-level-low'); }
 
@@ -1515,7 +1551,7 @@
       ];
       const parts = bands.filter(b => b.n > 0).map(b =>
         `<span class="aq-breakdown-item"><span class="aq-breakdown-dot" style="background:${b.color}"></span>${b.n} ${b.label}</span>`);
-      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">Peak känns som ${peak.t}°C at ${fmtHour(clock)} (${escapeHtml(peak.name)}) · sample forecast</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">Peak känns som ${peak.t}°C at ${peakTime} (${escapeHtml(peak.name)}) · SMHI forecast</span>`);
       bkEl.innerHTML = parts.join('');
     }
 
@@ -1543,11 +1579,19 @@
     const sub  = document.getElementById('heat-strip-sub');
     if (!grid) return;
     const lead = currentLeadHour();
-    const clock = (14 + lead) % 24;
+
+    if (!heatForecast || !heatForecast.ok) {
+      if (sub) sub.textContent = heatForecast && heatForecast.ok === false
+        ? 'Forecast unavailable · SMHI metfcst snow1g v1'
+        : 'Loading SMHI forecast…';
+      grid.innerHTML = '';
+      return;
+    }
+
     const warnDistricts = HEAT_DISTRICTS.filter(d => heatTempAt(d, lead) >= 30);
     const inWarn = HEAT_VULNERABLE.filter(v => heatTempAt(heatNearestDistrict(v.ll), lead) >= 30);
 
-    if (sub) sub.textContent = `${warnDistricts.length} of ${HEAT_DISTRICTS.length} districts at Warning or above · forecast ${fmtHour(clock)} · sample (SMHI adapter not connected)`;
+    if (sub) sub.textContent = `${warnDistricts.length} of ${HEAT_DISTRICTS.length} districts at Warning or above · SMHI forecast ${heatValidTime(lead) || ''}`.trim();
 
     const cats = [
       { type: 'care', icon: '♥', label: 'Care homes' },
@@ -1590,7 +1634,6 @@
    * inside the district, an officer recommendation, audit trail, an Activate /
    * Stand down state machine, and a public message with draft + send logged. */
   const HEAT_STATUS_LABEL = { standby: 'Standby', activated: 'Activated' };
-  const HEAT_CURVE_HOURS = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1, 2];
   const _heatState = {};
   let _heatModalDistrict = null;
   let _heatPendingStatus = null;
@@ -1607,6 +1650,7 @@
 
   function heatRecommendation(d, lead) {
     const t = heatTempAt(d, lead);
+    if (t == null) return `Forecast unavailable for ${d.name} at this hour.`;
     const band = heatBand(t);
     const vuln = heatVulnerableIn(d);
     const care = vuln.filter(v => v.type === 'care').length;
@@ -1620,16 +1664,18 @@
   function renderHeatCurve(d, lead) {
     const host = document.getElementById('heat-modal-curve');
     if (!host) return;
-    const nowClock = (14 + lead) % 24;
-    const lo = 24, hi = 36;
-    host.innerHTML = HEAT_CURVE_HOURS.map(h => {
-      const bump = HEAT_DIURNAL[h] != null ? HEAT_DIURNAL[h] : -2;
-      const t = Math.round((d.base + bump) * 10) / 10;
+    const m = heatSeries(d.name);
+    if (!m) { host.innerHTML = '<div style="font-size:12px;color:var(--text-tertiary);padding:8px 0">Forecast unavailable</div>'; return; }
+    const entries = Object.values(m).sort((a, b) => a.leadHour - b.leadHour);
+    const lo = 10, hi = 35; // apparent-temp scale for bar heights
+    host.innerHTML = entries.map(h => {
+      const t = h.apparentC;
       const pct = Math.max(6, Math.min(100, Math.round(((t - lo) / (hi - lo)) * 100)));
-      const now = h === nowClock ? ' now' : '';
-      return `<div class="heat-curve-col${now}" title="${fmtHour(h)} · känns som ${t}°C · ${heatBand(t)}">
+      const now = h.leadHour === lead ? ' now' : '';
+      const hh = String(new Date(h.validTime).getHours()).padStart(2, '0');
+      return `<div class="heat-curve-col${now}" title="${hh}:00 · känns som ${t}°C · ${heatBand(t)}">
         <div class="heat-curve-bar" style="height:${pct}%;background:${heatColor(t)}"></div>
-        <div class="heat-curve-hr">${String(h).padStart(2, '0')}</div>
+        <div class="heat-curve-hr">${hh}</div>
       </div>`;
     }).join('');
   }
@@ -1670,9 +1716,10 @@
     renderHeatCurve(d, lead);
 
     const t = heatTempAt(d, lead);
-    const clock = (14 + lead) % 24;
-    document.getElementById('heat-modal-now').innerHTML =
-      `Now (${fmtHour(clock)}): känns som <strong style="color:${heatColor(t)}">${t}°C</strong> · ${heatBand(t)} · sample forecast — SMHI adapter not connected`;
+    const validTime = heatValidTime(lead) || fmtHour((14 + lead) % 24);
+    document.getElementById('heat-modal-now').innerHTML = t == null
+      ? 'Forecast unavailable for this district.'
+      : `${validTime}: känns som <strong style="color:${heatColor(t)}">${t}°C</strong> · ${heatBand(t)} · SMHI forecast (snow1g v1)`;
 
     const vuln = heatVulnerableIn(d);
     document.getElementById('heat-modal-vuln').innerHTML = vuln.length
@@ -1736,6 +1783,50 @@
     document.getElementById('heat-modal-sent').style.display = 'block';
   }
 
+  // Format an ISO model time as "HH:MM UTC YYYY-MM-DD" for status/provenance.
+  function heatBaseLabel(iso) {
+    if (!iso) return 'unknown';
+    return `${iso.slice(11, 16)} UTC ${iso.slice(0, 10)}`;
+  }
+
+  async function loadHeatForecast(haz) {
+    setStatus('heat', 'pending', 'loading SMHI forecast…');
+    try {
+      const res = await fetch('/api/heat-forecast', { cache: 'no-store' });
+      const data = await res.json();
+      if (currentHazard !== 'heat') return; // officer switched tabs mid-flight
+      if (!data.ok) throw new Error(data.reason || 'unavailable');
+
+      const byName = {};
+      data.districts.forEach(dist => {
+        const m = {};
+        dist.hours.forEach(h => { m[h.leadHour] = h; });
+        byName[dist.name] = m;
+      });
+      heatForecast = { ok: true, approvedTime: data.approvedTime, byName };
+
+      const horizon = Math.max(0, ...Object.values(byName).flatMap(m => Object.keys(m).map(Number)));
+      const base = heatBaseLabel(data.approvedTime);
+      setStatus('heat', 'ok', `SMHI forecast +${horizon}h · base ${base}`);
+      setProvenance(`Forecast: SMHI metfcst snow1g v1 (NWP, not measured). Model run ${base}.`, 'high', false);
+
+      gHazard.clearLayers();
+      gVulnerable.clearLayers();
+      updateHeatHero();
+      updateHeatStrip();
+      if (haz.draw) haz.draw();
+    } catch (err) {
+      if (currentHazard !== 'heat') return;
+      heatForecast = { ok: false };
+      gHazard.clearLayers();
+      gVulnerable.clearLayers();
+      setStatus('heat', 'offline', 'forecast unavailable (' + err.message + ')');
+      setProvenance('Forecast unavailable — SMHI metfcst snow1g v1 did not respond.', 'high', false);
+      updateHeatHero();
+      updateHeatStrip();
+    }
+  }
+
   function activateHeat(haz) {
     hidePollen();
     hideAirHero();
@@ -1745,12 +1836,14 @@
     hideFireStrip();
     hideRainHero();
     hideRainStrip();
-    updateHeatHero();
+    heatForecast = null; // reset to loading state
     showHeatHero();
     showHeatStrip();
-    setLayerStatus([{ id: 'heat', label: haz.layers[0].label, state: 'offline', detail: 'placeholder · SMHI temperature adapter not yet connected' }]);
-    setProvenance(haz.provenance, haz.confidence, true);
-    if (haz.draw) haz.draw();
+    updateHeatHero();  // shows "Loading SMHI forecast…"
+    updateHeatStrip();
+    setLayerStatus([{ id: 'heat', label: haz.layers[0].label, state: 'pending', detail: 'loading SMHI forecast…' }]);
+    setProvenance(haz.provenance, haz.confidence, false);
+    loadHeatForecast(haz);
   }
 
   /* ============================================================
@@ -2186,7 +2279,7 @@
       sources: haz.sources,
       provenance: document.getElementById('provenance-text').textContent,
       real: !!haz.real,
-      note: haz.real ? 'Live source-tagged readings.' : 'PLACEHOLDER hazard — sample data, not a real measurement.',
+      note: haz.real ? (currentHazard === 'air' ? 'Live source-tagged readings.' : 'Live source-tagged forecast (not measured).') : 'PLACEHOLDER hazard — sample data, not a real measurement.',
       readings: (currentHazard === 'air' && integrationData) ? integrationData.stations : []
     };
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
@@ -2273,13 +2366,13 @@
     heat: {
       eyebrow: 'Extreme heat', verb: 'Activate the municipal heat plan',
       decisionTitle: 'Municipal heat plan',
-      sources: 'SMHI stations · värmebölja',
+      sources: 'SMHI metfcst snow1g v1 (forecast)',
       legend: { title: 'Apparent temp (känns som)', items: [
         { c: '#2C7FB8', t: 'Comfortable <27°' }, { c: '#FAC775', t: 'Caution 27–29°' },
         { c: '#EF9F27', t: 'Warning 30–32°' }, { c: '#E24B4A', t: 'Extreme 33°+' }
       ] },
       layers: [
-        { key: 'hazard', label: 'Apparent-temp surface (placeholder)', on: true, dot: '#EF9F27' },
+        { key: 'hazard', label: 'Apparent-temp surface (SMHI forecast)', on: true, dot: '#EF9F27' },
         { key: 'vulnerable', label: 'Vulnerable sites', on: true, dot: '#A32D2D' },
         { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' }
       ],
@@ -2289,8 +2382,8 @@
         { label: 'Scope', kind: 'text', placeholder: 'areas + sites' },
         { label: 'Message', kind: 'textarea', placeholder: 'Activation message…' }
       ],
-      buttons: ['Activate', 'Stand down'], confidence: 'high', real: false,
-      provenance: 'Measured: SMHI temperature stations (dense). Forecast: värmebölja.',
+      buttons: ['Activate', 'Stand down'], confidence: 'high', real: true,
+      provenance: 'Forecast: SMHI metfcst snow1g v1 (NWP forecast, not measured).',
       draw: drawHeat,
       onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); gVulnerable.clearLayers(); drawHeatVulnerable(lead); updateHeatHero(); updateHeatStrip(); },
       activate: activateHeat
