@@ -1713,17 +1713,69 @@
     }));
   }
 
+  // Radar-style precipitation front (light → deep blue). Low end fades to
+  // transparent so dry ground reads as a gap, not a faint wash.
+  const RAIN_GRADIENT = {
+    0.00: 'rgba(191,219,254,0.00)',
+    0.25: 'rgba(191,219,254,0.65)', // #bfdbfe light
+    0.50: 'rgba(96,165,250,0.78)',  // #60a5fa
+    0.75: 'rgba(37,99,235,0.86)',   // #2563eb
+    1.00: 'rgba(30,58,138,0.92)'    // #1e3a8a deep
+  };
+
+  // Active fraction (0..1) for a district at a clock hour: zero outside its
+  // [startHour, startHour+durationHours) window, a sine bump inside it so rain
+  // ramps up at onset, peaks mid-window and passes at the tail. The window can
+  // run past midnight (the slider clock wraps 14:00 → 02:00).
+  function rainActiveFrac(d, clock) {
+    const end = d.startHour + d.durationHours;
+    let pos = null;
+    if (clock >= d.startHour && clock < end) pos = clock - d.startHour;
+    else if (clock + 24 >= d.startHour && clock + 24 < end) pos = clock + 24 - d.startHour;
+    if (pos === null || d.durationHours <= 0) return 0;
+    return Math.sin(Math.PI * (pos / d.durationHours));
+  }
+  // Effective probability 0..1 = the district's peak probability × active fraction.
+  function rainActiveProb(d, clock) {
+    return (d.rainfall / 100) * rainActiveFrac(d, clock);
+  }
+
   function drawRain() {
-    const data = generateRainData(currentLeadHour());
+    const clock = (14 + currentLeadHour()) % 24;
+    // Stable base storm — movement comes from the per-district window ramp, not
+    // from re-seeding, so the front arrives, peaks and passes coherently.
+    const data = generateRainData();
+
+    // Front field: one weighted point per district plus a few interpolated
+    // midpoints between near neighbours so adjacent cells merge into one front
+    // shape rather than separate discs.
+    const pts = data.map(d => [d.lat, d.lon, rainActiveProb(d, clock)]);
+    for (let i = 0; i < data.length; i++) {
+      for (let j = i + 1; j < data.length; j++) {
+        const a = data[i], b = data[j];
+        if (Math.hypot(a.lat - b.lat, a.lon - b.lon) >= 0.045) continue;
+        const pa = rainActiveProb(a, clock), pb = rainActiveProb(b, clock);
+        if (pa + pb <= 0) continue;
+        pts.push([(a.lat + b.lat) / 2, (a.lon + b.lon) / 2, ((pa + pb) / 2) * 0.9]);
+      }
+    }
+    if (typeof L.heatLayer === 'function') {
+      gHazard.addLayer(L.heatLayer(pts, { radius: 65, blur: 50, minOpacity: 0.18, max: 0.7, gradient: RAIN_GRADIENT }));
+    } else {
+      // Graceful fallback to soft discs where leaflet.heat is unavailable.
+      data.forEach(d => {
+        const c = rainfallColor(Math.round(rainActiveProb(d, clock) * 100));
+        L.circle([d.lat, d.lon], { radius: 1800, color: c, weight: 0, fillColor: c, fillOpacity: 0.22, interactive: false }).addTo(gHazard);
+      });
+    }
+
+    // District markers kept on top as small dots, coloured by the active
+    // probability so they agree with the front; click opens the detail modal.
     data.forEach(d => {
-      const color = rainfallColor(d.rainfall);
-      L.circle([d.lat, d.lon], {
-        radius: 1800, color, weight: 0, fillColor: color, fillOpacity: 0.22, interactive: false,
-      }).addTo(gHazard);
-      L.circleMarker([d.lat, d.lon], {
-        radius: 9, fillColor: color, color: '#fff', weight: 2, fillOpacity: 0.95,
-      })
-        .bindTooltip(`${d.name} — ${d.rainfall}% · ${rainfallLabel(d.rainfall)} (simulated)`, { sticky: true })
+      const pct = Math.round(rainActiveProb(d, clock) * 100);
+      const color = rainfallColor(pct);
+      L.circleMarker([d.lat, d.lon], { radius: 5, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 0.95 })
+        .bindTooltip(`${d.name} — ${pct}% now · ${rainfallLabel(pct)} (simulated)`, { sticky: true })
         .on('click', () => openRainModal(d))
         .addTo(gHazard);
     });
@@ -1747,7 +1799,11 @@
   function updateRainHero() {
     const hero = document.getElementById('rain-hero');
     if (!hero) return;
-    const data = generateRainData(currentLeadHour());
+    // Same moving storm the map draws: each district's probability is its
+    // active value at the current clock, so the hero tracks the front rather
+    // than re-seeding. Window fields stay intact for the peak-window readout.
+    const clock = (14 + currentLeadHour()) % 24;
+    const data = generateRainData().map(d => ({ ...d, rainfall: Math.round(rainActiveProb(d, clock) * 100) }));
     const total = data.length;
     const veryLikely = data.filter(d => d.rainfall >= 65);
     const likely = data.filter(d => d.rainfall >= 50 && d.rainfall < 65);
@@ -1812,8 +1868,11 @@
     const body = document.getElementById('rain-strip-body');
     const sub  = document.getElementById('rain-strip-sub');
     if (!body) return;
-    const data = generateRainData(currentLeadHour());
-    const raining = data.filter(d => d.rainfall >= 30).length;
+    // Stable storm windows give the duration overview; "raining" counts the
+    // districts active at the current clock so the sub line tracks the front.
+    const clock = (14 + currentLeadHour()) % 24;
+    const data = generateRainData();
+    const raining = data.filter(d => rainActiveProb(d, clock) * 100 >= 30).length;
     const { html, peakLabel } = aggDurBar(data, 'on-rain');
     if (sub) sub.textContent = `${raining} of ${data.length} districts with rain · simulated (no live connection)`;
     body.innerHTML =
