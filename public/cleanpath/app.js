@@ -1283,22 +1283,86 @@
     const bump = HEAT_DIURNAL[clock] != null ? HEAT_DIURNAL[clock] : -2;
     return Math.round((d.base + bump) * 10) / 10;
   }
+  // Central water and large-park centroids (Riddarfjärden, Djurgården, the
+  // bigger lakes). Injected as low-intensity points so the thermal surface
+  // dips over water and green space and concentrates over built-up districts.
+  const WATER_PARK_COOL = [
+    [59.322, 18.045], // Riddarfjärden
+    [59.327, 18.115], // Djurgården (park island)
+    [59.366, 18.045], // Brunnsviken
+    [59.358, 18.038], // Hagaparken
+    [59.303, 18.082], // Årstaviken / Hammarby sjö
+    [59.330, 18.108], // Lilla Värtan (east water)
+    [59.330, 17.978], // Mälaren (west)
+    [59.265, 18.040]  // Magelungen (south lake)
+  ];
+  // känns-som gradient: cool blue → caution → warning → extreme. Low end fades
+  // to transparent so water and parks read as gaps in the warm field.
+  const HEAT_GRADIENT = {
+    0.00: 'rgba(44,127,184,0.00)',
+    0.18: 'rgba(44,127,184,0.55)',
+    0.45: 'rgba(250,199,117,0.75)',
+    0.70: 'rgba(239,159,39,0.85)',
+    1.00: 'rgba(226,75,74,0.92)'
+  };
+  // Normalise apparent temperature across the känns-som range (~24–33 °C).
+  function heatIntensity(t) { return Math.max(0, Math.min(1, (t - 24) / (33 - 24))); }
+
+  // Point cloud for the surface at a given lead: a core per district, one or
+  // two satellites nudged toward the built-up city core (so each district has
+  // a shifted hot centre and texture, not a perfect disc), plus the cool
+  // water/park anchors.
+  function heatPoints(lead) {
+    const pts = [];
+    HEAT_DISTRICTS.forEach(d => {
+      const inten = heatIntensity(heatTempAt(d, lead));
+      pts.push([d.lat, d.lon, inten]);
+      const dy = STOCKHOLM[0] - d.lat, dx = STOCKHOLM[1] - d.lon;
+      const len = Math.hypot(dy, dx) || 1;
+      pts.push([d.lat + (dy / len) * 0.006, d.lon + (dx / len) * 0.006, inten * 0.95]);
+      pts.push([d.lat - (dx / len) * 0.004, d.lon + (dy / len) * 0.004, inten * 0.82]);
+    });
+    WATER_PARK_COOL.forEach(w => pts.push([w[0], w[1], 0.12]));
+    return pts;
+  }
+
   function drawHeatZones(lead) {
+    // Continuous apparent-temperature surface (reuses the Air CAMS heat
+    // pattern). Districts are sparse, so a wide radius + heavy blur keep the
+    // field continuous rather than dotty. Still a sample forecast.
+    if (typeof L.heatLayer === 'function') {
+      gHazard.addLayer(L.heatLayer(heatPoints(lead), {
+        radius: 60, blur: 45, minOpacity: 0.20, max: 1.0, gradient: HEAT_GRADIENT
+      }));
+    } else {
+      // Graceful fallback to flat discs where leaflet.heat is unavailable.
+      HEAT_DISTRICTS.forEach(d => {
+        const t = heatTempAt(d, lead), c = heatColor(t);
+        L.circle([d.lat, d.lon], { radius: 1000, color: c, weight: 1, opacity: 0.5, fillColor: c, fillOpacity: 0.38 }).addTo(gHazard);
+      });
+    }
+    // Invisible hit targets keep the känns-som tooltip and open-modal
+    // behaviour now that the visible disc is gone.
     HEAT_DISTRICTS.forEach(d => {
       const t = heatTempAt(d, lead);
-      const c = heatColor(t);
-      L.circle([d.lat, d.lon], { radius: 1000, color: c, weight: 1, opacity: 0.5, fillColor: c, fillOpacity: 0.38 })
+      L.circleMarker([d.lat, d.lon], { radius: 18, stroke: false, fillColor: '#000', fillOpacity: 0 })
         .bindTooltip(`${d.name} — känns som ${t}°C · ${heatBand(t)} (sample)`, { sticky: true })
         .on('click', () => openHeatModal(d))
         .addTo(gHazard);
     });
   }
-  function drawHeatVulnerable() {
+  function drawHeatVulnerable(lead) {
     HEAT_VULNERABLE.forEach(v => {
       const isCare = v.type === 'care';
-      L.marker(v.ll, { icon: L.divIcon({ className: 'vuln-pin' + (isCare ? '' : ' vp-pre'), html: isCare ? '♥' : '◆', iconSize: [18, 18] }) })
-        .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} (sample vulnerable site)`, { sticky: true })
-        .on('click', () => openHeatModal(heatNearestDistrict(v.ll)))
+      const d = heatNearestDistrict(v.ll);
+      const t = heatTempAt(d, lead);
+      const color = heatColor(t);
+      const warnPlus = t >= 30; // Warning or Extreme
+      const ring = warnPlus ? `<i class="vuln-ring" style="border-color:${color}"></i>` : '';
+      const html = `<span class="vuln-glyph" style="color:${color}">${ring}${isCare ? '♥' : '◆'}</span>`;
+      L.marker(v.ll, { icon: L.divIcon({ className: 'vuln-pin' + (isCare ? '' : ' vp-pre'), html, iconSize: [18, 18] }) })
+        .bindTooltip(`${v.name} — ${isCare ? 'care home' : 'preschool'} · ${heatBand(t)} (sample vulnerable site)`, { sticky: true })
+        .on('click', () => openHeatModal(d))
         .addTo(gVulnerable);
     });
   }
@@ -1318,7 +1382,7 @@
   }
   function drawHeat() {
     drawHeatZones(currentLeadHour());
-    drawHeatVulnerable();
+    drawHeatVulnerable(currentLeadHour());
   }
 
   /* ---- Heat situation hero — mirrors the air/algae hero, bespoke to heat ----
@@ -2085,7 +2149,7 @@
       buttons: ['Activate', 'Stand down'], confidence: 'high', real: false,
       provenance: 'Measured: SMHI temperature stations (dense). Forecast: värmebölja.',
       draw: drawHeat,
-      onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); updateHeatHero(); updateHeatStrip(); },
+      onLead: (lead) => { gHazard.clearLayers(); drawHeatZones(lead); gVulnerable.clearLayers(); drawHeatVulnerable(lead); updateHeatHero(); updateHeatStrip(); },
       activate: activateHeat
     },
     rain: {
