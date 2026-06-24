@@ -47,7 +47,7 @@
       </div>
       <div class="status">
         <span class="status-dot"></span>
-        Live · <span id="shell-clock">14:00</span>
+        Live · <span id="shell-clock">--:--</span>
       </div>
     </div>
 
@@ -130,9 +130,9 @@
         </details>
 
         <div class="slider-row">
-          <span class="slider-time">14:00</span>
+          <span class="slider-time" id="slider-base">--:--</span>
           <input type="range" id="time-slider" min="0" max="12" value="0" step="1" aria-label="Forecast lead hour"/>
-          <span class="slider-period" id="slider-period">now → forecast</span>
+          <span class="slider-period" id="slider-period">now</span>
         </div>
       </section>
 

@@ -2583,17 +2583,34 @@
     const s = document.getElementById('time-slider');
     return s ? parseInt(s.value, 10) || 0 : 0;
   }
+  const hhmm = h => String(h).padStart(2, '0') + ':00';
+
+  // Top-right "Live" badge: a real wall clock, decoupled from the slider.
+  // Set on load and refreshed every 60s; it shows "now", never the forecast.
+  function startClock() {
+    const clock = document.getElementById('shell-clock');
+    if (!clock) return;
+    const tick = () => {
+      const d = new Date();
+      clock.textContent = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    };
+    tick();
+    setInterval(tick, 60000);
+  }
+
   function initSlider() {
     const slider = document.getElementById('time-slider');
     const period = document.getElementById('slider-period');
-    const clock = document.getElementById('shell-clock');
+    const baseLabel = document.getElementById('slider-base');
     if (!slider) return;
+    // Anchor the slider to the actual hour at boot. Display-only: data is keyed
+    // by lead index, not by this label, so the indexing is unchanged.
+    const BASE_HOUR = new Date().getHours();
+    if (baseLabel) baseLabel.textContent = hhmm(BASE_HOUR); // "now" anchor
     const update = () => {
       const lead = currentLeadHour();
-      const t = (14 + lead) % 24;
-      const hh = String(t).padStart(2, '0') + ':00';
-      if (clock) clock.textContent = hh;
-      if (period) period.textContent = lead === 0 ? 'now' : `forecast +${lead}h`;
+      const t = (BASE_HOUR + lead) % 24; // forecast target hour
+      if (period) period.textContent = (lead === 0 ? 'now' : `+${lead}h`) + ` · ${hhmm(t)}`;
     };
     let debounce;
     slider.addEventListener('input', () => {
@@ -2615,6 +2632,7 @@
   function boot() {
     initMap();
     initSlider();
+    startClock();
     document.getElementById('export-report').addEventListener('click', exportReport);
     document.querySelectorAll('#hazard-tabs .tab').forEach(t =>
       t.addEventListener('click', () => selectHazard(t.dataset.hazard)));
