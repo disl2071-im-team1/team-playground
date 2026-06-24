@@ -769,6 +769,56 @@
     });
   }
 
+  /* ---- Shared modal keyboard a11y ----
+   * Escape to close, a Tab focus-trap, and focus restore. One modal is open at
+   * a time, so a single active-trap record is enough. Applied to all four
+   * decision modals via their open/close paths. */
+
+  let _activeModalTrap = null;
+
+  function modalFocusables(modal) {
+    return Array.from(modal.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null);
+  }
+
+  function openModalA11y(modalId, closeFn) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    if (_activeModalTrap) closeModalA11y(); // never stack listeners
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+
+    const handler = (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); closeFn(); return; }
+      if (e.key !== 'Tab') return;
+      const els = modalFocusables(modal);
+      if (!els.length) { e.preventDefault(); return; }
+      const first = els[0], last = els[els.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !modal.contains(active)) { e.preventDefault(); last.focus(); }
+      } else {
+        if (active === last || !modal.contains(active)) { e.preventDefault(); first.focus(); }
+      }
+    };
+    document.addEventListener('keydown', handler, true);
+    _activeModalTrap = { handler, prevFocus: document.activeElement };
+
+    // Move focus inside: first focusable, else the close button, else the modal.
+    const els = modalFocusables(modal);
+    const target = els[0] || modal.querySelector('[id$="-modal-close"]') || modal;
+    if (target && target.focus) target.focus();
+  }
+
+  function closeModalA11y() {
+    if (!_activeModalTrap) return;
+    document.removeEventListener('keydown', _activeModalTrap.handler, true);
+    const prev = _activeModalTrap.prevFocus;
+    _activeModalTrap = null;
+    if (prev && prev.focus) prev.focus();
+  }
+
   /* ---- Algae modal ---- */
 
   let _modalSite = null;
@@ -829,6 +879,7 @@
     document.getElementById('algae-modal-sent').style.display = 'none';
 
     document.getElementById('algae-modal').style.display = 'flex';
+    openModalA11y('algae-modal', closeAlgaeModal);
   }
 
   function renderStatusButtons(active) {
@@ -848,6 +899,7 @@
 
   function closeAlgaeModal() {
     document.getElementById('algae-modal').style.display = 'none';
+    closeModalA11y();
     _modalSite = null;
     _pendingStatus = null;
   }
@@ -1227,10 +1279,12 @@
     document.getElementById('fire-modal-sent').style.display = 'none';
 
     document.getElementById('fire-modal').style.display = 'flex';
+    openModalA11y('fire-modal', closeFireModal);
   }
 
   function closeFireModal() {
     document.getElementById('fire-modal').style.display = 'none';
+    closeModalA11y();
     _fireModalZone = null;
     _firePendingStatus = null;
   }
@@ -1767,10 +1821,12 @@
     document.getElementById('heat-modal-sent').style.display = 'none';
 
     document.getElementById('heat-modal').style.display = 'flex';
+    openModalA11y('heat-modal', closeHeatModal);
   }
 
   function closeHeatModal() {
     document.getElementById('heat-modal').style.display = 'none';
+    closeModalA11y();
     _heatModalDistrict = null;
     _heatPendingStatus = null;
   }
@@ -2271,10 +2327,12 @@
     document.getElementById('rain-modal-sent').style.display = 'none';
 
     document.getElementById('rain-modal').style.display = 'flex';
+    openModalA11y('rain-modal', closeRainModal);
   }
 
   function closeRainModal() {
     document.getElementById('rain-modal').style.display = 'none';
+    closeModalA11y();
     _rainModalDistrict = null;
     _rainPendingStatus = null;
   }
