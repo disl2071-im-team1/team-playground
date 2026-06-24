@@ -315,6 +315,85 @@
   .slide.review .ph-tag { background: rgba(176, 141, 87, 0.12); }
   .ph-note { color: var(--placeholder); font-size: 0.82em; font-style: italic; opacity: 0.8; max-width: 24em; margin-top: 0.4em; }
 
+  /* ---------- Stack slide ---------- */
+  .slide.stack { justify-content: flex-start; padding-top: 9cqh; }
+  .slide.stack h2.title { font-size: 1.5em; margin-bottom: 0.25em; }
+  .stack .subtitle {
+    font-size: 0.74em;
+    color: var(--muted);
+    margin-bottom: 0.7em;
+    max-width: 38em;
+    line-height: 1.4;
+  }
+  .stack-tiers { display: flex; flex-direction: column; gap: 0.32em; width: 100%; }
+  .tier { display: grid; grid-template-columns: 6em 1fr; gap: 0.9em; align-items: stretch; }
+  .tier-label {
+    font-size: 0.52em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    align-self: center;
+  }
+  .tier-cards { display: flex; gap: 0.55em; }
+  .scard {
+    flex: 1;
+    background: linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.45em;
+    padding: 0.42em 0.65em;
+  }
+  .scard.lead {
+    background: linear-gradient(145deg, var(--accent-dim), rgba(255,255,255,0.012));
+    border-color: rgba(126, 200, 160, 0.3);
+  }
+  .scard .sc-title { font-size: 0.72em; font-weight: 700; color: var(--fg); margin-bottom: 0.12em; }
+  .scard .sc-line { font-size: 0.58em; color: #cfcfcf; line-height: 1.3; }
+  .scard .sc-sub { font-size: 0.54em; color: var(--muted); line-height: 1.3; margin-top: 0.15em; }
+  .scard .sc-badge {
+    display: inline-block;
+    font-size: 0.46em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-radius: 999px;
+    padding: 0.3em 0.65em;
+    margin-top: 0.35em;
+  }
+
+  /* ---------- Linearisation flow slide ---------- */
+  .slide.flow { justify-content: center; }
+  .flow-steps { display: flex; align-items: stretch; gap: 0.35em; width: 100%; margin-top: 0.5em; }
+  .fstep {
+    flex: 1;
+    background: linear-gradient(160deg, rgba(126,200,160,0.09), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.5em;
+    padding: 0.7em 0.65em;
+    display: flex;
+    flex-direction: column;
+  }
+  .fstep .fnum { font-size: 0.6em; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.35em; }
+  .fstep .fname { font-size: 0.84em; font-weight: 700; color: var(--fg); margin-bottom: 0.3em; }
+  .fstep .fdesc { font-size: 0.6em; color: #cfcfcf; line-height: 1.35; flex: 1; }
+  .fstep .fchip {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: 0.6em;
+    font-size: 0.52em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-radius: 999px;
+    padding: 0.32em 0.65em;
+  }
+  .flow-arrow { display: flex; align-items: center; color: var(--muted-dim); font-size: 1.1em; }
+  .flow-foot { margin-top: 1.5em; font-size: 0.9em; color: var(--accent); max-width: 34em; line-height: 1.4; }
+
   /* ---------- Overlays ---------- */
   .progress {
     position: fixed;
@@ -446,14 +525,14 @@
     <section class="slide">
       <div class="label">Framing</div>
       <div class="content">
-        <h2 class="title">The brief asked for a product. We built a company.</h2>
+        <h2 class="title">The brief asked for a prototype. We built the operating model behind it.</h2>
         <ul class="points body">
-          <li>We were asked to build a <strong>digital product</strong></li>
-          <li>We decided to build a <strong>company first</strong></li>
-          <li>A full-service <strong>agentic product company</strong> — with AI doing the coordination work humans usually do</li>
+          <li>The brief placed us as a <strong>thinktank</strong>: take a direction, make it real, critically evaluate it</li>
+          <li>We did not form a company. We built the <strong>operating model</strong> a five-person AI-native team runs on</li>
+          <li><strong>Clean Path</strong> is the first thing that model produced</li>
         </ul>
       </div>
-      <div class="notes-src">Pelle owns this. Position it as a systems-level choice, not just a product choice. The product is downstream of the company we chose to be.</div>
+      <div class="notes-src">Pelle owns this. This slide is about the operating model, not a literal company. Position it as a systems choice: the model is the deliverable, and Clean Path is what the model produced.</div>
     </section>
 
     <!-- 3 — THE USER -->
@@ -463,12 +542,12 @@
         <h2 class="title">Who it's for, and what it is</h2>
         <ul class="points body">
           <li><strong>Municipality environmental departments</strong></li>
-          <li>The need: real-time visibility of air quality, precipitation, heat, and algae risk</li>
-          <li>The product: <strong>Clean Path</strong> — a monitoring dashboard that surfaces environmental data by hazard type</li>
-          <li class="dim">"What we built is a future scenario — the prototype shows the direction, not the destination."</li>
+          <li>The need: officer-ready visibility of five hazards, air quality, bathing-water algae, fire risk, extreme heat, and rainfall</li>
+          <li><strong>Clean Path</strong>: a monitoring and decision surface, one shell per hazard</li>
+          <li>Built and running on real, source-tagged data, every layer labelled measured, forecast, modelled or sampled</li>
         </ul>
       </div>
-      <div class="notes-src">Pelle. Frame Clean Path as a future scenario. The prototype shows direction, not destination — this protects us from "but the data isn't live" questions.</div>
+      <div class="notes-src">Pelle. The data is real and source-tagged now, so lead with that. Five hazards, each in its own shell, every layer labelled measured, forecast, modelled or sampled. Don't deflect into "it's just a scenario", the surface is running on real data.</div>
     </section>
 
     <!-- DIVIDER 02 -->
@@ -485,52 +564,126 @@
       <div class="content">
         <h2 class="title">A headless team</h2>
         <ul class="points body">
-          <li>No traditional PM or project manager</li>
-          <li><strong>Stilla</strong> acted as coordinator: ran standups, wrote and assigned tickets, tracked blockers</li>
-          <li>Each human owned a vertical: design (Natálie), feature areas (Jónas, Mike, Pablo), framing (Pelle)</li>
-          <li>Decision-making was async and explicit — everything went through <strong>GitHub PRs</strong> and <strong>Linear</strong></li>
+          <li>No project manager, no team lead. <strong>Five equals</strong> working at the same time</li>
+          <li><strong>Stilla</strong> supported the meetings: prepared agendas and discussion topics, summarised each session, and surfaced the open tickets</li>
+          <li>It did not run standups, assign the work, or own the backlog. We did that together</li>
+          <li>Everything stayed visible and explicit through <strong>GitHub PRs</strong> and <strong>Linear</strong></li>
         </ul>
       </div>
-      <div class="notes-src">Pelle. "Headless" = the coordination role exists, but a human doesn't fill it. Emphasise: the work was made legible enough for an AI to coordinate.</div>
+      <div class="notes-src">Pelle. "Headless" means no PM role exists at all. The team self-organised as five equals. Stilla was a meeting aide, not a coordinator: it prepared agendas, summarised sessions, and surfaced tickets, but the team owned the standups, the assignments, and the backlog.</div>
     </section>
 
-    <!-- 5 — CONWAY'S LAW -->
-    <section class="slide quote-slide">
+    <!-- 5 — THE IRREDUCIBLE STACK -->
+    <section class="slide stack">
       <div class="label">How we organised</div>
-      <blockquote class="pull">
-        "Any organisation that designs a system will produce a design whose structure is a copy of the organisation's communication structure."
-        <span class="src">Mel Conway · 1967</span>
-      </blockquote>
-      <div class="below">Our team structure and our tech stack are the same diagram.</div>
-      <div class="notes-src">This is the conceptual anchor. The modular codebase mirrors the modular team. Each person owned a tab; each tab was a separate component merged via PR. Don't rush it — this idea reappears in section 4.</div>
-    </section>
-
-    <!-- 6 — THE STACK -->
-    <section class="slide">
-      <div class="label">How we organised</div>
-      <h2 class="title" style="margin-bottom:1em;">Same tools, different roles</h2>
-      <div class="twocol body" style="width:100%;">
-        <div class="col human">
-          <h3>Humans do</h3>
-          <ul>
-            <li>Write and review code</li>
-            <li>Run demos</li>
-            <li>Make design calls</li>
-            <li>Present</li>
-          </ul>
+      <h2 class="title" style="margin-bottom:0.3em;">The Irreducible Stack</h2>
+      <div class="subtitle">A five-person, AI-native digital company, organised by capability, not by tool.</div>
+      <div class="stack-tiers">
+        <div class="tier">
+          <div class="tier-label">Orchestrate</div>
+          <div class="tier-cards">
+            <div class="scard lead">
+              <div class="sc-title">Stilla</div>
+              <div class="sc-line">The agent that coordinates across the tools below it</div>
+              <div class="sc-sub">Prepares agendas, surfaces open tickets, summarises sessions, routes context</div>
+              <span class="sc-badge">lightens the human-as-glue work</span>
+            </div>
+          </div>
         </div>
-        <div class="col">
-          <h3>Stilla does</h3>
-          <ul>
-            <li>Writes tickets and acceptance criteria</li>
-            <li>Runs the standup</li>
-            <li>Reviews PRs and flags conflicts</li>
-            <li>Keeps the backlog current</li>
-          </ul>
+        <div class="tier">
+          <div class="tier-label">Coordinate</div>
+          <div class="tier-cards">
+            <div class="scard">
+              <div class="sc-title">Slack</div>
+              <div class="sc-line">Human coordination, in real time</div>
+              <div class="sc-sub">where five people stay in sync</div>
+            </div>
+            <div class="scard">
+              <div class="sc-title">Linear</div>
+              <div class="sc-line">Work-state and orchestration spine</div>
+              <div class="sc-sub">what work exists, and is it done</div>
+            </div>
+            <div class="scard">
+              <div class="sc-title">Miro</div>
+              <div class="sc-line">Shared canvas and info sharing</div>
+              <div class="sc-sub">where thinking is made visible</div>
+            </div>
+          </div>
+        </div>
+        <div class="tier">
+          <div class="tier-label">Produce</div>
+          <div class="tier-cards">
+            <div class="scard">
+              <div class="sc-title">Claude</div>
+              <div class="sc-line">Generate · turns intent into software</div>
+              <div class="sc-sub">the layer that collapsed the old stack</div>
+            </div>
+            <div class="scard">
+              <div class="sc-title">GitHub</div>
+              <div class="sc-line">Version · code as source of truth</div>
+            </div>
+            <div class="scard">
+              <div class="sc-title">Vercel</div>
+              <div class="sc-line">Deploy and host · ships it to the world</div>
+            </div>
+          </div>
+        </div>
+        <div class="tier">
+          <div class="tier-label">Foundation</div>
+          <div class="tier-cards">
+            <div class="scard">
+              <div class="sc-title">GSuite · Google Auth</div>
+              <div class="sc-line">Identity</div>
+              <div class="sc-sub">who is allowed to do what</div>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="footnote">GitHub · Linear · Claude · Stilla — same tools, different roles</div>
-      <div class="notes-src">Don't linger. One pass through each column is enough. The punchline is the footnote: the tools are shared; the roles are split.</div>
+      <div class="notes-src">The team and the stack are organised by capability, not by tool. This replaces the abstract Conway quote with the concrete stack: orchestrate, coordinate, produce, foundation. Stilla sits on top, coordinating across the layers below. Note the produce tier is where Claude collapsed the old stack into one generate step.</div>
+    </section>
+
+    <!-- 6 — LINEARISATION: IDEA TO LIVE -->
+    <section class="slide flow">
+      <div class="label">How we organised</div>
+      <h2 class="title" style="margin-bottom:0.2em;">Linearisation: idea to live</h2>
+      <div class="flow-steps">
+        <div class="fstep">
+          <div class="fnum">01</div>
+          <div class="fname">Discover</div>
+          <div class="fdesc">Claude interviews you on the Solo canvas</div>
+          <span class="fchip">Claude (chat)</span>
+        </div>
+        <div class="flow-arrow">›</div>
+        <div class="fstep">
+          <div class="fnum">02</div>
+          <div class="fname">Compress</div>
+          <div class="fdesc">Claude stress-tests and writes the feature cards</div>
+          <span class="fchip">Claude (chat)</span>
+        </div>
+        <div class="flow-arrow">›</div>
+        <div class="fstep">
+          <div class="fnum">03</div>
+          <div class="fname">Track</div>
+          <div class="fdesc">Each card becomes a Linear issue</div>
+          <span class="fchip">Linear</span>
+        </div>
+        <div class="flow-arrow">›</div>
+        <div class="fstep">
+          <div class="fnum">04</div>
+          <div class="fname">Build</div>
+          <div class="fdesc">Claude Code works the issue in the terminal</div>
+          <span class="fchip">Terminal (reads Linear)</span>
+        </div>
+        <div class="flow-arrow">›</div>
+        <div class="fstep">
+          <div class="fnum">05</div>
+          <div class="fname">Ship</div>
+          <div class="fdesc">Open a PR, review, merge, live</div>
+          <span class="fchip">GitHub + Vercel</span>
+        </div>
+      </div>
+      <div class="flow-foot">No human writes the code. We specify and review, the pipeline does the rest.</div>
+      <div class="notes-src">The punchline: humans direct and review while the agent builds, and work moves in one direction. Idea to live in five steps, discover, compress, track, build, ship. We specify and review at the ends, the pipeline does the work in the middle.</div>
     </section>
 
     <!-- 7 — OPERATING RHYTHM -->
@@ -539,13 +692,13 @@
       <div class="content">
         <h2 class="title">Operating rhythm</h2>
         <ul class="points body">
-          <li>Weekly <strong>Monday check-in</strong> (18:00 GMT): progress, blockers, action items</li>
-          <li>Async throughout the week via <strong>Slack + GitHub</strong></li>
-          <li>Stilla synthesises notes and sends action lists after each session</li>
+          <li>Weekly <strong>sync</strong>, 20:00 CET</li>
+          <li>Async through the week via <strong>Slack</strong> and <strong>GitHub</strong></li>
+          <li>Stilla summarises each session and surfaces the open tickets</li>
         </ul>
       </div>
       <div style="position:absolute; bottom:6cqh; right:8cqw; font-size:0.62em; color:var(--muted-dim); max-width:14em; text-align:right; line-height:1.4;">Biggest blocker: which meeting tool to use</div>
-      <div class="notes-src">Pelle. The corner joke is real and lands — every team has lost a week to tooling debates. Use it to humanise the AI-coordination story.</div>
+      <div class="notes-src">Pelle. Weekly sync at 20:00 CET, async the rest of the week via Slack and GitHub. Stilla summarises each session and surfaces the open tickets. The corner joke is real and lands: every team has lost a week to tooling debates. Use it to humanise the story.</div>
     </section>
 
     <!-- DIVIDER 03 -->
