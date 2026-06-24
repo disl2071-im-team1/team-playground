@@ -930,68 +930,22 @@
   const FIRE_STATUS_LABEL = { none: 'No ban', ban: 'Ban declared' };
   const FIRE_STATUS_BTN   = { none: 'Lift ban', ban: 'Declare ban' };
 
+  // Static zone identity + officer state (status/audit persist across redraws).
+  // index/fwi/band/drivers are populated from the real SMHI FWI on activation
+  // (see /api/fire-risk); index is the SMHI 1–6 fire-risk class (fwiindex).
+  function fireAuditSeed() {
+    return [{ time: 'start of shift', text: 'Monitoring SMHI fwif1g fire-risk forecast. No restriction active.' }];
+  }
   const FIRE_ZONES = [
-    {
-      id: 'nw', short: 'NW zone', name: 'NW zone — Järvafältet', latlngs: fireBox(59.36, 18.02, 0.03),
-      index: 2, status: 'none', trend: 'Stable — light rain forecast midweek',
-      drivers: [
-        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '3 days', severity: 1 },
-        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '5 m/s',  severity: 1 },
-        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Moist',  severity: 0 },
-        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '2 days', severity: 0 },
-      ],
-      recommendation: 'No action needed. The grassland here is still moist and winds are light; modelled risk is Low. Continue routine monitoring of the brandrisk forecast.',
-      audit: [
-        { time: '1 day ago',  text: 'Modelled brandrisk reviewed — Low. No restriction. Officer: A. Lindqvist' },
-        { time: '6 days ago', text: 'Routine review — Low' },
-      ],
-    },
-    {
-      id: 'ne', short: 'NE zone', name: 'NE zone — Norra Djurgården', latlngs: fireBox(59.36, 18.12, 0.03),
-      index: 3, status: 'none', trend: 'Rising — no rain in the 5-day forecast',
-      drivers: [
-        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '6 days', severity: 2 },
-        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '8 m/s',  severity: 1 },
-        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Dry',    severity: 2 },
-        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '6 days', severity: 2 },
-      ],
-      recommendation: 'No ban yet, but conditions are drying. Modelled risk is Moderate and trending up with no rain forecast. Prepare a precautionary burning advisory and re-check the brandrisk model daily.',
-      audit: [
-        { time: '4h ago',     text: 'Modelled brandrisk reviewed — Moderate, rising. Officer: M. Eriksson' },
-        { time: '3 days ago', text: 'Routine review — Low → Moderate' },
-      ],
-    },
-    {
-      id: 'sw', short: 'SW zone', name: 'SW zone — Älvsjöskogen', latlngs: fireBox(59.29, 18.02, 0.03),
-      index: 4, status: 'none', trend: 'Holding — dry, breezy week ahead',
-      drivers: [
-        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '9 days',   severity: 3 },
-        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '12 m/s',   severity: 2 },
-        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Very dry', severity: 3 },
-        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '9 days',   severity: 2 },
-      ],
-      recommendation: 'Open-burning ban advised. Modelled risk is High: nine dry days, very dry forest fuel and fresh winds. Declare a ban for this zone and post signage at trailheads. Re-evaluate when measurable rain is forecast.',
-      audit: [
-        { time: '2h ago',     text: 'Modelled brandrisk reviewed — High. Ban advised. Officer: M. Eriksson' },
-        { time: '2 days ago', text: 'Routine review — Moderate → High' },
-      ],
-    },
-    {
-      id: 'se', short: 'SE zone', name: 'SE zone — Nackareservatet', latlngs: fireBox(59.29, 18.12, 0.03),
-      index: 5, status: 'none', trend: 'Climbing — record dry spell, strong winds',
-      drivers: [
-        { key: 'dry-days',        icon: '☀️', label: 'Consecutive dry days',      value: '12 days',    severity: 3 },
-        { key: 'wind',            icon: '💨', label: 'Wind speed',                 value: '18 m/s',     severity: 3 },
-        { key: 'fuel-dryness',    icon: '🌿', label: 'Fuel / vegetation dryness',  value: 'Tinder-dry', severity: 3 },
-        { key: 'days-since-rain', icon: '🌧️', label: 'Days since measurable rain', value: '14 days',    severity: 3 },
-      ],
-      recommendation: 'Declare an open-burning ban immediately. Modelled risk is Extreme: a record dry spell, tinder-dry fuel and strong winds make any ignition dangerous. Declare the ban, notify the public and brief the rescue service.',
-      audit: [
-        { time: '1h ago',    text: 'Modelled brandrisk reviewed — Extreme. Immediate ban advised. Officer: A. Lindqvist' },
-        { time: '1 day ago', text: 'Routine review — High → Extreme' },
-      ],
-    },
+    { id: 'nw', short: 'NW zone', name: 'NW zone — Järvafältet',      latlngs: fireBox(59.36, 18.02, 0.03), status: 'none', audit: fireAuditSeed(), index: null, fwi: null, band: null, drivers: [] },
+    { id: 'ne', short: 'NE zone', name: 'NE zone — Norra Djurgården', latlngs: fireBox(59.36, 18.12, 0.03), status: 'none', audit: fireAuditSeed(), index: null, fwi: null, band: null, drivers: [] },
+    { id: 'sw', short: 'SW zone', name: 'SW zone — Älvsjöskogen',     latlngs: fireBox(59.29, 18.02, 0.03), status: 'none', audit: fireAuditSeed(), index: null, fwi: null, band: null, drivers: [] },
+    { id: 'se', short: 'SE zone', name: 'SE zone — Nackareservatet',  latlngs: fireBox(59.29, 18.12, 0.03), status: 'none', audit: fireAuditSeed(), index: null, fwi: null, band: null, drivers: [] },
   ];
+  // Forecast state: null while loading, true once populated, false on failure
+  // (we never fall back to synthetic data).
+  let fireForecastOk = null;
+  let _fireApprovedTime = null, _fireValidTime = null;
 
   // Coarse, feathered fire-risk surface — reads like a modelled index map, not
   // a survey. One feathered blob per zone, in its fire-legend band colour, so
@@ -1024,9 +978,11 @@
   }
 
   function drawFire() {
+    if (fireForecastOk !== true) return; // loading/unavailable — empty layer
     // Feathered modelled risk surface (reuses the heat-layer pattern). Radius
     // and blur are kept coarse on purpose so it reads as a low-resolution
-    // model, never per-block precision.
+    // model, never per-block precision. The values are real SMHI FWI, but FWI
+    // is a model — so the surface stays a modelled index, never a measurement.
     if (typeof L.heatLayer === 'function') {
       FIRE_ZONES.forEach(z => {
         const grad = FIRE_ZONE_GRADIENTS[fireBand(z.index)] || FIRE_ZONE_GRADIENTS.Low;
@@ -1049,7 +1005,7 @@
     // zone (reusing the zone geometry) on top so clicking still opens the modal.
     FIRE_ZONES.forEach(z => {
       L.polygon(z.latlngs, { stroke: false, fill: true, fillColor: '#000', fillOpacity: 0, interactive: true })
-        .bindTooltip(`${z.name} — ${fireBand(z.index)} (sample)`, { sticky: true })
+        .bindTooltip(`${z.name} — ${fireBand(z.index)}${z.fwi != null ? ' · FWI ' + z.fwi : ''} (SMHI FWI, modelled)`, { sticky: true })
         .on('click', () => openFireModal(z))
         .addTo(gHazard);
     });
@@ -1061,6 +1017,19 @@
   function updateFireHero() {
     const hero = document.getElementById('fire-hero');
     if (!hero) return;
+    const lvlEl0 = document.getElementById('fire-hero-level');
+    const hdEl0  = document.getElementById('fire-hero-headline');
+    const bkEl0  = document.getElementById('fire-hero-breakdown');
+    const vdEl0  = document.getElementById('fire-hero-verdict');
+    if (fireForecastOk !== true) {
+      const failed = fireForecastOk === false;
+      if (lvlEl0) { lvlEl0.textContent = '—'; lvlEl0.className = 'aq-hero-level aq-level-low'; }
+      if (hdEl0) hdEl0.textContent = failed ? 'Fire-risk forecast unavailable' : 'Loading SMHI FWI…';
+      if (bkEl0) bkEl0.innerHTML = '';
+      if (vdEl0) { vdEl0.textContent = failed ? 'SMHI fwif1g v1 did not respond.' : ''; vdEl0.className = 'aq-hero-verdict'; }
+      hero.style.display = 'flex';
+      return;
+    }
     const total = FIRE_ZONES.length;
     const zones = FIRE_ZONES.map(z => ({ short: z.short, band: fireBand(z.index) }));
     const extreme = zones.filter(z => z.band === 'Extreme');
@@ -1091,7 +1060,7 @@
       ];
       const parts = bands.filter(b => b.n > 0).map(b =>
         `<span class="aq-breakdown-item"><span class="aq-breakdown-dot" style="background:${b.color}"></span>${b.n} ${b.label}</span>`);
-      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} zones · modelled (no measurement)</span>`);
+      parts.push(`<span class="aq-breakdown-item" style="color:var(--text-tertiary)">${total} zones · modelled, SMHI/MSB FWI</span>`);
       bkEl.innerHTML = parts.join('');
     }
 
@@ -1112,12 +1081,13 @@
   function hideFireHero() { const h = document.getElementById('fire-hero'); if (h) h.style.display = 'none'; }
 
   /* ---- Fire driver strip — mirrors the algae risk strip ----
-   * Aggregates the modelled drivers across zones (consecutive dry days, wind,
-   * fuel dryness): how many zones carry each driver at an elevated level. */
+   * Aggregates the real SMHI FWI driver components across zones (wind, fine
+   * fuel moisture, drought code): how many zones carry each at an elevated
+   * level. The values are real; FWI is still a model, so "modelled". */
   const FIRE_DRIVER_META = {
-    'dry-days':     { icon: '☀️', label: 'Consecutive dry days' },
-    'wind':         { icon: '💨', label: 'High wind' },
-    'fuel-dryness': { icon: '🌿', label: 'Fuel dryness' },
+    'wind': { icon: '💨', label: 'High wind' },
+    'ffmc': { icon: '🌿', label: 'Dry fine fuel (FFMC)' },
+    'dc':   { icon: '☀️', label: 'Drought (DC)' },
   };
 
   function updateFireStrip() {
@@ -1125,7 +1095,16 @@
     const sub  = document.getElementById('fire-strip-sub');
     if (!grid) return;
     const total = FIRE_ZONES.length;
-    if (sub) sub.textContent = `Modelled brandrisk drivers across ${total} zones · sample (no direct measurement)`;
+
+    if (fireForecastOk !== true) {
+      if (sub) sub.textContent = fireForecastOk === false
+        ? 'Fire-risk forecast unavailable · SMHI fwif1g v1'
+        : 'Loading SMHI FWI…';
+      grid.innerHTML = '';
+      return;
+    }
+
+    if (sub) sub.textContent = `Modelled FWI drivers across ${total} zones · SMHI/MSB FWI`;
 
     grid.innerHTML = Object.keys(FIRE_DRIVER_META).map(key => {
       const meta = FIRE_DRIVER_META[key];
@@ -1172,6 +1151,22 @@
     return sev >= 3 ? 'val-high' : sev >= 2 ? 'val-warn' : 'val-ok';
   }
 
+  // Format a model valid time (ISO) as "HH:00, DD Mon" (viewer-local).
+  function fireWhen(iso) {
+    const d = new Date(iso);
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    return `${String(d.getHours()).padStart(2, '0')}:00, ${d.getDate()} ${mon}`;
+  }
+
+  // Officer recommendation from the modelled band — no synthetic specifics.
+  function fireRecommendation(z) {
+    const band = fireBand(z.index);
+    if (band === 'Extreme') return `Modelled fire-risk is Extreme (SMHI FWI) in ${z.name}. Declare an open-burning ban immediately, notify the public and brief the rescue service.`;
+    if (band === 'High') return `Modelled fire-risk is High (SMHI FWI) in ${z.name}. An open-burning ban is advised; post signage at trailheads and re-check the FWI daily.`;
+    if (band === 'Moderate') return `Modelled fire-risk is Moderate (SMHI FWI) in ${z.name}. No ban yet; prepare a precautionary burning advisory and monitor the forecast.`;
+    return `Modelled fire-risk is Low (SMHI FWI) in ${z.name}. No restriction needed; continue routine monitoring of the brandrisk forecast.`;
+  }
+
   function renderFireAudit(z) {
     const el = document.getElementById('fire-modal-audit');
     if (!el) return;
@@ -1211,9 +1206,9 @@
     ).join('');
 
     document.getElementById('fire-modal-index').innerHTML =
-      `Modelled fire-risk index <strong style="color:${fireColor(z.index)}">${z.index} of 5</strong> · ${fireBand(z.index)} · ${escapeHtml(z.trend)} · modelled — no direct measurement`;
+      `Modelled fire-risk index <strong style="color:${fireColor(z.index)}">${z.index} of 6</strong> · ${fireBand(z.index)}${z.fwi != null ? ' · FWI ' + z.fwi : ''} · SMHI fwif1g v1 (modelled, for MSB)${_fireValidTime ? ' — valid ' + fireWhen(_fireValidTime) : ''}`;
 
-    document.getElementById('fire-modal-rec').textContent = z.recommendation;
+    document.getElementById('fire-modal-rec').textContent = fireRecommendation(z);
     renderFireAudit(z);
     renderFireStatusButtons(_firePendingStatus);
 
@@ -1261,6 +1256,49 @@
     document.getElementById('fire-modal-sent').style.display = 'block';
   }
 
+  function fireBaseLabel(iso) {
+    if (!iso) return 'unknown';
+    return `${iso.slice(11, 16)} UTC ${iso.slice(0, 10)}`;
+  }
+
+  async function loadFireRisk(haz) {
+    setStatus('fire', 'pending', 'loading SMHI FWI…');
+    try {
+      const res = await fetch('/api/fire-risk', { cache: 'no-store' });
+      const data = await res.json();
+      if (currentHazard !== 'fire') return; // officer switched tabs mid-flight
+      if (!data.ok) throw new Error(data.reason || 'unavailable');
+
+      const byId = {};
+      data.zones.forEach(z => { byId[z.id] = z; });
+      FIRE_ZONES.forEach(z => {
+        const r = byId[z.id];
+        if (r) { z.index = r.fwiindex; z.fwi = r.fwi; z.band = r.band; z.drivers = r.drivers || []; }
+      });
+      fireForecastOk = true;
+      _fireApprovedTime = data.approvedTime;
+      _fireValidTime = data.validTime;
+
+      const base = fireBaseLabel(data.approvedTime);
+      const vlabel = data.validTime ? fireWhen(data.validTime) : '—';
+      setStatus('fire', 'ok', `SMHI FWI · modelled · valid ${vlabel}`);
+      setProvenance(`Modelled: SMHI fwif1g v1 (Canadian FWI), computed for MSB. Model run ${base}, valid ${vlabel}.`, 'modelled', false);
+
+      gHazard.clearLayers();
+      updateFireHero();
+      updateFireStrip();
+      if (haz.draw) haz.draw();
+    } catch (err) {
+      if (currentHazard !== 'fire') return;
+      fireForecastOk = false;
+      gHazard.clearLayers();
+      setStatus('fire', 'offline', 'fire-risk forecast unavailable (' + err.message + ')');
+      setProvenance('Fire-risk forecast unavailable — SMHI fwif1g v1 did not respond.', 'modelled', false);
+      updateFireHero();
+      updateFireStrip();
+    }
+  }
+
   function activateFire(haz) {
     hidePollen();
     hideAirHero();
@@ -1268,15 +1306,16 @@
     hideAlgaeRiskStrip();
     hideHeatHero();
     hideHeatStrip();
-    hideFireHero();
-    hideFireStrip();
     hideRainHero();
     hideRainStrip();
-    updateFireHero();
+    fireForecastOk = null; // reset to loading state
+    showFireHero();
     showFireStrip();
-    setLayerStatus([{ id: 'fire', label: haz.layers[0].label, state: 'offline', detail: 'modelled · no direct measurement' }]);
-    setProvenance(haz.provenance, haz.confidence, true);
-    if (haz.draw) haz.draw();
+    updateFireHero();  // shows "Loading SMHI FWI…"
+    updateFireStrip();
+    setLayerStatus([{ id: 'fire', label: haz.layers[0].label, state: 'pending', detail: 'loading SMHI FWI…' }]);
+    setProvenance(haz.provenance, haz.confidence, false);
+    loadFireRisk(haz);
   }
 
   /* ---- Heat: apparent-temperature surface + vulnerable sites ----
@@ -2363,7 +2402,11 @@
       sources: haz.sources,
       provenance: document.getElementById('provenance-text').textContent,
       real: !!haz.real,
-      note: haz.real ? (currentHazard === 'air' ? 'Live source-tagged readings.' : 'Live source-tagged forecast (not measured).') : 'PLACEHOLDER hazard — sample data, not a real measurement.',
+      note: haz.real
+        ? (currentHazard === 'air' ? 'Live source-tagged readings.'
+          : haz.confidence === 'modelled' ? 'Live source-tagged modelled data (not measured).'
+          : 'Live source-tagged forecast (not measured).')
+        : 'PLACEHOLDER hazard — sample data, not a real measurement.',
       readings: (currentHazard === 'air' && integrationData) ? integrationData.stations : []
     };
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
@@ -2427,13 +2470,13 @@
     fire: {
       eyebrow: 'Fire risk', verb: 'Declare or lift an open-burning ban',
       decisionTitle: 'Open-burning ban',
-      sources: 'SMHI brandrisk · EFFIS',
-      legend: { title: 'Fire-risk index', items: [
+      sources: 'SMHI fwif1g v1 (Canadian FWI, modelled for MSB)',
+      legend: { title: 'Fire-risk index (FWI)', items: [
         { c: '#1D9E75', t: 'Low' }, { c: '#FAC775', t: 'Moderate' },
         { c: '#EF9F27', t: 'High' }, { c: '#E24B4A', t: 'Extreme' }
       ] },
       layers: [
-        { key: 'hazard', label: 'Fire-risk index (placeholder)', on: true, dot: '#EF9F27' },
+        { key: 'hazard', label: 'Fire-risk index (SMHI FWI, modelled)', on: true, dot: '#EF9F27' },
         { key: 'integration', label: 'Integration layer', on: false, dot: '#534AB7' },
         { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
       ],
@@ -2443,8 +2486,8 @@
         { label: 'Scope', kind: 'text', placeholder: 'by zone' },
         { label: 'Notice', kind: 'textarea', placeholder: 'Ban notice…' }
       ],
-      buttons: ['Declare', 'Lift'], confidence: 'modelled', real: false,
-      provenance: 'Modelled only — no direct measurement.',
+      buttons: ['Declare', 'Lift'], confidence: 'modelled', real: true,
+      provenance: 'Modelled: SMHI fwif1g v1 (Canadian FWI), computed for MSB.',
       draw: drawFire, activate: activateFire
     },
     heat: {
