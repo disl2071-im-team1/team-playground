@@ -2190,6 +2190,12 @@ textarea.dp-input { resize: vertical; }
   display: block;
   margin-bottom: 6px;
 }
+/* Pollen cards show a level on the 0–7 scale ("Level 5 / 7"), not a grains
+   count — render it as a compact label, not a giant number. */
+.pollen-count.pollen-level {
+  font-size: 15px;
+  letter-spacing: 0;
+}
 
 .pollen-badge {
   display: inline-block;
@@ -2477,6 +2483,19 @@ textarea.dp-input { resize: vertical; }
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 2px;
+}
+/* Shown only when the time slider is ahead of now: the CAMS plume is a
+   forecast while the station dots stay present-time. Makes the mixed state
+   explicit rather than hiding it. */
+.aq-hero-forecast {
+  margin-top: 10px;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #B0791F;
+  background: #FBF1DC;
+  border-radius: 6px;
+  padding: 4px 9px;
 }
 
 .aq-breakdown-item {
