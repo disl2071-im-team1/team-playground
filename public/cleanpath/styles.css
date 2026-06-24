@@ -2230,6 +2230,27 @@ textarea.dp-input { resize: vertical; }
   text-align: center;
   text-shadow: 0 0 3px #fff, 0 0 3px #fff;
 }
+/* Glyph colour is set inline per pin from its district's band at the current
+   lead; the ring (Warning+ only) pulses to draw the officer's eye. */
+.vuln-glyph { position: relative; display: inline-block; }
+.vuln-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0.75;
+  pointer-events: none;
+  animation: vuln-pulse-ring 1.6s ease-out infinite;
+}
+@keyframes vuln-pulse-ring {
+  0%   { transform: scale(0.5); opacity: 0.75; }
+  70%  { transform: scale(2);   opacity: 0; }
+  100% { transform: scale(2);   opacity: 0; }
+}
 
 /* ============================================================
  * Precipitation popup (Rain tab)
