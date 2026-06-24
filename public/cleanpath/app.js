@@ -532,6 +532,15 @@
     if (s) s.style.display = 'none';
   }
 
+  // Align the OFFICER DECISION Site dropdown to the real resolved site names.
+  function algaeSyncSiteOptions() {
+    const sel = document.getElementById('fld-site');
+    if (!sel || !ALGAE_SITES.length) return;
+    const cur = sel.value;
+    sel.innerHTML = ALGAE_SITES.map(s => `<option>${escapeHtml(s.name)}</option>`).join('');
+    if (ALGAE_SITES.some(s => s.name === cur)) sel.value = cur;
+  }
+
   async function loadAlgaeStatus(haz) {
     setStatus('algae', 'pending', 'loading HaV sampling…');
     try {
@@ -541,7 +550,7 @@
       if (!data.ok) throw new Error(data.reason || 'unavailable');
 
       ALGAE_SITES = (data.sites || [])
-        .filter(s => s.lat != null && s.lon != null)
+        .filter(s => s.ok !== false && s.lat != null && s.lon != null)
         .map(s => ({
           id: s.id, name: s.name, ll: [s.lat, s.lon], status: s.status,
           bloom: s.bloom, advisory: s.advisory, classification: s.classification,
@@ -551,6 +560,7 @@
         }));
       algaeOk = true;
       _algaeRetrieved = data.retrieved;
+      algaeSyncSiteOptions(); // align the decision-panel Site dropdown to resolved names
 
       const n = ALGAE_SITES.length;
       const latest = ALGAE_SITES.reduce((m, s) => (s.lastSampled && (!m || s.lastSampled > m) ? s.lastSampled : m), null);
@@ -2443,7 +2453,7 @@
         { key: 'vulnerable', label: 'Vulnerable sites', on: false, dot: '#A32D2D' }
       ],
       fields: [
-        { label: 'Site', kind: 'select', options: ['Brunnsviken', 'Hellasgården', 'Lilla Värtan', 'Smedsuddsbadet'] },
+        { label: 'Site', kind: 'select', options: ['Brunnsvikens Strandbad', 'Smedsuddsbadet V', 'Långholmens strandbad', 'Tanto, strand 1', 'Flatenbadet, allmänna', 'Fredhällsbadet, Mälaren', 'Kristinebergsbadet', 'Johannelundsbadet (Minneberg), Mälaren'] },
         { label: 'Status', kind: 'select', options: ['None', 'Watch', 'Advisory', 'Closed'] },
         { label: 'Scope', kind: 'text', placeholder: 'this site only' },
         { label: 'Message', kind: 'textarea', placeholder: 'Notice text…' }
