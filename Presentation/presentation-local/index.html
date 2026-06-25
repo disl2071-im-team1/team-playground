@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>We treated AI as a team member, not a tool.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<!--
+  ============================================================================
+  PRESENTATION SHELL  ·  shared styles + loader only.  EDIT THIS FILE RARELY.
+  ----------------------------------------------------------------------------
+  Slide CONTENT lives in one file per section under sections/ and the order is
+  in sections.json. To edit a section, open ONLY its file in sections/ so your
+  PR never collides with anyone else's. See README.md.
+  ============================================================================
+-->
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --bg-soft: #161616;
+    --fg: #f0f0f0;
+    --muted: #8a8a8a;
+    --muted-dim: #5c5c5c;
+    --accent: #7ec8a0;
+    --accent-dim: rgba(126, 200, 160, 0.16);
+    --line: rgba(255, 255, 255, 0.10);
+    --placeholder: #e0a44d;
+    --placeholder-bg: rgba(224, 164, 77, 0.12);
+    --serif: "Newsreader", Georgia, serif;
+    --sans: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--sans);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ---------- Deck + 16:9 stage ---------- */
+  .deck {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(1200px 600px at 78% -10%, rgba(126, 200, 160, 0.07), transparent 60%),
+      var(--bg);
+  }
+
+  .stage {
+    position: relative;
+    width: min(100vw, calc(100vh * 16 / 9));
+    height: min(100vh, calc(100vw * 9 / 16));
+    container-type: size;
+    font-size: clamp(11px, 2.1cqw, 34px);
+    overflow: hidden;
+  }
+
+  /* ---------- Slides (shared base) ---------- */
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 7cqh 8cqw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    opacity: 0;
+    transform: translateX(28px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+    pointer-events: none;
+  }
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+    z-index: 2;
+  }
+  .slide.prev { transform: translateX(-28px); }
+
+  .label {
+    position: absolute;
+    top: 6cqh;
+    left: 8cqw;
+    font-size: 0.62em;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .label::before {
+    content: "";
+    display: inline-block;
+    width: 0.9em;
+    height: 1px;
+    background: var(--accent);
+    vertical-align: middle;
+    margin-right: 0.7em;
+    margin-bottom: 0.15em;
+  }
+
+  h1 { font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
+  h2.title {
+    font-size: 2.1em;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.7em;
+    max-width: 17em;
+  }
+
+  .body { max-width: 24em; }
+
+  ul.points { list-style: none; }
+  ul.points li {
+    font-size: 1.04em;
+    font-weight: 400;
+    line-height: 1.45;
+    color: #d8d8d8;
+    padding-left: 1.5em;
+    position: relative;
+    margin-bottom: 0.85em;
+    max-width: 22em;
+  }
+  ul.points li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.5em;
+    height: 0.5em;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  ul.points li strong { color: var(--fg); font-weight: 600; }
+  ul.points li.dim { color: var(--muted); }
+
+  .lead { font-size: 1.25em; line-height: 1.4; color: var(--fg); max-width: 20em; }
+  .kicker { color: var(--accent); font-weight: 600; }
+
+  /* ---------- Divider slides (shared: every section opens with one) ---------- */
+  .divider { justify-content: center; }
+  .divider .dnum {
+    font-size: 1.1em;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    margin-bottom: 0.5em;
+  }
+  .divider .dtitle {
+    font-size: 3em;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .divider .drule { width: 4em; height: 2px; background: var(--accent); margin-top: 1.2em; }
+
+  /* ---------- Placeholder tag (shared) ---------- */
+  .ph-tag {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 0.5em;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--placeholder);
+    background: var(--placeholder-bg);
+    border: 1px solid var(--placeholder);
+    border-radius: 999px;
+    padding: 0.35em 0.9em;
+    margin-bottom: 1.2em;
+  }
+  .ph-note { color: var(--placeholder); font-size: 0.82em; font-style: italic; opacity: 0.8; max-width: 24em; margin-top: 0.4em; }
+
+  /* ---------- Overlays ---------- */
+  .progress {
+    position: fixed;
+    left: 0; bottom: 0;
+    height: 3px;
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    z-index: 50;
+  }
+  .progress .bar {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+
+  .counter {
+    position: fixed;
+    right: 22px; bottom: 16px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    font-variant-numeric: tabular-nums;
+    z-index: 50;
+  }
+  .counter b { color: var(--fg); font-weight: 600; }
+
+  .hint {
+    position: fixed;
+    left: 22px; bottom: 14px;
+    font-size: 11px;
+    color: var(--muted-dim);
+    letter-spacing: 0.06em;
+    z-index: 50;
+  }
+  .hint kbd {
+    font-family: var(--sans);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .nav-arrow {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px; height: 48px;
+    border: none;
+    background: rgba(255,255,255,0.04);
+    color: var(--fg);
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.2s ease;
+    z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .deck-wrap:hover .nav-arrow { opacity: 0.5; }
+  .nav-arrow:hover { opacity: 1 !important; background: rgba(126,200,160,0.18); }
+  .nav-arrow.left { left: 18px; }
+  .nav-arrow.right { right: 18px; }
+
+  /* ---------- Speaker notes panel ---------- */
+  .notes-panel {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: #1a1a1a;
+    border-top: 1px solid var(--accent-dim);
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+    z-index: 60;
+    max-height: 32vh;
+    overflow-y: auto;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+  }
+  body.notes-open .notes-panel { transform: translateY(0); }
+  .notes-panel .np-inner { padding: 20px 28px 28px; max-width: 60em; margin: 0 auto; }
+  .notes-panel .np-head {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .notes-panel .np-head .np-slide { color: var(--muted); }
+  .notes-panel .np-body { font-size: 15px; line-height: 1.6; color: #cfcfcf; }
+  .notes-panel .np-body.empty { color: var(--muted-dim); font-style: italic; }
+
+  /* Speaker notes travel inside each slide but are never shown on the slide. */
+  .notes-src { display: none; }
+
+  /* ---------- Click-stepped reveals ----------
+     Generic and inert: any element with class "fragment" starts hidden and is
+     revealed one step at a time by forward nav. Slides with no .fragment behave
+     exactly as before, so this affects no other section. ---------------------- */
+  .fragment { opacity: 0; transition: opacity 0.45s ease, transform 0.45s ease; }
+  .fragment.revealed { opacity: 1; }
+
+  .deck-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  @media (max-width: 600px) {
+    .nav-arrow { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck-wrap">
+<div class="deck">
+  <div class="stage" id="stage">
+    <div class="deck-loading" id="loading">Loading slides…</div>
+  </div>
+</div>
+
+  <!-- on-screen arrows -->
+  <button class="nav-arrow left" id="prevBtn" aria-label="Previous slide">‹</button>
+  <button class="nav-arrow right" id="nextBtn" aria-label="Next slide">›</button>
+</div>
+
+<!-- overlays -->
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="counter"><b id="cur">1</b> / <span id="total">–</span></div>
+<div class="hint"><kbd>←</kbd> <kbd>→</kbd> move&nbsp;&nbsp;·&nbsp;&nbsp;<kbd>N</kbd> notes&nbsp;&nbsp;·&nbsp;&nbsp;<kbd>F</kbd> fullscreen</div>
+
+<!-- speaker notes -->
+<div class="notes-panel" id="notesPanel">
+  <div class="np-inner">
+    <div class="np-head"><span>Speaker notes</span><span class="np-slide" id="npSlide"></span></div>
+    <div class="np-body" id="npBody"></div>
+  </div>
+</div>
+
+<script>
+  // ----- shell state -----
+  const stage = document.getElementById('stage');
+  const bar = document.getElementById('bar');
+  const curEl = document.getElementById('cur');
+  const totalEl = document.getElementById('total');
+  const npBody = document.getElementById('npBody');
+  const npSlide = document.getElementById('npSlide');
+
+  let slides = [];
+  let total = 0;
+  let current = 0;
+
+  function render() {
+    slides.forEach((s, i) => {
+      s.classList.toggle('active', i === current);
+      s.classList.toggle('prev', i < current);
+    });
+    curEl.textContent = current + 1;
+    bar.style.width = total ? ((current + 1) / total * 100) + '%' : '0';
+
+    const slide = slides[current];
+    const src = slide ? slide.querySelector('.notes-src') : null;
+    const text = src ? src.textContent.trim() : '';
+    npSlide.textContent = 'Slide ' + (current + 1) + ' / ' + total;
+    if (text) {
+      npBody.textContent = text;
+      npBody.classList.remove('empty');
+    } else {
+      npBody.textContent = 'No notes for this slide.';
+      npBody.classList.add('empty');
+    }
+  }
+
+  // Jump directly to a slide (Home/End). Fragments on the target reset to
+  // hidden so they can be stepped through.
+  function go(n) {
+    current = Math.max(0, Math.min(total - 1, n));
+    setFragments(slides[current], false);
+    render();
+  }
+
+  // ----- click-stepped reveals -----
+  // Forward nav reveals a slide's .fragment elements one at a time before
+  // advancing; back nav hides them one at a time. Inert on slides without any.
+  function fragmentsOf(slide) {
+    return slide ? Array.from(slide.querySelectorAll('.fragment')) : [];
+  }
+  function setFragments(slide, revealed) {
+    fragmentsOf(slide).forEach(f => f.classList.toggle('revealed', revealed));
+  }
+  function next() {
+    const hidden = fragmentsOf(slides[current]).find(f => !f.classList.contains('revealed'));
+    if (hidden) { hidden.classList.add('revealed'); return; }
+    if (current < total - 1) { current++; setFragments(slides[current], false); render(); }
+  }
+  function prev() {
+    const shown = fragmentsOf(slides[current]).reverse().find(f => f.classList.contains('revealed'));
+    if (shown) { shown.classList.remove('revealed'); return; }
+    if (current > 0) { current--; setFragments(slides[current], true); render(); }
+  }
+
+  // ----- section loader: pulls each fragment in sections.json, in order -----
+  async function loadDeck() {
+    const res = await fetch('sections.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('sections.json ' + res.status);
+    const manifest = await res.json();
+
+    for (const entry of manifest.sections) {
+      const r = await fetch('sections/' + entry.file, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(entry.file + ' ' + r.status);
+      const html = await r.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      // Hoist each section's own <style> into <head> so it applies globally.
+      doc.querySelectorAll('style').forEach(st => document.head.appendChild(st));
+      // Append the section's slides to the stage, preserving manifest order.
+      doc.querySelectorAll('section.slide').forEach(sec => stage.appendChild(sec));
+    }
+
+    const loading = document.getElementById('loading');
+    if (loading) loading.remove();
+
+    slides = Array.from(stage.querySelectorAll('.slide'));
+    total = slides.length;
+    totalEl.textContent = total;
+    current = 0;
+    render();
+  }
+
+  document.getElementById('prevBtn').addEventListener('click', prev);
+  document.getElementById('nextBtn').addEventListener('click', next);
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'PageDown':
+      case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft':
+      case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home':
+        e.preventDefault(); go(0); break;
+      case 'End':
+        e.preventDefault(); go(total - 1); break;
+      case 'n':
+      case 'N':
+        document.body.classList.toggle('notes-open'); break;
+      case 'f':
+      case 'F':
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen?.();
+        } else {
+          document.exitFullscreen?.();
+        }
+        break;
+    }
+  });
+
+  loadDeck().catch((err) => {
+    console.error('Deck load failed:', err);
+    const loading = document.getElementById('loading');
+    if (loading) loading.remove();
+    stage.insertAdjacentHTML('beforeend',
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:2em;color:var(--placeholder);font-size:0.8em;line-height:1.5;">' +
+      'Could not load slides. The deck loads its sections over HTTP, so open it through a web server (e.g. the dev server or the deployed URL), not as a file:// path.<br><br>' + err + '</div>');
+  });
+</script>
+</body>
+</html>

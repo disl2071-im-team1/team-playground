@@ -1,0 +1,204 @@
+<!-- ===================================================================
+     SECTION 02 · HOW WE ORGANISED
+     headless team · the stack (animated) · the pull request · principles
+     Owner: Pelle   ·   Edit only this file. See ../README.md
+     Audience: non-technical. Introduce every tool before leaning on it.
+     =================================================================== -->
+<style>
+  /* The Irreducible Stack slide (built bottom-up, layer by layer) */
+  .slide.stack { justify-content: flex-start; padding-top: 8cqh; }
+  .slide.stack h2.title { font-size: 1.5em; margin-bottom: 0.25em; }
+  .stack .subtitle {
+    font-size: 0.74em;
+    color: var(--muted);
+    margin-bottom: 0.7em;
+    max-width: 40em;
+    line-height: 1.4;
+  }
+  /* column-reverse so the first DOM tier (Foundation) sits at the BOTTOM and is
+     revealed first: the stack assembles from the ground up. */
+  .stack-tiers { display: flex; flex-direction: column-reverse; gap: 0.32em; width: 100%; }
+  .tier { display: grid; grid-template-columns: 6em 1fr; gap: 0.9em; align-items: stretch; }
+  .stack .tier.fragment { transform: translateY(8px); }
+  .stack .tier.fragment.revealed { transform: none; }
+  .tier-label {
+    font-size: 0.52em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    align-self: center;
+  }
+  .tier-cards { display: flex; gap: 0.55em; }
+  .scard {
+    flex: 1;
+    background: linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.45em;
+    padding: 0.42em 0.65em;
+  }
+  .scard.lead {
+    background: linear-gradient(145deg, var(--accent-dim), rgba(255,255,255,0.012));
+    border-color: rgba(126, 200, 160, 0.3);
+  }
+  .scard .sc-title { font-size: 0.72em; font-weight: 700; color: var(--fg); margin-bottom: 0.12em; }
+  .scard .sc-line { font-size: 0.58em; color: #cfcfcf; line-height: 1.3; }
+  .scard .sc-sub { font-size: 0.54em; color: var(--muted); line-height: 1.3; margin-top: 0.15em; }
+  .scard .sc-point { font-size: 0.5em; color: var(--accent); font-weight: 600; line-height: 1.3; margin-top: 0.35em; }
+
+  /* Pull Request explainer */
+  .pr-why {
+    margin-top: 1.1em;
+    font-size: 0.92em;
+    color: var(--accent);
+    max-width: 27em;
+    line-height: 1.4;
+  }
+
+  /* Principles slide */
+  .principles { display: flex; flex-direction: column; gap: 0.7em; margin-top: 0.4em; max-width: 30em; }
+  .principle { display: flex; gap: 0.7em; }
+  .principle.fragment { transform: translateY(6px); }
+  .principle.fragment.revealed { transform: none; }
+  .principle .pn { color: var(--accent); font-weight: 700; font-size: 0.95em; }
+  .principle .pbody b { display: block; color: var(--fg); font-weight: 600; font-size: 0.95em; }
+  .principle .pbody span { display: block; color: var(--muted); font-size: 0.8em; margin-top: 0.15em; line-height: 1.35; }
+</style>
+
+<!-- DIVIDER -->
+<section class="slide divider">
+  <div class="dnum">02</div>
+  <div class="dtitle">How we organised</div>
+  <div class="drule"></div>
+  <div class="notes-src">Pelle, 6 minutes. The heart of the talk. Everything here is the How.</div>
+</section>
+
+<!-- HEADLESS TEAM -->
+<section class="slide">
+  <div class="label">How we organised</div>
+  <div class="content">
+    <h2 class="title">A headless team</h2>
+    <ul class="points body">
+      <li>No roles. No project manager, no team lead. <strong>Five people, equal,</strong> working at the same time.</li>
+      <li>We brought in an AI agent, <strong>Stilla</strong>, to orchestrate the work. It prepared agendas, summarised each session, and surfaced the open tickets.</li>
+      <li class="dim">An AI agent is one you give a standing job to: it acts on its own instead of waiting to be prompted each time.</li>
+      <li>We kept the rest ourselves. We ran our own check-ins, divided the work, and owned the backlog together.</li>
+      <li>All of it stayed visible through two tools we will explain next, <strong>Linear</strong> and <strong>GitHub</strong>.</li>
+    </ul>
+  </div>
+  <div class="notes-src">Introduce Stilla as an AI agent BEFORE leaning on it, and gloss the term for newcomers. Human ownership is the active statement: we ran the check-ins, we owned the backlog. Linear and GitHub are named here but defined on the next slide, do not define them yet.</div>
+</section>
+
+<!-- THE IRREDUCIBLE STACK (animated, built bottom-up: Foundation first) -->
+<section class="slide stack">
+  <div class="label">How we organised</div>
+  <h2 class="title" style="margin-bottom:0.3em;">The Irreducible Stack</h2>
+  <div class="subtitle">These are the everyday tools software teams use. We will explain each as it matters, so you do not need to know them already.</div>
+  <div class="stack-tiers">
+    <!-- DOM order = reveal order (bottom-up). column-reverse flips it visually so
+         Foundation sits at the bottom and Orchestrate on top. -->
+    <div class="tier fragment">
+      <div class="tier-label">Foundation</div>
+      <div class="tier-cards">
+        <div class="scard">
+          <div class="sc-title">GSuite · Google Auth</div>
+          <div class="sc-line">identity, who is allowed to do what</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier fragment">
+      <div class="tier-label">Produce</div>
+      <div class="tier-cards">
+        <div class="scard">
+          <div class="sc-title">Claude</div>
+          <div class="sc-line">turns plain instructions into working software</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">GitHub</div>
+          <div class="sc-line">where the code lives, every change proposed, reviewed and recorded</div>
+          <div class="sc-sub">the single source of truth for what the software is</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">Vercel</div>
+          <div class="sc-line">takes approved code and puts it live automatically</div>
+          <div class="sc-sub">so anyone on the internet can use it</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier fragment">
+      <div class="tier-label">Coordinate</div>
+      <div class="tier-cards">
+        <div class="scard">
+          <div class="sc-title">Slack</div>
+          <div class="sc-line">real-time human chat</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">Linear</div>
+          <div class="sc-line">where the work lives as a list</div>
+          <div class="sc-sub">every task is a ticket, so you can see what exists and whether it is done</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">Miro</div>
+          <div class="sc-line">shared visual canvas</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier fragment">
+      <div class="tier-label">Orchestrate</div>
+      <div class="tier-cards">
+        <div class="scard lead">
+          <div class="sc-title">Stilla</div>
+          <div class="sc-line">the AI agent that sits across the tools and keeps work moving</div>
+          <div class="sc-sub">it does the coordinating a project manager used to do</div>
+          <div class="sc-point">The stack shrinks in people, not in tools. Stilla replaces the person who used to be the glue.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="notes-src">ANIMATED. The orienting line shows first. Then press right to build the stack from the ground up: Foundation, Produce, Coordinate, Orchestrate. Let each land before the next. Go deeper only on Stilla, Linear, GitHub and Vercel. The closing point: the stack shrinks in people, not in tools.</div>
+</section>
+
+<!-- THE PULL REQUEST (replaces Linearisation; honest mechanism of collaboration) -->
+<section class="slide">
+  <div class="label">How we organised</div>
+  <div class="content">
+    <h2 class="title">The Pull Request</h2>
+    <ul class="points body">
+      <li class="fragment">A <strong>Pull Request</strong> is how one person proposes a change to the shared code.</li>
+      <li class="fragment">You make the change on a copy, then open a request that says here is what I changed and why.</li>
+      <li class="fragment">Before it becomes real, someone else reads it, can comment, and either merges it in or asks for changes.</li>
+    </ul>
+    <p class="pr-why fragment">Nothing reaches the live product without being seen. Anyone can propose, the change is visible, and it is recorded for good.</p>
+    <!-- TODO (Pelle): optional honesty point, proposing a change is equal, but reviewing and merging it is not. Decide whether to add. -->
+  </div>
+  <div class="notes-src">ANIMATED. Reveal the three steps one at a time, then the why. This is the honest mechanism of how we actually collaborate: propose, review, merge. Nothing ships unseen.</div>
+</section>
+
+<!-- PRINCIPLES (repurposed from Operating rhythm) -->
+<section class="slide">
+  <div class="label">How we organised</div>
+  <!-- TODO (Pelle): naming Jo Freeman on this slide is undecided. Not added. -->
+  <div class="content">
+    <h2 class="title" style="margin-bottom:0.2em;">How we worked</h2>
+    <div class="subtitle" style="font-size:0.78em;color:var(--muted);margin-bottom:0.3em;max-width:30em;line-height:1.4;">We met once a week and worked async the rest of the time. Four principles held it together.</div>
+    <div class="principles">
+      <div class="principle fragment">
+        <span class="pn">1</span>
+        <div class="pbody"><b>Be task-oriented.</b><span>Let the work define the structure.</span></div>
+      </div>
+      <div class="principle fragment">
+        <span class="pn">2</span>
+        <div class="pbody"><b>Keep a shared language.</b><span>Common ground on goals, tools and standards.</span></div>
+      </div>
+      <div class="principle fragment">
+        <span class="pn">3</span>
+        <div class="pbody"><b>Communicate a lot, and openly.</b><span>Information reaches everyone, work is visibly divided.</span></div>
+      </div>
+      <div class="principle fragment">
+        <span class="pn">4</span>
+        <div class="pbody"><b>Avoid single points of failure.</b><span>Everything is doable by more than one person.</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes-src">ANIMATED. Reveal the four principles one at a time. These are the rules that let a headless team hold together. Cut the old logistics and the meeting-tool joke. Jo Freeman reference is a TODO for me.</div>
+</section>

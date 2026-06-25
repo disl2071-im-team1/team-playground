@@ -1,0 +1,184 @@
+<!-- ===================================================================
+     SECTION 05 · DESIGN AND BUILD
+     linearisation · four directions · games · a design choice Stilla made · token anxiety
+     Owners: Natálie, Mike   ·   Edit only this file. See ../README.md
+     =================================================================== -->
+<style>
+  /* Pull-quote slide (used by the token-anxiety stat) */
+  .quote-slide { align-items: center; text-align: center; justify-content: center; }
+  blockquote.pull {
+    font-family: var(--serif);
+    font-size: 2em;
+    line-height: 1.25;
+    font-weight: 400;
+    max-width: 16em;
+    letter-spacing: -0.01em;
+  }
+  blockquote.pull .src {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.4em;
+    color: var(--muted);
+    margin-top: 1.4em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .quote-slide .below { margin-top: 1.8em; font-size: 0.95em; color: var(--accent); max-width: 22em; }
+  .bigstat blockquote.pull { font-size: 2.6em; color: var(--fg); }
+
+  /* Shared: lean list, games layout */
+  .lean { list-style: none; padding: 0; display: flex; flex-direction: column; gap: .45em; font-size: 0.8em; max-width: 48ch; }
+  .lean li { line-height: 1.4; }
+  .games-layout { display: flex; gap: 2em; align-items: center; }
+  .game-photo { width: 45%; border-radius: 10px; display: block; }
+
+  /* Design directions grid (the "Four directions" slide) */
+  .design-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+  .design-grid.four { grid-template-columns: repeat(4, 1fr); }
+  .design-grid figure { margin: 0; }
+  .design-grid img { width: 100%; border-radius: 8px; display: block; opacity: .65; }
+  .design-grid figcaption { font-size: .8rem; margin-top: .5rem; opacity: .65; }
+  .design-grid .chosen img { opacity: 1; outline: 2px solid var(--accent); }
+  .design-grid .chosen figcaption { opacity: 1; color: var(--accent); }
+
+  /* Linearisation flow slide. The slide was moved into this section in #83;
+     its CSS now lives here too so the section is self-contained. */
+  .slide.flow { justify-content: center; }
+  .flow-steps { display: flex; align-items: stretch; gap: 0.35em; width: 100%; margin-top: 0.5em; }
+  .fstep {
+    flex: 1;
+    background: linear-gradient(160deg, rgba(126,200,160,0.09), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.5em;
+    padding: 0.7em 0.65em;
+    display: flex;
+    flex-direction: column;
+  }
+  .fstep .fnum { font-size: 0.6em; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.35em; }
+  .fstep .fname { font-size: 0.84em; font-weight: 700; color: var(--fg); margin-bottom: 0.3em; }
+  .fstep .fdesc { font-size: 0.6em; color: #cfcfcf; line-height: 1.35; flex: 1; }
+  .fstep .fchip {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: 0.6em;
+    font-size: 0.52em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-radius: 999px;
+    padding: 0.32em 0.65em;
+  }
+  .flow-arrow { display: flex; align-items: center; color: var(--muted-dim); font-size: 1.1em; }
+  .flow-foot { margin-top: 1.5em; font-size: 0.9em; color: var(--accent); max-width: 34em; line-height: 1.4; }
+</style>
+
+<!-- DIVIDER -->
+<section class="slide divider">
+  <div class="dnum">05</div>
+  <div class="dtitle">Design and build</div>
+  <div class="drule"></div>
+  <div class="notes-src">Mike, 5 minutes. The honest middle: where AI genuinely shifted how we worked.</div>
+</section>
+
+<!-- DESIGN: FOUR DIRECTIONS (restored, Natálie) -->
+<section class="slide">
+  <div class="label">Design and build</div>
+  <div class="content">
+    <p class="kicker">Design decision</p>
+    <h2 class="title">Four directions. One call.</h2>
+    <div class="design-grid four">
+      <figure>
+        <img src="pablo.png" alt="Pablo's design direction">
+        <figcaption>Pablo · heat-led</figcaption>
+      </figure>
+      <figure>
+        <img src="mike.png" alt="Mike's design direction">
+        <figcaption>Mike · risk-mapping</figcaption>
+      </figure>
+      <figure>
+        <img src="jonas.png" alt="Jónas's design direction">
+        <figcaption>Jónas · data-dense</figcaption>
+      </figure>
+      <figure class="chosen">
+        <img src="natalie.png" alt="Natálie's Clean Path, chosen">
+        <figcaption>Natálie · Clean Path ✓</figcaption>
+      </figure>
+    </div>
+  </div>
+  <div class="notes-src">We each designed a direction. Stilla chose mine, for reasons we could not argue with. Four of us each brought a design direction. Rather than debate it ourselves, we asked Stilla to choose against one thing that mattered most: can a stressed municipal officer read this at a glance. It picked Clean Path and named why: the cleanest visual hierarchy; the "issue or lift an advisory" panel as the most actionable pattern; colour-coded risk levels that work across ANY hazard; and the most approachable for a non-specialist audience. What's interesting is that Stilla didn't just pick on taste, it reasoned from the user and from reusability. That direction became the system that let four independently-built tabs feel like one product.</div>
+</section>
+
+<!-- GAMES -->
+<section class="slide">
+  <div class="label">Design and build</div>
+  <div class="content">
+    <p class="kicker">What we built</p>
+    <h2 class="title">Beyond the dashboard: the games</h2>
+    <div class="games-layout">
+      <ul class="lean">
+        <li>Pelle · <strong>Catch the Button</strong></li>
+        <li>Mike · <strong>Click Game</strong></li>
+        <li>Natálie · <strong>Mega Timer 3000</strong></li>
+        <li>Jónas · <strong>Galdrastafur</strong></li>
+        <li>Pablo · <strong>Counter Game</strong></li>
+      </ul>
+      <img src="game.png" alt="Games" class="game-photo">
+    </div>
+  </div>
+  <div class="notes-src">Built the same way as the app: specify, generate, ship. — Alongside Clean Path we built five small games. The point is not the games themselves, it's that the SAME operating model produced them. Once the pipeline exists, a new idea is cheap to make real.</div>
+</section>
+
+<!-- TOKEN ANXIETY -->
+<section class="slide quote-slide bigstat">
+  <div class="label">Design and build</div>
+  <blockquote class="pull">"We ran out of tokens."</blockquote>
+  <div class="below">Token anxiety is the new deadline anxiety.</div>
+  <div class="notes-src">Mike owns this. This is the honest, relatable moment. Don't oversell it. The lesson is the management skill, not the failure.</div>
+</section>
+
+<!-- LINEARISATION: IDEA TO LIVE (moved to the end of the section) -->
+<section class="slide flow">
+  <div class="label">Design and build</div>
+  <h2 class="title" style="margin-bottom:0.2em;">Linearisation: idea to live</h2>
+  <div class="flow-steps">
+    <div class="fstep">
+      <div class="fnum">01</div>
+      <div class="fname">Discover</div>
+      <div class="fdesc">Claude interviews you on the Solo canvas</div>
+      <span class="fchip">Claude (chat)</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">02</div>
+      <div class="fname">Compress</div>
+      <div class="fdesc">Claude stress-tests and writes the feature cards</div>
+      <span class="fchip">Claude (chat)</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">03</div>
+      <div class="fname">Track</div>
+      <div class="fdesc">Each card becomes a Linear issue</div>
+      <span class="fchip">Linear</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">04</div>
+      <div class="fname">Build</div>
+      <div class="fdesc">Claude Code works the issue in the terminal</div>
+      <span class="fchip">Terminal (reads Linear)</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">05</div>
+      <div class="fname">Ship</div>
+      <div class="fdesc">Open a PR, review, merge, live</div>
+      <span class="fchip">GitHub + Vercel</span>
+    </div>
+  </div>
+  <div class="flow-foot">No human writes the code. We specify and review, the pipeline does the rest.</div>
+  <div class="notes-src">The punchline: humans direct and review while the agent builds, and work moves in one direction. Idea to live in five steps: discover, compress, track, build, ship. We specify and review at the ends, the pipeline does the work in the middle. This is the Linear cycles workflow.</div>
+</section>

@@ -1,0 +1,133 @@
+<!-- ===================================================================
+     SECTION 07 · SUMMARY OF AI USAGE + FUTURE PROJECTION
+     Owner: ______   ·   Edit only this file. See ../README.md
+     =================================================================== -->
+<style>
+  /* Checklist slide */
+  ul.checklist { list-style: none; max-width: 26em; }
+  ul.checklist li {
+    font-size: 0.98em;
+    line-height: 1.4;
+    padding: 0.65em 0 0.65em 2em;
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    color: #d8d8d8;
+  }
+  ul.checklist li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 1.1em;
+    height: 1.1em;
+    border: 1.5px solid var(--accent);
+    border-radius: 4px;
+  }
+  ul.checklist li::after {
+    content: "";
+    position: absolute;
+    left: 0.36em;
+    top: 0.78em;
+    width: 0.42em;
+    height: 0.7em;
+    border: solid var(--accent);
+    border-width: 0 2px 2px 0;
+    transform: rotate(40deg);
+    opacity: 0.0;
+  }
+
+  /* Closer slides (the AI reveal) */
+  .closer { align-items: center; justify-content: center; text-align: center; }
+  .closer h1 { font-size: 2.7em; max-width: 15em; letter-spacing: -0.025em; }
+  .closer h1 .ax { color: var(--accent); }
+  .closer .answer-num { font-size: 5em; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.03em; }
+  .closer .answer-sub { margin-top: 0.8em; font-size: 1em; color: var(--muted); max-width: 20em; }
+</style>
+
+<!-- DIVIDER -->
+<section class="slide divider">
+  <div class="dnum">07</div>
+  <div class="dtitle">Summary</div>
+  <div class="drule"></div>
+  <div class="notes-src">3 minutes. Pull the threads together: how we used AI, and where it goes next.</div>
+</section>
+
+<!-- AI REFLECTION (moved from section 05; opens the Summary) -->
+<section class="slide">
+  <div class="label">Summary</div>
+  <div class="content">
+    <h2 class="title">A design choice Stilla made</h2>
+    <ul class="points body">
+      <li><strong>Design moved faster than debate.</strong> Stilla and Claude collaborated on app design elements.</li>
+      <li><strong>Token anxiety is real and forced a change.</strong> We ran out and had to install Claude Code to save tokens for coding.</li>
+      <li><strong>The architecture emerged from team structure.</strong> We planned five people and got five tabs.</li>
+    </ul>
+    <p class="body" style="margin-top:1.4em; font-style:italic; color:var(--muted);">What didn't change: Humans still had to merge manually, keeping accountability in the loop.</p>
+  </div>
+  <div class="notes-src">Mike owns this. Three honest observations about how AI changed (and didn't change) how we worked. This opens the Summary.</div>
+</section>
+
+<!-- WHAT WE LEARNED -->
+<section class="slide">
+  <div class="label">Summary</div>
+  <div class="content">
+    <h2 class="title">What we learned</h2>
+    <ul class="points body">
+      <li>You can run a product team with <strong>AI doing the coordination layer</strong></li>
+      <li>The constraint is not the AI's capability, it's <strong>your ability to structure work</strong> so AI can act on it</li>
+      <li>Modular teams and modular code reinforce each other</li>
+      <li>Token limits, ambiguity, and meeting-tool debates are still very human problems</li>
+    </ul>
+  </div>
+  <div class="notes-src">The single most important line: the constraint is structure, not capability. If the audience remembers one thing, make it this.</div>
+</section>
+
+<!-- FUTURE PROJECTION -->
+<section class="slide">
+  <div class="label">Summary</div>
+  <div class="content">
+    <h2 class="title">Future projection</h2>
+    <ul class="points body">
+      <li><strong>2027:</strong> a 3-person team ships a B2B SaaS product in 6 weeks</li>
+      <li>AI writes <strong>80% of the code, 100% of the tickets</strong>, and runs the retrospectives</li>
+      <li>The humans do: taste, judgment, stakeholder relationships, and the demo</li>
+      <li class="dim">"The question isn't whether AI joins the team. It's whether your team knows how to work with it."</li>
+    </ul>
+  </div>
+  <div class="notes-src">Deliver the closing line slowly. It's the bridge into the AI reveal.</div>
+</section>
+
+<!-- IF YOU WANT TO TRY THIS -->
+<section class="slide">
+  <div class="label">Summary</div>
+  <h2 class="title" style="margin-bottom:0.8em;">If you want to try this</h2>
+  <ul class="checklist body">
+    <li>Define your individual and team rhythm before you start building</li>
+    <li>Assign AI a real role with real responsibilities</li>
+    <li>Build async-first: everything documented, nothing lost in calls</li>
+    <li>Make the work legible: design team and design system mirror each other</li>
+    <li>Plan for token limits like you plan for deadlines</li>
+    <li>Review your how and why frequently</li>
+  </ul>
+  <div class="notes-src">A practical takeaway slide. You can offer to share it. The last item sets up the reveal.</div>
+</section>
+
+<!-- THE QUESTION -->
+<section class="slide closer">
+  <h1>How much of this presentation do you think was created by <span class="ax">AI?</span></h1>
+  <div class="notes-src">Hold it. Let the audience respond, actually take answers out loud. Don't reveal yet.</div>
+</section>
+
+<!-- THE ANSWER (PLACEHOLDER) -->
+<section class="slide closer">
+  <span class="ph-tag">Placeholder · fill in after the deck is final</span>
+  <div class="answer-num">?%</div>
+  <div class="answer-sub">Reveal the actual breakdown of AI vs human-created content: copy, structure, code, and design.</div>
+  <div class="notes-src">PLACEHOLDER, fill in after the presentation is built. The presentation is itself the artifact. The audience has just experienced what AI-assisted work looks and feels like, now you name it.</div>
+</section>
+
+<!-- CLOSING STATEMENT -->
+<section class="slide closer">
+  <h1>We treated AI as a team member, not a tool. The question isn't whether that was right. The question is whether you can afford not to.</h1>
+  <div class="notes-src">The closer. Let it land. No follow-up needed.</div>
+</section>
