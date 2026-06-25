@@ -3,16 +3,6 @@
      Owner: ______   ·   Edit only this file. See ../README.md
      =================================================================== -->
 <style>
-  /* Pulled from section 05 for moved slides */
-  .quote-slide { align-items: center; text-align: center; justify-content: center; }
-  blockquote.pull { font-family: var(--serif); font-size: 2em; line-height: 1.25; font-weight: 400; max-width: 16em; letter-spacing: -0.01em; }
-  .quote-slide .below { margin-top: 1.8em; font-size: 0.95em; color: var(--accent); max-width: 22em; }
-  .bigstat blockquote.pull { font-size: 2.6em; color: var(--fg); }
-  .lean { list-style: none; padding: 0; display: flex; flex-direction: column; gap: .45em; font-size: 0.8em; max-width: 48ch; }
-  .lean li { line-height: 1.4; }
-  .games-layout { display: flex; gap: 2em; align-items: center; }
-  .game-photo { width: 45%; border-radius: 10px; display: block; }
-
   /* Checklist slide */
   ul.checklist { list-style: none; max-width: 26em; }
   ul.checklist li {
@@ -60,93 +50,6 @@
   <div class="dtitle">Summary</div>
   <div class="drule"></div>
   <div class="notes-src">3 minutes. Pull the threads together: how we used AI, and where it goes next.</div>
-</section>
-
-<!-- LINEARISATION: IDEA TO LIVE -->
-<section class="slide flow">
-  <div class="label">Summary</div>
-  <h2 class="title" style="margin-bottom:0.2em;">Linearisation: idea to live</h2>
-  <div class="flow-steps">
-    <div class="fstep">
-      <div class="fnum">01</div>
-      <div class="fname">Discover</div>
-      <div class="fdesc">Claude interviews you on the Solo canvas</div>
-      <span class="fchip">Claude (chat)</span>
-    </div>
-    <div class="flow-arrow">›</div>
-    <div class="fstep">
-      <div class="fnum">02</div>
-      <div class="fname">Compress</div>
-      <div class="fdesc">Claude stress-tests and writes the feature cards</div>
-      <span class="fchip">Claude (chat)</span>
-    </div>
-    <div class="flow-arrow">›</div>
-    <div class="fstep">
-      <div class="fnum">03</div>
-      <div class="fname">Track</div>
-      <div class="fdesc">Each card becomes a Linear issue</div>
-      <span class="fchip">Linear</span>
-    </div>
-    <div class="flow-arrow">›</div>
-    <div class="fstep">
-      <div class="fnum">04</div>
-      <div class="fname">Build</div>
-      <div class="fdesc">Claude Code works the issue in the terminal</div>
-      <span class="fchip">Terminal (reads Linear)</span>
-    </div>
-    <div class="flow-arrow">›</div>
-    <div class="fstep">
-      <div class="fnum">05</div>
-      <div class="fname">Ship</div>
-      <div class="fdesc">Open a PR, review, merge, live</div>
-      <span class="fchip">GitHub + Vercel</span>
-    </div>
-  </div>
-  <div class="flow-foot">No human writes the code. We specify and review, the pipeline does the rest.</div>
-  <div class="notes-src">The punchline: humans direct and review while the agent builds, and work moves in one direction. Idea to live in five steps: discover, compress, track, build, ship. We specify and review at the ends, the pipeline does the work in the middle. This is the Linear cycles workflow.</div>
-</section>
-
-<!-- GAMES -->
-<section class="slide">
-  <div class="label">Summary</div>
-  <div class="content">
-    <p class="kicker">What we built</p>
-    <h2 class="title">Beyond the dashboard: the games</h2>
-    <div class="games-layout">
-      <ul class="lean">
-        <li>Pelle · <strong>Catch the Button</strong></li>
-        <li>Mike · <strong>Click Game</strong></li>
-        <li>Natálie · <strong>Mega Timer 3000</strong></li>
-        <li>Jónas · <strong>Galdrastafur</strong></li>
-        <li>Pablo · <strong>Counter Game</strong></li>
-      </ul>
-      <img src="game.png" alt="Games" class="game-photo">
-    </div>
-  </div>
-  <div class="notes-src">Built the same way as the app: specify, generate, ship. — Alongside Clean Path we built five small games. The point is not the games themselves, it's that the SAME operating model produced them. Once the pipeline exists, a new idea is cheap to make real.</div>
-</section>
-
-<!-- A DESIGN CHOICE MADE BY STILLA -->
-<section class="slide">
-  <div class="label">Summary</div>
-  <div class="content">
-    <h2 class="title">A design choice Stilla made</h2>
-    <ul class="points body">
-      <li><strong>Design moved faster than debate.</strong> Stilla and Claude collaborated on app design elements.</li>
-      <li><strong>Token anxiety is real and forced a change.</strong> We ran out and had to install Claude Code to save tokens for coding.</li>
-      <li><strong>The architecture emerged from team structure.</strong> We planned five people and got five tabs.</li>
-    </ul>
-    <p class="body" style="margin-top:1.4em; font-style:italic; color:var(--muted);">What didn't change: Humans still had to merge manually, keeping accountability in the loop.</p>
-  </div>
-  <div class="notes-src">Mike owns this. Three honest observations about how AI changed (and didn't change) how we worked.</div>
-</section>
-
-<!-- TOKEN ANXIETY -->
-<section class="slide quote-slide bigstat">
-  <div class="label">Summary</div>
-  <blockquote class="pull">"We ran out of tokens."</blockquote>
-  <div class="below">Token anxiety is the new deadline anxiety.</div>
-  <div class="notes-src">Mike owns this. This is the honest, relatable moment. Don't oversell it. The lesson is the management skill, not the failure.</div>
 </section>
 
 <!-- WHAT WE LEARNED -->
