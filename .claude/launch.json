@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cleanpath-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-I", "-c", "import os,http.server,socketserver,functools;D='/tmp/cleanpath-preview';socketserver.TCPServer.allow_reuse_address=True;H=functools.partial(http.server.SimpleHTTPRequestHandler,directory=D);socketserver.TCPServer(('127.0.0.1',int(os.environ.get('PORT','8778'))),H).serve_forever()"],
+      "port": 8778,
+      "autoPort": true
+    }
+  ]
+}
