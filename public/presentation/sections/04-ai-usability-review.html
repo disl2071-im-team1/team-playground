@@ -1,45 +1,410 @@
 <!-- ===================================================================
      SECTION 04 · AI USABILITY TESTING / REVIEW
-     New section. Fill the placeholders with what you actually did.
-     Owner: ______   ·   Edit only this file. See ../README.md
      =================================================================== -->
+
+<style>
+  /* Section 04 — severity palette */
+  :root {
+    --s04-serious:  oklch(0.56 0.14 35);
+    --s04-moderate: oklch(0.62 0.07 75);
+    --s04-minor:    oklch(0.66 0.02 90);
+    --s04-panel:    rgba(255,255,255,0.04);
+  }
+
+  .s04-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.6em;
+    margin-top: 1.4em;
+  }
+
+  .s04-card {
+    background: var(--s04-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.8em 1em;
+  }
+
+  .s04-card-label {
+    font-size: 0.54em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    font-family: var(--sans);
+    margin-bottom: 0.5em;
+  }
+
+  .s04-card-title {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: var(--fg);
+    margin-bottom: 0.4em;
+    line-height: 1.2;
+  }
+
+  .s04-card-body {
+    font-size: 0.78em;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .s04-insight {
+    margin-top: auto;
+    padding-top: 0.9em;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8em;
+  }
+
+  .s04-insight-label {
+    font-size: 0.54em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--s04-serious);
+    font-weight: 700;
+    white-space: nowrap;
+    padding-top: 0.3em;
+    font-family: var(--sans);
+  }
+
+  .s04-insight-body {
+    font-size: 0.82em;
+    line-height: 1.45;
+    font-weight: 500;
+    color: var(--fg);
+  }
+
+  .s04-insight-body strong {
+    color: var(--s04-serious);
+  }
+
+  /* findings */
+  .s04-severity-counts {
+    display: flex;
+    gap: 1.2em;
+    font-size: 0.62em;
+    color: var(--muted);
+    font-family: var(--sans);
+    padding-bottom: 0.5em;
+  }
+
+  .s04-severity-counts .s04-num {
+    font-size: 1.4em;
+    font-weight: 700;
+    margin-right: 0.2em;
+  }
+
+  .s04-finding {
+    background: var(--s04-panel);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.7em 1em;
+    display: grid;
+    grid-template-columns: 2.4em 1fr 5.5em;
+    align-items: center;
+    gap: 0.9em;
+    margin-bottom: 0.5em;
+  }
+
+  .s04-finding.serious  { border-left: 3px solid var(--s04-serious); }
+  .s04-finding.moderate { border-left: 3px solid var(--s04-moderate); }
+  .s04-finding.minor    { border-left: 3px solid var(--s04-minor); }
+
+  .s04-finding-code {
+    font-size: 0.82em;
+    font-weight: 700;
+    font-family: var(--sans);
+  }
+  .serious  .s04-finding-code { color: var(--s04-serious); }
+  .moderate .s04-finding-code { color: var(--s04-moderate); }
+  .minor    .s04-finding-code { color: var(--s04-minor); }
+
+  .s04-finding-title {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--fg);
+    margin-bottom: 0.2em;
+  }
+
+  .s04-finding-desc {
+    font-size: 0.67em;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .s04-finding-fix {
+    font-size: 0.56em;
+    color: var(--muted);
+    text-align: right;
+    font-family: var(--sans);
+    letter-spacing: 0.06em;
+  }
+
+  .s04-strengths {
+    margin-top: auto;
+    padding-top: 0.8em;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8em;
+  }
+
+  .s04-strengths-label {
+    font-size: 0.54em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+    padding-top: 0.2em;
+    font-family: var(--sans);
+  }
+
+  .s04-strengths-body {
+    font-size: 0.76em;
+    line-height: 1.45;
+    color: var(--fg);
+  }
+
+  /* design crit */
+  .s04-gap-panel {
+    margin-top: 1.2em;
+    background: var(--s04-panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--s04-serious);
+    border-radius: 4px;
+    padding: 0.9em 1.1em;
+    max-width: 36em;
+  }
+
+  .s04-gap-panel-label {
+    font-size: 0.54em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--s04-serious);
+    font-weight: 700;
+    font-family: var(--sans);
+    margin-bottom: 0.4em;
+  }
+
+  .s04-gap-panel-body {
+    font-size: 0.85em;
+    line-height: 1.4;
+    font-weight: 500;
+    color: var(--fg);
+  }
+
+  .s04-north-star {
+    margin-top: auto;
+    padding-top: 0.8em;
+    border-top: 1px solid var(--line);
+    display: grid;
+    grid-template-columns: 6em 1fr;
+    gap: 0.8em;
+    align-items: start;
+  }
+
+  .s04-north-star-label {
+    font-size: 0.54em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    padding-top: 0.2em;
+    font-family: var(--sans);
+  }
+
+  .s04-north-star-body {
+    font-size: 0.82em;
+    line-height: 1.45;
+    color: var(--fg);
+  }
+
+  /* priorities */
+  .s04-priority-list {
+    margin-top: 1em;
+    border-top: 1px solid var(--line);
+  }
+
+  .s04-priority-row {
+    display: grid;
+    grid-template-columns: 2em 1fr;
+    gap: 1em;
+    padding: 0.7em 0;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
+  }
+
+  .s04-priority-num {
+    font-size: 0.72em;
+    font-weight: 700;
+    font-family: var(--sans);
+    color: var(--s04-serious);
+  }
+
+  .s04-priority-num.minor {
+    color: var(--muted);
+  }
+
+  .s04-priority-text {
+    font-size: 0.82em;
+    line-height: 1.4;
+    color: var(--fg);
+  }
+
+  .s04-priority-text strong {
+    font-weight: 700;
+  }
+
+  .s04-priority-text span {
+    color: var(--muted);
+  }
+</style>
 
 <!-- DIVIDER -->
 <section class="slide divider">
   <div class="dnum">04</div>
   <div class="dtitle">AI usability testing</div>
   <div class="drule"></div>
-  <div class="notes-src">Owner to set time. How we used AI to test and review the product, and what it surfaced.</div>
+  <div class="notes-src">How we used AI to test and review CleanPath, and what it surfaced.</div>
 </section>
 
-<!-- METHOD (PLACEHOLDER) -->
+<!-- METHOD -->
 <section class="slide">
   <div class="label">AI usability review</div>
-  <div class="content">
-    <span class="ph-tag">Placeholder · owner to fill in</span>
-    <h2 class="title">How we tested with AI</h2>
-    <ul class="points body">
-      <li class="dim">What we put in front of AI: the live app, a flow, screenshots, or the code</li>
-      <li class="dim">The method: what we asked it to evaluate and against what criteria</li>
-      <li class="dim">Where it ran: Claude chat, Claude Code, or a review pass on a PR</li>
-    </ul>
-    <p class="ph-note">Replace the dimmed prompts with the real method you used.</p>
+  <div class="content" style="display:flex;flex-direction:column;height:100%;padding-top:2em;">
+    <h2 class="title" style="margin-bottom:0.3em;font-size:1.8em;">We had AI run the usability test, as a persona</h2>
+    <p class="body" style="font-family:var(--serif);font-style:italic;font-size:0.88em;line-height:1.35;color:#b8b8b8;margin-top:0;max-width:36em;">
+      Most of our energy went into the AI workflow, not the product itself. So we tested the product the same way — an AI moderated a think-aloud session in character, against the live deployed build.
+    </p>
+
+    <div class="s04-two-col" style="margin-top:0.7em;">
+      <div class="s04-card">
+        <div class="s04-card-label">The persona</div>
+        <div class="s04-card-title">"Karin" — Environmental Health Officer</div>
+        <div class="s04-card-body">Owns ~8 bathing sites in a Stockholm district. Not a dashboard power-user — and personally accountable for every public advisory she issues.</div>
+      </div>
+      <div class="s04-card">
+        <div class="s04-card-label">The method</div>
+        <div class="s04-card-title">Moderated think-aloud + live walkthrough</div>
+        <div class="s04-card-body">Values, provenance, and the advisory workflow were read straight from the deployed build; the "send" gate was verified by instrumentation.</div>
+      </div>
+    </div>
+
+    <div class="s04-insight">
+      <div class="s04-insight-label">Headline insight</div>
+      <div class="s04-insight-body">
+        Stale, low-confidence data → a confidently worded "safe to swim" notice → one ungated click → <strong>published to the public.</strong> That chain is the priority to break.
+      </div>
+    </div>
   </div>
-  <div class="notes-src">PLACEHOLDER. Describe the actual usability testing or review loop you ran with AI. Keep it concrete: input, question, tool.</div>
+  <div class="notes-src">Frame the honest scope: most of our effort went into the AI workflow, not the product. So we tested the product the same way — we had an AI run a moderated think-aloud as a believable municipal officer persona, against the live deployed build. Walk through Karin, then land the headline insight: stale data turns into a confident public "safe to swim" message in one ungated click.</div>
 </section>
 
-<!-- FINDINGS (PLACEHOLDER) -->
+<!-- FINDINGS -->
 <section class="slide">
   <div class="label">AI usability review</div>
-  <div class="content">
-    <span class="ph-tag">Placeholder · owner to fill in</span>
-    <h2 class="title">What it found, what we changed</h2>
-    <ul class="points body">
-      <li class="dim">One or two concrete issues the AI review surfaced</li>
-      <li class="dim">What we changed as a result, with a before and after if you have it</li>
-      <li class="dim">Where human judgement overruled the AI, and why</li>
-    </ul>
-    <p class="ph-note">Pick the strongest one or two findings. Show the change, not just the critique.</p>
+  <div class="content" style="display:flex;flex-direction:column;height:100%;padding-top:2.5em;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+      <h2 class="title" style="margin-bottom:0;">A strong prototype, three serious risks</h2>
+      <div class="s04-severity-counts">
+        <span><span class="s04-num" style="color:var(--s04-serious);">3</span> Serious</span>
+        <span><span class="s04-num" style="color:var(--s04-moderate);">4</span> Moderate</span>
+        <span><span class="s04-num" style="color:var(--s04-minor);">3</span> Minor</span>
+      </div>
+    </div>
+
+    <p class="body" style="font-size:0.82em;color:var(--muted);margin-top:0.6em;margin-bottom:0;">All three serious issues cluster at the highest-stakes moment: publishing a public advisory.</p>
+
+    <div style="margin-top:0.8em;">
+      <div class="s04-finding serious">
+        <div class="s04-finding-code">S1</div>
+        <div>
+          <div class="s04-finding-title">A public advisory can be sent with no preview or confirm</div>
+          <div class="s04-finding-desc">The most consequential, irreversible action in the tool is completely ungated — one click goes straight to "sent."</div>
+        </div>
+        <div class="s04-finding-fix">Fix: Medium</div>
+      </div>
+      <div class="s04-finding serious">
+        <div class="s04-finding-code">S2</div>
+        <div>
+          <div class="s04-finding-title">Stale data becomes a confident "safe to swim" message</div>
+          <div class="s04-finding-desc">A sample flagged internally as 17 days overdue generated a public all-clear — with the low-confidence caveat stripped out.</div>
+        </div>
+        <div class="s04-finding-fix">Fix: Medium</div>
+      </div>
+      <div class="s04-finding serious">
+        <div class="s04-finding-code">S3</div>
+        <div>
+          <div class="s04-finding-title">"Clear shift history" sits beside Export, with no undo</div>
+          <div class="s04-finding-desc">A one-click wipe next to a routine action threatens the audit trail — the officer's entire defensibility asset.</div>
+        </div>
+        <div class="s04-finding-fix">Fix: Low</div>
+      </div>
+    </div>
+
+    <div class="s04-strengths">
+      <div class="s04-strengths-label">Strengths to protect</div>
+      <div class="s04-strengths-body">One consistent map-driven workflow across all five hazards · best-in-class provenance and confidence honesty · an excellent, attributed audit trail.</div>
+    </div>
   </div>
-  <div class="notes-src">PLACEHOLDER. Lead with the change that shipped because of an AI review. Be honest about where you disagreed with it.</div>
+  <div class="notes-src">Three serious findings cluster at the highest-stakes moment — publishing a public advisory. (1) No confirm or preview before a public advisory goes out. (2) The tool's internal "low confidence / 17 days overdue" honesty is stripped out of the generated public message. (3) A one-click "clear shift history" sits right next to Export with no undo, next to the audit trail that is the officer's whole defensibility. Close on the strengths worth protecting: one consistent map-driven workflow, best-in-class provenance, and an excellent audit trail.</div>
+</section>
+
+<!-- DESIGN CRIT -->
+<section class="slide">
+  <div class="label">Design critique · From an AI design director</div>
+  <div class="content" style="display:flex;flex-direction:column;height:100%;padding-top:2.5em;">
+    <h2 class="title">Real taste, pointed against the product's job</h2>
+    <p class="body" style="font-family:var(--serif);font-style:italic;font-size:1.05em;line-height:1.4;color:#b8b8b8;margin-top:0.2em;max-width:36em;">
+      It looks like a calm consumer wellness app — but it's a decision instrument for an officer accountable for public-safety calls. At the moments that matter most, the visuals whisper when they should speak.
+    </p>
+
+    <div class="s04-gap-panel">
+      <div class="s04-gap-panel-label">The gap to close</div>
+      <div class="s04-gap-panel-body">A 17-day-stale "Advisory" badge has the visual temperature of a spa booking confirmation.</div>
+    </div>
+
+    <div class="s04-north-star">
+      <div class="s04-north-star-label">North star</div>
+      <div class="s04-north-star-body">
+        <strong>"Calm until it isn't."</strong> Hold the warmth for the resting state — then build a deliberate escalation so the interface visibly tightens as hazard and uncertainty rise.
+      </div>
+    </div>
+  </div>
+  <div class="notes-src">Pivot from usability to a design-director critique. The thesis: we have real taste and a coherent token system, but pointed it in a direction that works against the product's job. Clean Path looks like a calm consumer wellness app, but it's a decision instrument for an accountable officer. The line that lands: a 17-day-stale advisory badge currently has the visual temperature of a spa booking confirmation. North star for the next iteration: "calm until it isn't." Keep the warmth and the strengths — the work is making the visuals mean the stakes.</div>
+</section>
+
+<!-- PRIORITIES -->
+<section class="slide">
+  <div class="label">The direction for next iteration</div>
+  <div class="content" style="padding-top:2.5em;">
+    <h2 class="title">Make the visuals mean the stakes</h2>
+
+    <div class="s04-priority-list">
+      <div class="s04-priority-row">
+        <div class="s04-priority-num">01</div>
+        <div class="s04-priority-text"><strong>Unify the risk-color language.</strong> <span>One escalating system across map, pills and badges — and let severity actually feel urgent.</span></div>
+      </div>
+      <div class="s04-priority-row">
+        <div class="s04-priority-num">02</div>
+        <div class="s04-priority-text"><strong>Match affordance to consequence.</strong> <span>Make destructive and irreversible-public actions visually distinct and gated; quiet the routine ones.</span></div>
+      </div>
+      <div class="s04-priority-row">
+        <div class="s04-priority-num minor">03</div>
+        <div class="s04-priority-text"><strong>Rebuild the type ladder.</strong> <span>Lift body text to ~14–15px and retire the 10px operational text — earn hierarchy through weight, not a size cliff.</span></div>
+      </div>
+      <div class="s04-priority-row">
+        <div class="s04-priority-num minor">04</div>
+        <div class="s04-priority-text"><strong>Promote triage.</strong> <span>A persistent cross-hazard at-a-glance strip — with data age made visual, so an old reading looks old.</span></div>
+      </div>
+      <div class="s04-priority-row">
+        <div class="s04-priority-num minor">05</div>
+        <div class="s04-priority-text"><strong>Elevate provenance, warm the chrome.</strong> <span>Make confidence a signature, not a footnote — and rename "Decision surface" to language Karin would use.</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="notes-src">Five priorities for the next iteration, in the director's order. (1) Unify risk color into one escalating system across map, pills and badges — let severity feel urgent. (2) Re-weight action affordances to match consequence: distinguish and gate destructive and irreversible-public actions, quiet the rest. (3) Rebuild the type ladder, lift body text to ~14-15px, kill the 10px operational text. (4) Promote triage — a persistent cross-hazard at-a-glance strip with data age made visual. (5) Elevate provenance from footnote to signature, and warm up the chrome naming to match the brand.</div>
 </section>
