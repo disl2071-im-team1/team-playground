@@ -1,7 +1,7 @@
 <!-- ===================================================================
-     SECTION 05 · AI REFLECTION
-     a design choice made by Stilla · token anxiety
-     Owner: ______   ·   Edit only this file. See ../README.md
+     SECTION 05 · DESIGN AND BUILD
+     linearisation · games · a design choice Stilla made · token anxiety
+     Owners: Natálie, Mike   ·   Edit only this file. See ../README.md
      =================================================================== -->
 <style>
   /* Pull-quote slide (used by the token-anxiety stat) */
@@ -27,17 +27,9 @@
   .quote-slide .below { margin-top: 1.8em; font-size: 0.95em; color: var(--accent); max-width: 22em; }
   .bigstat blockquote.pull { font-size: 2.6em; color: var(--fg); }
 
-  /* Shared: lean list, punch line, design grid */
+  /* Shared: lean list, games layout */
   .lean { list-style: none; padding: 0; display: flex; flex-direction: column; gap: .45em; font-size: 0.8em; max-width: 48ch; }
   .lean li { line-height: 1.4; }
-  .punch { margin-top: 1.5rem; font-style: italic; opacity: .85; }
-  .design-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
-  .design-grid.four { grid-template-columns: repeat(4, 1fr); }
-  .design-grid figure { margin: 0; }
-  .design-grid img { width: 100%; border-radius: 8px; display: block; opacity: .65; }
-  .design-grid figcaption { font-size: .8rem; margin-top: .5rem; opacity: .65; }
-  .design-grid .chosen img { opacity: 1; outline: 2px solid var(--accent); }
-  .design-grid .chosen figcaption { opacity: 1; color: var(--accent); }
   .games-layout { display: flex; gap: 2em; align-items: center; }
   .game-photo { width: 45%; border-radius: 10px; display: block; }
 </style>
@@ -94,34 +86,6 @@
   <div class="notes-src">The punchline: humans direct and review while the agent builds, and work moves in one direction. Idea to live in five steps: discover, compress, track, build, ship. We specify and review at the ends, the pipeline does the work in the middle. This is the Linear cycles workflow.</div>
 </section>
 
-<!-- DESIGN: FOUR DIRECTIONS -->
-<section class="slide">
-  <div class="label">Design and build</div>
-  <div class="content">
-    <p class="kicker">Design decision</p>
-    <h2 class="title">Four directions. One call.</h2>
-    <div class="design-grid four">
-      <figure>
-        <img src="pablo.png" alt="Pablo's design direction">
-        <figcaption>Pablo · heat-led</figcaption>
-      </figure>
-      <figure>
-        <img src="mike.png" alt="Mike's design direction">
-        <figcaption>Mike · risk-mapping</figcaption>
-      </figure>
-      <figure>
-        <img src="jonas.png" alt="Jónas's design direction">
-        <figcaption>Jónas · data-dense</figcaption>
-      </figure>
-      <figure class="chosen">
-        <img src="natalie.png" alt="Natálie's Clean Path, chosen">
-        <figcaption>Natálie · Clean Path ✓</figcaption>
-      </figure>
-    </div>
-  </div>
-  <div class="notes-src">We each designed a direction. Stilla chose mine, for reasons we could not argue with. — Four of us each brought a design direction. Rather than debate it ourselves, we asked Stilla to choose against one thing that mattered most: can a stressed municipal officer read this at a glance. It picked Clean Path and named why: the cleanest visual hierarchy; the "issue or lift an advisory" panel as the most actionable pattern; colour-coded risk levels that work across ANY hazard; and the most approachable for a non-specialist audience. What's interesting is that Stilla didn't just pick on taste, it reasoned from the user and from reusability. That direction became the system that let four independently-built tabs feel like one product.</div>
-</section>
-
 <!-- GAMES -->
 <section class="slide">
   <div class="label">Design and build</div>
@@ -144,7 +108,7 @@
 
 <!-- A DESIGN CHOICE MADE BY STILLA -->
 <section class="slide">
-  <div class="label">AI reflection</div>
+  <div class="label">Design and build</div>
   <div class="content">
     <h2 class="title">A design choice Stilla made</h2>
     <ul class="points body">
