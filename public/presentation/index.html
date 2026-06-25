@@ -375,11 +375,13 @@
     fragmentsOf(slide).forEach(f => f.classList.toggle('revealed', revealed));
   }
   function next() {
+    if (window.deckInterceptNext && window.deckInterceptNext()) return;
     const hidden = fragmentsOf(slides[current]).find(f => !f.classList.contains('revealed'));
     if (hidden) { hidden.classList.add('revealed'); return; }
     if (current < total - 1) { current++; setFragments(slides[current], false); render(); }
   }
   function prev() {
+    if (window.deckInterceptPrev && window.deckInterceptPrev()) return;
     const shown = fragmentsOf(slides[current]).reverse().find(f => f.classList.contains('revealed'));
     if (shown) { shown.classList.remove('revealed'); return; }
     if (current > 0) { current--; setFragments(slides[current], true); render(); }
@@ -400,6 +402,10 @@
       doc.querySelectorAll('style').forEach(st => document.head.appendChild(st));
       // Append the section's slides to the stage, preserving manifest order.
       doc.querySelectorAll('section.slide').forEach(sec => stage.appendChild(sec));
+      // Execute section scripts after slides are in DOM so getElementById works.
+      doc.querySelectorAll('script').forEach(s => {
+        const el = document.createElement('script'); el.textContent = s.textContent; document.body.appendChild(el);
+      });
     }
 
     const loading = document.getElementById('loading');

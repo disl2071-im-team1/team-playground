@@ -224,8 +224,8 @@
   <div class="notes-src">This was Karin's headline feedback. She validated the core workflow logic — but flagged that the most consequential action (sending a public advisory) had no confirmation gate. 3 serious, 4 moderate, 3 minor issues surfaced in total.</div>
 </section>
 
-<!-- SLIDE 3: AI DESIGN DIRECTOR — quote 1 -->
-<section class="slide">
+<!-- SLIDE 3: AI DESIGN DIRECTOR — two quotes, nav-intercepted -->
+<section class="slide" id="s04-director-slide">
   <div class="label">AI design critique · Design director</div>
   <div style="display:flex;flex-direction:column;height:100%;padding-top:2.8em;">
     <h2 class="title" style="margin-bottom:0.1em;">Then we hired an AI design director</h2>
@@ -234,32 +234,47 @@
         <img src="design-director.png" alt="AI Design Director" class="s04-portrait" />
         <div class="s04-director-sig">AI Design Director</div>
       </div>
-      <p class="s04-anim-quote" style="position:static;opacity:1;">You've built something with real taste and a coherent token system — but pointed it in a direction that quietly works against the product's job.</p>
+      <div style="position:relative;flex:1;min-height:5em;">
+        <p class="s04-anim-quote visible" id="s04-dq1">You've built something with real taste and a coherent token system — but pointed it in a direction that quietly works against the product's job.</p>
+        <p class="s04-anim-quote hidden"  id="s04-dq2">It looks like a calm wellness app. But it is a decision instrument for an officer acting on public-safety hazards and it needs to reflect that.</p>
+      </div>
     </div>
     <div class="s04-north-star">
       <div class="s04-ns-label">North star</div>
       <div class="s04-ns-body"><strong>"Calm until it isn't."</strong> Hold the warmth for the resting state — then build a deliberate escalation so the interface visibly tightens as hazard and uncertainty rise.</div>
     </div>
   </div>
-  <div class="notes-src">We gave Claude a design-director persona and asked it to critique CleanPath as a senior creative would — not just list issues but name the underlying tension. The thesis: the product has taste, but its visual language is calibrated for calm when it should escalate.</div>
+  <div class="notes-src">We gave Claude a design-director persona and asked it to critique CleanPath as a senior creative would. First beat: real taste, wrong direction. Second beat: looks like a wellness app, needs to feel like a decision instrument.</div>
 </section>
 
-<!-- SLIDE 4: AI DESIGN DIRECTOR — quote 2 -->
-<section class="slide">
-  <div class="label">AI design critique · Design director</div>
-  <div style="display:flex;flex-direction:column;height:100%;padding-top:2.8em;">
-    <h2 class="title" style="margin-bottom:0.1em;">Then we hired an AI design director</h2>
-    <div class="s04-director-wrap">
-      <div class="s04-director-left">
-        <img src="design-director.png" alt="AI Design Director" class="s04-portrait" />
-        <div class="s04-director-sig">AI Design Director</div>
-      </div>
-      <p class="s04-anim-quote" style="position:static;opacity:1;">It looks like a calm wellness app. But it is a decision instrument for an officer acting on public-safety hazards and it needs to reflect that.</p>
-    </div>
-    <div class="s04-north-star">
-      <div class="s04-ns-label">North star</div>
-      <div class="s04-ns-body"><strong>"Calm until it isn't."</strong> Hold the warmth for the resting state — then build a deliberate escalation so the interface visibly tightens as hazard and uncertainty rise.</div>
-    </div>
-  </div>
-  <div class="notes-src">The second beat of the design critique: the visual language works against the product's job. Clean Path looks like a wellness app when it needs to behave like a decision instrument.</div>
-</section>
+<script>
+(function () {
+  const slide = document.getElementById('s04-director-slide');
+  const q1    = document.getElementById('s04-dq1');
+  const q2    = document.getElementById('s04-dq2');
+  if (!slide || !q1 || !q2) return;
+
+  let onSecond = false;
+
+  function showFirst()  { q1.classList.replace('hidden','visible'); q2.classList.replace('visible','hidden'); onSecond = false; }
+  function showSecond() { q2.classList.replace('hidden','visible'); q1.classList.replace('visible','hidden'); onSecond = true;  }
+
+  function isActive() { return slide.classList.contains('active'); }
+
+  // Reset to q1 whenever the slide loses active (so back-navigation always starts fresh)
+  new MutationObserver(() => { if (!isActive()) showFirst(); })
+    .observe(slide, { attributes: true, attributeFilter: ['class'] });
+
+  // Hook into deck's next/prev — returning true cancels the default navigation
+  window.deckInterceptNext = function () {
+    if (!isActive()) return false;
+    if (!onSecond) { showSecond(); return true; }
+    return false;
+  };
+  window.deckInterceptPrev = function () {
+    if (!isActive()) return false;
+    if (onSecond) { showFirst(); return true; }
+    return false;
+  };
+})();
+</script>
