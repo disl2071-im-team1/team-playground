@@ -37,7 +37,9 @@
     border-radius: 0.45em;
     padding: 0.42em 0.65em;
   }
-  .scard.lead {
+  /* Stilla's Orchestrate card. Named lead-card, not "lead", to avoid the
+     shared .lead paragraph class (which caps width at 20em and clipped it). */
+  .scard.lead-card {
     background: linear-gradient(145deg, var(--accent-dim), rgba(255,255,255,0.012));
     border-color: rgba(126, 200, 160, 0.3);
   }
@@ -149,7 +151,7 @@
     <div class="tier fragment">
       <div class="tier-label">Orchestrate</div>
       <div class="tier-cards">
-        <div class="scard lead">
+        <div class="scard lead-card">
           <div class="sc-title">Stilla</div>
           <div class="sc-line">the AI agent that sits across the tools and keeps work moving</div>
           <div class="sc-sub">it does the coordinating a project manager used to do</div>
