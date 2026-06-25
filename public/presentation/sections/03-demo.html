@@ -25,6 +25,24 @@
   .scenario-card.placeholder { border-style: dashed; border-color: var(--placeholder); background: var(--placeholder-bg); }
   .scenario-card.placeholder .sc-when { color: var(--placeholder); }
   .scenario-card.placeholder .sc-text { color: var(--placeholder); font-style: italic; opacity: 0.85; }
+
+  /* Live product shot of the running prototype */
+  .demo-shot { justify-content: center; }
+  .demo-shot .shot-head { display: flex; align-items: baseline; gap: 0.8em; flex-wrap: wrap; margin-bottom: 0.7em; }
+  .demo-shot .shot-head h2 { font-size: 1.5em; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+  .demo-shot .shot-head .shot-sub { font-size: 0.66em; color: var(--muted); letter-spacing: 0.02em; }
+  .shot-frame {
+    margin: 0 auto;
+    line-height: 0;
+    border: 1px solid var(--line);
+    border-radius: 0.6em;
+    overflow: hidden;
+    background: var(--bg-soft);
+    box-shadow: 0 1.4cqh 4cqh rgba(0, 0, 0, 0.45);
+  }
+  .shot-frame img { display: block; width: auto; height: auto; max-width: 86cqw; max-height: 60cqh; }
+  .shot-caption { font-size: 0.62em; color: var(--muted); line-height: 1.4; text-align: center; max-width: 40em; margin: 0.7em auto 0; }
+  .shot-caption .kicker { color: var(--accent); font-weight: 600; }
 </style>
 
 <!-- DIVIDER -->
@@ -48,6 +66,20 @@
     </ul>
   </div>
   <div class="notes-src">Pablo owns this. This slide is just a handoff. Pablo does the live demo from the actual app, switch to the browser tab now.</div>
+</section>
+
+<!-- LIVE SHOT · HEAT DECISION SURFACE -->
+<section class="slide demo-shot">
+  <div class="label">Demo</div>
+  <div class="shot-head">
+    <h2>One shell, every hazard</h2>
+    <span class="shot-sub">Clean Path, Heat decision surface, Stockholm</span>
+  </div>
+  <figure class="shot-frame">
+    <img src="Images/Clean_path_homescreen.png" alt="Clean Path municipal monitor showing the Heat decision surface for Stockholm: an apparent-temperature map with vulnerable sites and an officer decision panel for the municipal heat plan." />
+  </figure>
+  <p class="shot-caption">A live map of apparent temperature and vulnerable sites, a one-click officer decision panel, and <span class="kicker">every reading source-tagged</span>. Placeholder data is labelled, never shown as a measurement.</p>
+  <div class="notes-src">This is the screen Pablo demos live. Point out the shared shell (same header and tabs on every hazard), the source-tagged readings, and the officer decision panel on the right. The orange tag flags placeholder data, so nothing modelled is ever passed off as a real measurement.</div>
 </section>
 
 <!-- SCENARIOS -->
