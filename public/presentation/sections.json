@@ -1,0 +1,12 @@
+{
+  "_comment": "Ordered list of deck sections. Each loads from sections/<file>. Change this file ONLY to add, remove or reorder sections (coordinate first, since everyone shares it). Editing slide content does NOT require touching this file.",
+  "sections": [
+    { "file": "01-framing.html", "title": "Framing", "owner": "" },
+    { "file": "02-how-we-organized.html", "title": "How we organized", "owner": "" },
+    { "file": "03-demo.html", "title": "Demo", "owner": "" },
+    { "file": "04-ai-usability-review.html", "title": "AI usability testing / review", "owner": "" },
+    { "file": "05-ai-reflection.html", "title": "AI reflection", "owner": "" },
+    { "file": "06-stilla-performance-review.html", "title": "Stilla's performance review", "owner": "" },
+    { "file": "07-summary.html", "title": "Summary & future projection", "owner": "" }
+  ]
+}
