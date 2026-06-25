@@ -7,6 +7,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<!--
+  ============================================================================
+  PRESENTATION SHELL  ·  shared styles + loader only.  EDIT THIS FILE RARELY.
+  ----------------------------------------------------------------------------
+  Slide CONTENT lives in one file per section under sections/ and the order is
+  in sections.json. To edit a section, open ONLY its file in sections/ so your
+  PR never collides with anyone else's. See README.md.
+  ============================================================================
+-->
 <style>
   :root {
     --bg: #0f0f0f;
@@ -56,7 +65,7 @@
     overflow: hidden;
   }
 
-  /* ---------- Slides ---------- */
+  /* ---------- Slides (shared base) ---------- */
   .slide {
     position: absolute;
     inset: 0;
@@ -137,28 +146,7 @@
   .lead { font-size: 1.25em; line-height: 1.4; color: var(--fg); max-width: 20em; }
   .kicker { color: var(--accent); font-weight: 600; }
 
-  /* ---------- Title slide ---------- */
-  .title-slide { align-items: flex-start; justify-content: center; }
-  .title-slide h1 { font-size: 3.4em; max-width: 14em; }
-  .title-slide h1 .ax { color: var(--accent); }
-  .title-slide h1 .strike { color: var(--muted); }
-  .title-slide .sub {
-    font-size: 1.05em;
-    color: var(--muted);
-    margin-top: 1.1em;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-  }
-  .title-slide .team {
-    margin-top: 2.4em;
-    font-size: 0.82em;
-    color: #c4c4c4;
-    letter-spacing: 0.02em;
-    line-height: 1.7;
-  }
-  .title-slide .team .org { display: block; color: var(--muted-dim); margin-top: 0.4em; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.85em; }
-
-  /* ---------- Divider slides ---------- */
+  /* ---------- Divider slides (shared: every section opens with one) ---------- */
   .divider { justify-content: center; }
   .divider .dnum {
     font-size: 1.1em;
@@ -175,129 +163,7 @@
   }
   .divider .drule { width: 4em; height: 2px; background: var(--accent); margin-top: 1.2em; }
 
-  /* ---------- Two column ---------- */
-  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 5cqw; max-width: none; }
-  .col h3 {
-    font-size: 0.66em;
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    color: var(--accent);
-    margin-bottom: 1em;
-    font-weight: 700;
-  }
-  .col.human h3 { color: var(--muted); }
-  .col ul { list-style: none; }
-  .col li {
-    font-size: 0.96em;
-    line-height: 1.4;
-    padding: 0.55em 0;
-    border-top: 1px solid var(--line);
-    color: #d4d4d4;
-  }
-  .col li:last-child { border-bottom: 1px solid var(--line); }
-  .footnote { margin-top: 1.6em; font-size: 0.78em; color: var(--muted); letter-spacing: 0.02em; }
-
-  /* ---------- Pull quote ---------- */
-  .quote-slide { align-items: center; text-align: center; justify-content: center; }
-  blockquote.pull {
-    font-family: var(--serif);
-    font-size: 2em;
-    line-height: 1.25;
-    font-weight: 400;
-    max-width: 16em;
-    letter-spacing: -0.01em;
-  }
-  blockquote.pull .src {
-    display: block;
-    font-family: var(--sans);
-    font-size: 0.4em;
-    color: var(--muted);
-    margin-top: 1.4em;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-  .quote-slide .below { margin-top: 1.8em; font-size: 0.95em; color: var(--accent); max-width: 22em; }
-
-  .bigstat blockquote.pull { font-size: 2.6em; color: var(--fg); }
-
-  /* ---------- Checklist ---------- */
-  ul.checklist { list-style: none; max-width: 26em; }
-  ul.checklist li {
-    font-size: 0.98em;
-    line-height: 1.4;
-    padding: 0.65em 0 0.65em 2em;
-    position: relative;
-    border-bottom: 1px solid var(--line);
-    color: #d8d8d8;
-  }
-  ul.checklist li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.7em;
-    width: 1.1em;
-    height: 1.1em;
-    border: 1.5px solid var(--accent);
-    border-radius: 4px;
-  }
-  ul.checklist li::after {
-    content: "";
-    position: absolute;
-    left: 0.36em;
-    top: 0.78em;
-    width: 0.42em;
-    height: 0.7em;
-    border: solid var(--accent);
-    border-width: 0 2px 2px 0;
-    transform: rotate(40deg);
-    opacity: 0.0;
-  }
-
-  /* ---------- Closer ---------- */
-  .closer { align-items: center; justify-content: center; text-align: center; }
-  .closer h1 { font-size: 2.7em; max-width: 15em; letter-spacing: -0.025em; }
-  .closer h1 .ax { color: var(--accent); }
-  .closer .answer-num { font-size: 5em; font-weight: 800; color: var(--accent); line-height: 1; letter-spacing: -0.03em; }
-  .closer .answer-sub { margin-top: 0.8em; font-size: 1em; color: var(--muted); max-width: 20em; }
-
-  /* ---------- Performance review (light, serif, form) ---------- */
-  .slide.review {
-    background: #f4f1ea;
-    color: #2a2a2a;
-    padding: 6cqh 9cqw;
-    justify-content: flex-start;
-  }
-  .slide.review .label { color: #9a9488; }
-  .slide.review .label::before { background: #b08d57; }
-  .review .form-head {
-    border-bottom: 2px solid #2a2a2a;
-    padding-bottom: 0.6em;
-    margin-bottom: 1em;
-    margin-top: 1.4em;
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-  .review .form-head h2 { font-family: var(--serif); font-size: 1.5em; font-weight: 500; letter-spacing: 0; color: #1a1a1a; }
-  .review .form-head .stamp { font-family: var(--sans); font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.18em; color: #b08d57; font-weight: 700; }
-  .review .meta-row { display: flex; gap: 3em; font-family: var(--serif); font-size: 0.85em; margin-bottom: 1.4em; }
-  .review .meta-row span b { font-weight: 500; }
-  .review .meta-row .field { border-bottom: 1px solid #c9c2b4; padding: 0.1em 0.4em; min-width: 7em; display: inline-block; color: #555; }
-  .review .field-block { margin-bottom: 1em; }
-  .review .field-block .ftitle {
-    font-family: var(--sans);
-    font-size: 0.6em;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: #8a8478;
-    font-weight: 700;
-    margin-bottom: 0.3em;
-  }
-  .review .field-block .fbody { font-family: var(--serif); font-size: 0.92em; line-height: 1.4; color: #333; max-width: 30em; }
-  .review .rating { font-family: var(--serif); font-style: italic; }
-
-  /* ---------- Placeholder tag ---------- */
+  /* ---------- Placeholder tag (shared) ---------- */
   .ph-tag {
     display: inline-block;
     font-family: var(--sans);
@@ -312,87 +178,7 @@
     padding: 0.35em 0.9em;
     margin-bottom: 1.2em;
   }
-  .slide.review .ph-tag { background: rgba(176, 141, 87, 0.12); }
   .ph-note { color: var(--placeholder); font-size: 0.82em; font-style: italic; opacity: 0.8; max-width: 24em; margin-top: 0.4em; }
-
-  /* ---------- Stack slide ---------- */
-  .slide.stack { justify-content: flex-start; padding-top: 9cqh; }
-  .slide.stack h2.title { font-size: 1.5em; margin-bottom: 0.25em; }
-  .stack .subtitle {
-    font-size: 0.74em;
-    color: var(--muted);
-    margin-bottom: 0.7em;
-    max-width: 38em;
-    line-height: 1.4;
-  }
-  .stack-tiers { display: flex; flex-direction: column; gap: 0.32em; width: 100%; }
-  .tier { display: grid; grid-template-columns: 6em 1fr; gap: 0.9em; align-items: stretch; }
-  .tier-label {
-    font-size: 0.52em;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--accent);
-    font-weight: 700;
-    align-self: center;
-  }
-  .tier-cards { display: flex; gap: 0.55em; }
-  .scard {
-    flex: 1;
-    background: linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012));
-    border: 1px solid var(--line);
-    border-radius: 0.45em;
-    padding: 0.42em 0.65em;
-  }
-  .scard.lead {
-    background: linear-gradient(145deg, var(--accent-dim), rgba(255,255,255,0.012));
-    border-color: rgba(126, 200, 160, 0.3);
-  }
-  .scard .sc-title { font-size: 0.72em; font-weight: 700; color: var(--fg); margin-bottom: 0.12em; }
-  .scard .sc-line { font-size: 0.58em; color: #cfcfcf; line-height: 1.3; }
-  .scard .sc-sub { font-size: 0.54em; color: var(--muted); line-height: 1.3; margin-top: 0.15em; }
-  .scard .sc-badge {
-    display: inline-block;
-    font-size: 0.46em;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border-radius: 999px;
-    padding: 0.3em 0.65em;
-    margin-top: 0.35em;
-  }
-
-  /* ---------- Linearisation flow slide ---------- */
-  .slide.flow { justify-content: center; }
-  .flow-steps { display: flex; align-items: stretch; gap: 0.35em; width: 100%; margin-top: 0.5em; }
-  .fstep {
-    flex: 1;
-    background: linear-gradient(160deg, rgba(126,200,160,0.09), rgba(255,255,255,0.012));
-    border: 1px solid var(--line);
-    border-radius: 0.5em;
-    padding: 0.7em 0.65em;
-    display: flex;
-    flex-direction: column;
-  }
-  .fstep .fnum { font-size: 0.6em; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.35em; }
-  .fstep .fname { font-size: 0.84em; font-weight: 700; color: var(--fg); margin-bottom: 0.3em; }
-  .fstep .fdesc { font-size: 0.6em; color: #cfcfcf; line-height: 1.35; flex: 1; }
-  .fstep .fchip {
-    display: inline-block;
-    align-self: flex-start;
-    margin-top: 0.6em;
-    font-size: 0.52em;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--accent);
-    background: var(--accent-dim);
-    border-radius: 999px;
-    padding: 0.32em 0.65em;
-  }
-  .flow-arrow { display: flex; align-items: center; color: var(--muted-dim); font-size: 1.1em; }
-  .flow-foot { margin-top: 1.5em; font-size: 0.9em; color: var(--accent); max-width: 34em; line-height: 1.4; }
 
   /* ---------- Overlays ---------- */
   .progress {
@@ -489,7 +275,14 @@
   .notes-panel .np-body { font-size: 15px; line-height: 1.6; color: #cfcfcf; }
   .notes-panel .np-body.empty { color: var(--muted-dim); font-style: italic; }
 
+  /* Speaker notes travel inside each slide but are never shown on the slide. */
   .notes-src { display: none; }
+
+  .deck-loading {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase;
+  }
 
   @media (max-width: 600px) {
     .nav-arrow { display: none; }
@@ -501,408 +294,7 @@
 <div class="deck-wrap">
 <div class="deck">
   <div class="stage" id="stage">
-
-    <!-- 1 — TITLE -->
-    <section class="slide title-slide active">
-      <h1>We treated AI as a <span class="ax">team member,</span><br /><span class="strike">not a tool.</span></h1>
-      <div class="sub">A 40-minute case study in agentic product development</div>
-      <div class="team">
-        Jónas Valtýsson&nbsp;·&nbsp;Mike Pedersen&nbsp;·&nbsp;Natálie Kolářová&nbsp;·&nbsp;Pablo Santos&nbsp;·&nbsp;Pelle Kimvall
-        <span class="org">Hyperisland Digital Interactive&nbsp;·&nbsp;June 2026</span>
-      </div>
-      <div class="notes-src">Opening moment. Let it breathe. No need to say anything yet.</div>
-    </section>
-
-    <!-- DIVIDER 01 -->
-    <section class="slide divider">
-      <div class="dnum">01</div>
-      <div class="dtitle">Framing</div>
-      <div class="drule"></div>
-      <div class="notes-src">Pelle — 3 minutes. Set up the central decision: we built a company, not just a product.</div>
-    </section>
-
-    <!-- 2 — THE BRIEF -->
-    <section class="slide">
-      <div class="label">Framing</div>
-      <div class="content">
-        <h2 class="title">The brief asked for a prototype. We built the operating model behind it.</h2>
-        <ul class="points body">
-          <li>The brief placed us as a <strong>thinktank</strong>: take a direction, make it real, critically evaluate it</li>
-          <li>We did not form a company. We built the <strong>operating model</strong> a five-person AI-native team runs on</li>
-          <li><strong>Clean Path</strong> is the first thing that model produced</li>
-        </ul>
-      </div>
-      <div class="notes-src">Pelle owns this. This slide is about the operating model, not a literal company. Position it as a systems choice: the model is the deliverable, and Clean Path is what the model produced.</div>
-    </section>
-
-    <!-- 3 — THE USER -->
-    <section class="slide">
-      <div class="label">Framing</div>
-      <div class="content">
-        <h2 class="title">Who it's for, and what it is</h2>
-        <ul class="points body">
-          <li><strong>Municipality environmental departments</strong></li>
-          <li>The need: officer-ready visibility of five hazards, air quality, bathing-water algae, fire risk, extreme heat, and rainfall</li>
-          <li><strong>Clean Path</strong>: a monitoring and decision surface, one shell per hazard</li>
-          <li>Built and running on real, source-tagged data, every layer labelled measured, forecast, modelled or sampled</li>
-        </ul>
-      </div>
-      <div class="notes-src">Pelle. The data is real and source-tagged now, so lead with that. Five hazards, each in its own shell, every layer labelled measured, forecast, modelled or sampled. Don't deflect into "it's just a scenario", the surface is running on real data.</div>
-    </section>
-
-    <!-- DIVIDER 02 -->
-    <section class="slide divider">
-      <div class="dnum">02</div>
-      <div class="dtitle">How we organised</div>
-      <div class="drule"></div>
-      <div class="notes-src">Pelle — 6 minutes. The heart of the process story. This is what the talk is really about.</div>
-    </section>
-
-    <!-- 4 — HEADLESS TEAM -->
-    <section class="slide">
-      <div class="label">How we organised</div>
-      <div class="content">
-        <h2 class="title">A headless team</h2>
-        <ul class="points body">
-          <li>No project manager, no team lead. <strong>Five equals</strong> working at the same time</li>
-          <li><strong>Stilla</strong> supported the meetings: prepared agendas and discussion topics, summarised each session, and surfaced the open tickets</li>
-          <li>It did not run standups, assign the work, or own the backlog. We did that together</li>
-          <li>Everything stayed visible and explicit through <strong>GitHub PRs</strong> and <strong>Linear</strong></li>
-        </ul>
-      </div>
-      <div class="notes-src">Pelle. "Headless" means no PM role exists at all. The team self-organised as five equals. Stilla was a meeting aide, not a coordinator: it prepared agendas, summarised sessions, and surfaced tickets, but the team owned the standups, the assignments, and the backlog.</div>
-    </section>
-
-    <!-- 5 — THE IRREDUCIBLE STACK -->
-    <section class="slide stack">
-      <div class="label">How we organised</div>
-      <h2 class="title" style="margin-bottom:0.3em;">The Irreducible Stack</h2>
-      <div class="subtitle">A five-person, AI-native digital company, organised by capability, not by tool.</div>
-      <div class="stack-tiers">
-        <div class="tier">
-          <div class="tier-label">Orchestrate</div>
-          <div class="tier-cards">
-            <div class="scard lead">
-              <div class="sc-title">Stilla</div>
-              <div class="sc-line">The agent that coordinates across the tools below it</div>
-              <div class="sc-sub">Prepares agendas, surfaces open tickets, summarises sessions, routes context</div>
-              <span class="sc-badge">lightens the human-as-glue work</span>
-            </div>
-          </div>
-        </div>
-        <div class="tier">
-          <div class="tier-label">Coordinate</div>
-          <div class="tier-cards">
-            <div class="scard">
-              <div class="sc-title">Slack</div>
-              <div class="sc-line">Human coordination, in real time</div>
-              <div class="sc-sub">where five people stay in sync</div>
-            </div>
-            <div class="scard">
-              <div class="sc-title">Linear</div>
-              <div class="sc-line">Work-state and orchestration spine</div>
-              <div class="sc-sub">what work exists, and is it done</div>
-            </div>
-            <div class="scard">
-              <div class="sc-title">Miro</div>
-              <div class="sc-line">Shared canvas and info sharing</div>
-              <div class="sc-sub">where thinking is made visible</div>
-            </div>
-          </div>
-        </div>
-        <div class="tier">
-          <div class="tier-label">Produce</div>
-          <div class="tier-cards">
-            <div class="scard">
-              <div class="sc-title">Claude</div>
-              <div class="sc-line">Generate · turns intent into software</div>
-              <div class="sc-sub">the layer that collapsed the old stack</div>
-            </div>
-            <div class="scard">
-              <div class="sc-title">GitHub</div>
-              <div class="sc-line">Version · code as source of truth</div>
-            </div>
-            <div class="scard">
-              <div class="sc-title">Vercel</div>
-              <div class="sc-line">Deploy and host · ships it to the world</div>
-            </div>
-          </div>
-        </div>
-        <div class="tier">
-          <div class="tier-label">Foundation</div>
-          <div class="tier-cards">
-            <div class="scard">
-              <div class="sc-title">GSuite · Google Auth</div>
-              <div class="sc-line">Identity</div>
-              <div class="sc-sub">who is allowed to do what</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="notes-src">The team and the stack are organised by capability, not by tool. This replaces the abstract Conway quote with the concrete stack: orchestrate, coordinate, produce, foundation. Stilla sits on top, coordinating across the layers below. Note the produce tier is where Claude collapsed the old stack into one generate step.</div>
-    </section>
-
-    <!-- 6 — LINEARISATION: IDEA TO LIVE -->
-    <section class="slide flow">
-      <div class="label">How we organised</div>
-      <h2 class="title" style="margin-bottom:0.2em;">Linearisation: idea to live</h2>
-      <div class="flow-steps">
-        <div class="fstep">
-          <div class="fnum">01</div>
-          <div class="fname">Discover</div>
-          <div class="fdesc">Claude interviews you on the Solo canvas</div>
-          <span class="fchip">Claude (chat)</span>
-        </div>
-        <div class="flow-arrow">›</div>
-        <div class="fstep">
-          <div class="fnum">02</div>
-          <div class="fname">Compress</div>
-          <div class="fdesc">Claude stress-tests and writes the feature cards</div>
-          <span class="fchip">Claude (chat)</span>
-        </div>
-        <div class="flow-arrow">›</div>
-        <div class="fstep">
-          <div class="fnum">03</div>
-          <div class="fname">Track</div>
-          <div class="fdesc">Each card becomes a Linear issue</div>
-          <span class="fchip">Linear</span>
-        </div>
-        <div class="flow-arrow">›</div>
-        <div class="fstep">
-          <div class="fnum">04</div>
-          <div class="fname">Build</div>
-          <div class="fdesc">Claude Code works the issue in the terminal</div>
-          <span class="fchip">Terminal (reads Linear)</span>
-        </div>
-        <div class="flow-arrow">›</div>
-        <div class="fstep">
-          <div class="fnum">05</div>
-          <div class="fname">Ship</div>
-          <div class="fdesc">Open a PR, review, merge, live</div>
-          <span class="fchip">GitHub + Vercel</span>
-        </div>
-      </div>
-      <div class="flow-foot">No human writes the code. We specify and review, the pipeline does the rest.</div>
-      <div class="notes-src">The punchline: humans direct and review while the agent builds, and work moves in one direction. Idea to live in five steps, discover, compress, track, build, ship. We specify and review at the ends, the pipeline does the work in the middle.</div>
-    </section>
-
-    <!-- 7 — OPERATING RHYTHM -->
-    <section class="slide">
-      <div class="label">How we organised</div>
-      <div class="content">
-        <h2 class="title">Operating rhythm</h2>
-        <ul class="points body">
-          <li>Weekly <strong>sync</strong>, 20:00 CET</li>
-          <li>Async through the week via <strong>Slack</strong> and <strong>GitHub</strong></li>
-          <li>Stilla summarises each session and surfaces the open tickets</li>
-        </ul>
-      </div>
-      <div style="position:absolute; bottom:6cqh; right:8cqw; font-size:0.62em; color:var(--muted-dim); max-width:14em; text-align:right; line-height:1.4;">Biggest blocker: which meeting tool to use</div>
-      <div class="notes-src">Pelle. Weekly sync at 20:00 CET, async the rest of the week via Slack and GitHub. Stilla summarises each session and surfaces the open tickets. The corner joke is real and lands: every team has lost a week to tooling debates. Use it to humanise the story.</div>
-    </section>
-
-    <!-- DIVIDER 03 -->
-    <section class="slide divider">
-      <div class="dnum">03</div>
-      <div class="dtitle">Demo</div>
-      <div class="drule"></div>
-      <div class="notes-src">Pablo — 5–6 minutes. Hand off to the live app after slide 9.</div>
-    </section>
-
-    <!-- 8 — THE APP -->
-    <section class="slide">
-      <div class="label">Demo</div>
-      <div class="content">
-        <h2 class="title">The app: Clean Path</h2>
-        <ul class="points body">
-          <li>Real-time environmental monitoring for municipalities</li>
-          <li>Four hazard tabs: <strong>Air</strong> (pollen), <strong>Rain</strong> (precipitation), <strong>Heat</strong>, <strong>Algae</strong></li>
-          <li>Each tab: a map with markers, relevant environmental data, severity indicators</li>
-          <li>Design unified under <strong>Natálie's pastel UI system</strong></li>
-        </ul>
-      </div>
-      <div class="notes-src">Pablo owns this. This slide is just a handoff. Pablo does the live demo from the actual app — switch to the browser tab now.</div>
-    </section>
-
-    <!-- 9 — THE SCENARIO -->
-    <section class="slide">
-      <div class="label">Demo</div>
-      <div class="content">
-        <p class="lead" style="margin-bottom:1em;"><span class="kicker">It's a hot July morning.</span> The city's environmental team gets to work.</p>
-        <ul class="points body">
-          <li><strong>Air quality:</strong> pollen levels spiking in three districts</li>
-          <li><strong>Rain:</strong> heavy precipitation forecast — drainage alert</li>
-          <li><strong>Heat index:</strong> two districts above threshold — city issues advisory</li>
-          <li class="dim">Clean Path surfaces all of this in one place. No phone calls. No spreadsheets.</li>
-        </ul>
-      </div>
-      <div class="notes-src">Walk through one realistic use case. Keep it tight — the point is value, not features. Tie each item back to the live demo Pablo just gave.</div>
-    </section>
-
-    <!-- DIVIDER 04 -->
-    <section class="slide divider">
-      <div class="dnum">04</div>
-      <div class="dtitle">What AI changed</div>
-      <div class="drule"></div>
-      <div class="notes-src">Mike — 5 minutes. The honest middle: where AI genuinely shifted how we worked.</div>
-    </section>
-
-    <!-- 10 — DESIGN DECISIONS (PLACEHOLDER) -->
-    <section class="slide">
-      <div class="label">What AI changed</div>
-      <div class="content">
-        <span class="ph-tag">Placeholder · Mike to fill in</span>
-        <h2 class="title">Design decisions</h2>
-        <ul class="points body">
-          <li class="dim">A specific design decision Stilla or Claude made (e.g. tab structure, component naming, data model)</li>
-          <li class="dim">Why it was unexpected or better than what the team would have chosen</li>
-          <li class="dim">What that tells you about AI as a collaborator</li>
-        </ul>
-        <p class="ph-note">Replace the three dimmed prompts above with one concrete story.</p>
-      </div>
-      <div class="notes-src">PLACEHOLDER — Mike to fill in. Pick ONE decision and tell it as a story: what AI proposed, why we doubted it, why it was right.</div>
-    </section>
-
-    <!-- 11 — MODULAR ARCHITECTURE (PLACEHOLDER) -->
-    <section class="slide">
-      <div class="label">What AI changed</div>
-      <div class="content">
-        <span class="ph-tag">Placeholder · Mike to fill in</span>
-        <h2 class="title">Modular architecture</h2>
-        <ul class="points body">
-          <li class="dim">Each team member owned one tab = one component</li>
-          <li class="dim">AI helped enforce this: separate files, clean props interfaces, no cross-tab coupling</li>
-          <li class="dim">Result: four people worked in parallel with very few merge conflicts</li>
-          <li class="dim">"Conway's Law working in our favour"</li>
-        </ul>
-        <p class="ph-note">Confirm the merge-conflict claim against the real Git history before presenting.</p>
-      </div>
-      <div class="notes-src">PLACEHOLDER — Mike to fill in. Callback to slide 5 (Conway's Law). The structure we chose for the team is the structure of the code.</div>
-    </section>
-
-    <!-- 12 — TOKEN ANXIETY -->
-    <section class="slide quote-slide bigstat">
-      <div class="label">What AI changed</div>
-      <blockquote class="pull">"We ran out of tokens."</blockquote>
-      <ul class="points" style="margin-top:1.6em; text-align:left; max-width:24em;">
-        <li>Mid-project, Claude's context window became a real constraint</li>
-        <li>Adapted: switched from Stilla's Claude interface to <strong>Claude Code</strong> for heavier coding tasks</li>
-        <li>Lesson: AI has resource limits. Planning around them is now a real project-management skill.</li>
-      </ul>
-      <div class="below">Token anxiety is the new deadline anxiety.</div>
-      <div class="notes-src">Mike owns this. This is the honest, relatable moment. Don't oversell it. The lesson is the management skill, not the failure.</div>
-    </section>
-
-    <!-- DIVIDER 05 -->
-    <section class="slide divider">
-      <div class="dnum">05</div>
-      <div class="dtitle">Stilla performance review</div>
-      <div class="drule"></div>
-      <div class="notes-src">Mike — 5 minutes. Narrated by an ElevenLabs voice. The next slide is the visual backdrop.</div>
-    </section>
-
-    <!-- 13 — PERFORMANCE REVIEW (PLACEHOLDER) -->
-    <section class="slide review">
-      <div class="label">Stilla performance review</div>
-      <div class="form-head">
-        <h2>Performance Review — Q2 2026</h2>
-        <span class="stamp">Confidential</span>
-      </div>
-      <div class="meta-row">
-        <span><b>Employee:</b> <span class="field">Stilla — AI Coordinator</span></span>
-        <span><b>Reviewer:</b> <span class="field">The Team</span></span>
-      </div>
-      <span class="ph-tag">Placeholder · Mike to write the review</span>
-      <div class="field-block">
-        <div class="ftitle">Strengths</div>
-        <div class="fbody">[ Specific things Stilla did well — tickets, standups, never dropped a blocker. ]</div>
-      </div>
-      <div class="field-block">
-        <div class="ftitle">Areas for development</div>
-        <div class="fbody">[ Honest limitations or friction points — where coordination broke down or needed a human. ]</div>
-      </div>
-      <div class="field-block">
-        <div class="ftitle">Overall rating</div>
-        <div class="fbody rating">[ Something wry and specific. ]</div>
-      </div>
-      <div class="notes-src">PLACEHOLDER — Mike to write the full review text. Narrated by an ElevenLabs voice; the slide is visual backdrop only. Keep text readable but don't crowd it — the voice carries the section.</div>
-    </section>
-
-    <!-- DIVIDER 06 -->
-    <section class="slide divider">
-      <div class="dnum">06</div>
-      <div class="dtitle">Summary</div>
-      <div class="drule"></div>
-      <div class="notes-src">3 minutes. Pull the threads together before the closer.</div>
-    </section>
-
-    <!-- 14 — WHAT WE LEARNED -->
-    <section class="slide">
-      <div class="label">Summary</div>
-      <div class="content">
-        <h2 class="title">What we learned</h2>
-        <ul class="points body">
-          <li>You can run a product team with <strong>AI doing the coordination layer</strong></li>
-          <li>The constraint is not the AI's capability — it's <strong>your ability to structure work</strong> so AI can act on it</li>
-          <li>Modular teams and modular code reinforce each other</li>
-          <li>Token limits, ambiguity, and meeting-tool debates are still very human problems</li>
-        </ul>
-      </div>
-      <div class="notes-src">The single most important line: the constraint is structure, not capability. If the audience remembers one thing, make it this.</div>
-    </section>
-
-    <!-- 15 — ONE FUTURE SCENARIO -->
-    <section class="slide">
-      <div class="label">Summary</div>
-      <div class="content">
-        <h2 class="title">One future scenario</h2>
-        <ul class="points body">
-          <li><strong>2027:</strong> a 3-person team ships a B2B SaaS product in 6 weeks</li>
-          <li>AI writes <strong>60% of the code, 100% of the tickets</strong>, and runs the retrospectives</li>
-          <li>The humans do: taste, judgment, stakeholder relationships, and the demo</li>
-          <li class="dim">"The question isn't whether AI joins the team. It's whether your team knows how to work with it."</li>
-        </ul>
-      </div>
-      <div class="notes-src">Deliver the closing line slowly. It's the bridge into the closer question.</div>
-    </section>
-
-    <!-- 16 — IMPLEMENTATION CHECKLIST -->
-    <section class="slide">
-      <div class="label">Summary</div>
-      <h2 class="title" style="margin-bottom:0.8em;">If you want to try this</h2>
-      <ul class="checklist body">
-        <li>Define your through-line before you start building</li>
-        <li>Assign AI a real role with real responsibilities</li>
-        <li>Use Conway's Law intentionally: design team = design system</li>
-        <li>Build async-first: everything documented, nothing lost in calls</li>
-        <li>Plan for token limits like you plan for deadlines</li>
-        <li>Treat the presentation as part of the product</li>
-      </ul>
-      <div class="notes-src">A practical takeaway slide. You can offer to share it. The last item sets up the closer.</div>
-    </section>
-
-    <!-- DIVIDER 07 -->
-    <section class="slide divider">
-      <div class="dnum">07</div>
-      <div class="dtitle">Closer</div>
-      <div class="drule"></div>
-      <div class="notes-src">The meta-moment. Slow down. Two slides only.</div>
-    </section>
-
-    <!-- 17 — THE QUESTION -->
-    <section class="slide closer">
-      <h1>How much of this presentation do you think was created by <span class="ax">AI?</span></h1>
-      <div class="notes-src">Hold it. Let the audience respond — actually take answers out loud. Don't reveal yet.</div>
-    </section>
-
-    <!-- 18 — THE ANSWER (PLACEHOLDER) -->
-    <section class="slide closer">
-      <span class="ph-tag">Placeholder · Fill in after the deck is final</span>
-      <div class="answer-num">—%</div>
-      <div class="answer-sub">Reveal the actual breakdown of AI vs human-created content: copy, structure, code, and design.</div>
-      <div class="notes-src">PLACEHOLDER — fill in after the presentation is built. The presentation is itself the artifact. The audience has just experienced what AI-assisted work looks and feels like — now you name it.</div>
-    </section>
-
+    <div class="deck-loading" id="loading">Loading slides…</div>
   </div>
 </div>
 
@@ -913,7 +305,7 @@
 
 <!-- overlays -->
 <div class="progress"><div class="bar" id="bar"></div></div>
-<div class="counter"><b id="cur">1</b> / <span id="total">18</span></div>
+<div class="counter"><b id="cur">1</b> / <span id="total">–</span></div>
 <div class="hint"><kbd>←</kbd> <kbd>→</kbd> move&nbsp;&nbsp;·&nbsp;&nbsp;<kbd>N</kbd> notes&nbsp;&nbsp;·&nbsp;&nbsp;<kbd>F</kbd> fullscreen</div>
 
 <!-- speaker notes -->
@@ -925,16 +317,17 @@
 </div>
 
 <script>
-  const slides = Array.from(document.querySelectorAll('.slide'));
-  const total = slides.length;
-  let current = 0;
-
+  // ----- shell state -----
+  const stage = document.getElementById('stage');
   const bar = document.getElementById('bar');
   const curEl = document.getElementById('cur');
   const totalEl = document.getElementById('total');
   const npBody = document.getElementById('npBody');
   const npSlide = document.getElementById('npSlide');
-  totalEl.textContent = total;
+
+  let slides = [];
+  let total = 0;
+  let current = 0;
 
   function render() {
     slides.forEach((s, i) => {
@@ -942,9 +335,10 @@
       s.classList.toggle('prev', i < current);
     });
     curEl.textContent = current + 1;
-    bar.style.width = ((current + 1) / total * 100) + '%';
+    bar.style.width = total ? ((current + 1) / total * 100) + '%' : '0';
 
-    const src = slides[current].querySelector('.notes-src');
+    const slide = slides[current];
+    const src = slide ? slide.querySelector('.notes-src') : null;
     const text = src ? src.textContent.trim() : '';
     npSlide.textContent = 'Slide ' + (current + 1) + ' / ' + total;
     if (text) {
@@ -958,6 +352,33 @@
 
   function go(n) {
     current = Math.max(0, Math.min(total - 1, n));
+    render();
+  }
+
+  // ----- section loader: pulls each fragment in sections.json, in order -----
+  async function loadDeck() {
+    const res = await fetch('sections.json', { cache: 'no-cache' });
+    if (!res.ok) throw new Error('sections.json ' + res.status);
+    const manifest = await res.json();
+
+    for (const entry of manifest.sections) {
+      const r = await fetch('sections/' + entry.file, { cache: 'no-cache' });
+      if (!r.ok) throw new Error(entry.file + ' ' + r.status);
+      const html = await r.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      // Hoist each section's own <style> into <head> so it applies globally.
+      doc.querySelectorAll('style').forEach(st => document.head.appendChild(st));
+      // Append the section's slides to the stage, preserving manifest order.
+      doc.querySelectorAll('section.slide').forEach(sec => stage.appendChild(sec));
+    }
+
+    const loading = document.getElementById('loading');
+    if (loading) loading.remove();
+
+    slides = Array.from(stage.querySelectorAll('.slide'));
+    total = slides.length;
+    totalEl.textContent = total;
+    current = 0;
     render();
   }
 
@@ -991,7 +412,14 @@
     }
   });
 
-  render();
+  loadDeck().catch((err) => {
+    console.error('Deck load failed:', err);
+    const loading = document.getElementById('loading');
+    if (loading) loading.remove();
+    stage.insertAdjacentHTML('beforeend',
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:2em;color:var(--placeholder);font-size:0.8em;line-height:1.5;">' +
+      'Could not load slides. The deck loads its sections over HTTP, so open it through a web server (e.g. the dev server or the deployed URL), not as a file:// path.<br><br>' + err + '</div>');
+  });
 </script>
 </body>
 </html>

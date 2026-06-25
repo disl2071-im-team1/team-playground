@@ -1,0 +1,80 @@
+<!-- ===================================================================
+     SECTION 03 · DEMO
+     live app · 3-4 real scenarios
+     Owner: ______   ·   Edit only this file. See ../README.md
+     =================================================================== -->
+<style>
+  /* Scenario card grid for the demo walk-through */
+  .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6em;
+    width: 100%;
+    max-width: none;
+    margin-top: 0.4em;
+  }
+  .scenario-card {
+    background: linear-gradient(150deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.5em;
+    padding: 0.7em 0.85em;
+  }
+  .scenario-card .sc-when { font-size: 0.56em; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); font-weight: 700; margin-bottom: 0.25em; }
+  .scenario-card .sc-head { font-size: 0.84em; font-weight: 700; color: var(--fg); margin-bottom: 0.2em; }
+  .scenario-card .sc-text { font-size: 0.6em; color: #cfcfcf; line-height: 1.4; }
+  .scenario-card.placeholder { border-style: dashed; border-color: var(--placeholder); background: var(--placeholder-bg); }
+  .scenario-card.placeholder .sc-when { color: var(--placeholder); }
+  .scenario-card.placeholder .sc-text { color: var(--placeholder); font-style: italic; opacity: 0.85; }
+</style>
+
+<!-- DIVIDER -->
+<section class="slide divider">
+  <div class="dnum">03</div>
+  <div class="dtitle">Demo</div>
+  <div class="drule"></div>
+  <div class="notes-src">Pablo, 5 to 6 minutes. Hand off to the live app after the app intro slide.</div>
+</section>
+
+<!-- THE APP -->
+<section class="slide">
+  <div class="label">Demo</div>
+  <div class="content">
+    <h2 class="title">The app: Clean Path</h2>
+    <ul class="points body">
+      <li>Real environmental monitoring for municipalities, one shell per hazard</li>
+      <li>Five hazards: <strong>Air</strong> (pollen), <strong>Algae</strong> (bathing water), <strong>Fire</strong> risk, <strong>Heat</strong>, <strong>Rain</strong></li>
+      <li>Each hazard: a map with markers, the relevant readings, severity and provenance</li>
+      <li>Design unified under <strong>Natálie's pastel UI system</strong></li>
+    </ul>
+  </div>
+  <div class="notes-src">Pablo owns this. This slide is just a handoff. Pablo does the live demo from the actual app, switch to the browser tab now.</div>
+</section>
+
+<!-- SCENARIOS -->
+<section class="slide">
+  <div class="label">Demo</div>
+  <p class="lead" style="margin-bottom:0.6em;"><span class="kicker">It's a hot July morning.</span> The city's environmental team gets to work.</p>
+  <div class="scenario-grid">
+    <div class="scenario-card">
+      <div class="sc-when">Air quality</div>
+      <div class="sc-head">Pollen spike</div>
+      <div class="sc-text">Levels spiking in three districts, the team pushes an advisory.</div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-when">Rain</div>
+      <div class="sc-head">Drainage alert</div>
+      <div class="sc-text">Heavy precipitation forecast, drainage flagged ahead of time.</div>
+    </div>
+    <div class="scenario-card">
+      <div class="sc-when">Heat</div>
+      <div class="sc-head">Threshold crossed</div>
+      <div class="sc-text">Two districts above the heat threshold, the city issues an advisory.</div>
+    </div>
+    <div class="scenario-card placeholder">
+      <div class="sc-when">Placeholder · Pablo</div>
+      <div class="sc-head">One more real scenario</div>
+      <div class="sc-text">Add a fourth concrete case (fire risk or algae) tied to what the live demo shows.</div>
+    </div>
+  </div>
+  <div class="notes-src">Walk through three to four realistic cases. Keep it tight, the point is value, not features. Tie each card back to the live demo Pablo just gave. Replace the dashed placeholder with a real fourth scenario.</div>
+</section>

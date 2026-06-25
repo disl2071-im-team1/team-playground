@@ -1,0 +1,236 @@
+<!-- ===================================================================
+     SECTION 02 · HOW WE ORGANIZED
+     tech stack · headless team · Stilla · Linear cycles workflow
+     Owner: ______   ·   Edit only this file. See ../README.md
+     =================================================================== -->
+<style>
+  /* The Irreducible Stack slide */
+  .slide.stack { justify-content: flex-start; padding-top: 9cqh; }
+  .slide.stack h2.title { font-size: 1.5em; margin-bottom: 0.25em; }
+  .stack .subtitle {
+    font-size: 0.74em;
+    color: var(--muted);
+    margin-bottom: 0.7em;
+    max-width: 38em;
+    line-height: 1.4;
+  }
+  .stack-tiers { display: flex; flex-direction: column; gap: 0.32em; width: 100%; }
+  .tier { display: grid; grid-template-columns: 6em 1fr; gap: 0.9em; align-items: stretch; }
+  .tier-label {
+    font-size: 0.52em;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    align-self: center;
+  }
+  .tier-cards { display: flex; gap: 0.55em; }
+  .scard {
+    flex: 1;
+    background: linear-gradient(145deg, rgba(255,255,255,0.055), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.45em;
+    padding: 0.42em 0.65em;
+  }
+  .scard.lead {
+    background: linear-gradient(145deg, var(--accent-dim), rgba(255,255,255,0.012));
+    border-color: rgba(126, 200, 160, 0.3);
+  }
+  .scard .sc-title { font-size: 0.72em; font-weight: 700; color: var(--fg); margin-bottom: 0.12em; }
+  .scard .sc-line { font-size: 0.58em; color: #cfcfcf; line-height: 1.3; }
+  .scard .sc-sub { font-size: 0.54em; color: var(--muted); line-height: 1.3; margin-top: 0.15em; }
+  .scard .sc-badge {
+    display: inline-block;
+    font-size: 0.46em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-radius: 999px;
+    padding: 0.3em 0.65em;
+    margin-top: 0.35em;
+  }
+
+  /* Linearisation flow slide */
+  .slide.flow { justify-content: center; }
+  .flow-steps { display: flex; align-items: stretch; gap: 0.35em; width: 100%; margin-top: 0.5em; }
+  .fstep {
+    flex: 1;
+    background: linear-gradient(160deg, rgba(126,200,160,0.09), rgba(255,255,255,0.012));
+    border: 1px solid var(--line);
+    border-radius: 0.5em;
+    padding: 0.7em 0.65em;
+    display: flex;
+    flex-direction: column;
+  }
+  .fstep .fnum { font-size: 0.6em; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 0.35em; }
+  .fstep .fname { font-size: 0.84em; font-weight: 700; color: var(--fg); margin-bottom: 0.3em; }
+  .fstep .fdesc { font-size: 0.6em; color: #cfcfcf; line-height: 1.35; flex: 1; }
+  .fstep .fchip {
+    display: inline-block;
+    align-self: flex-start;
+    margin-top: 0.6em;
+    font-size: 0.52em;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border-radius: 999px;
+    padding: 0.32em 0.65em;
+  }
+  .flow-arrow { display: flex; align-items: center; color: var(--muted-dim); font-size: 1.1em; }
+  .flow-foot { margin-top: 1.5em; font-size: 0.9em; color: var(--accent); max-width: 34em; line-height: 1.4; }
+</style>
+
+<!-- DIVIDER -->
+<section class="slide divider">
+  <div class="dnum">02</div>
+  <div class="dtitle">How we organized</div>
+  <div class="drule"></div>
+  <div class="notes-src">Pelle, 6 minutes. The heart of the process story. This is what the talk is really about.</div>
+</section>
+
+<!-- HEADLESS TEAM -->
+<section class="slide">
+  <div class="label">How we organized</div>
+  <div class="content">
+    <h2 class="title">A headless team</h2>
+    <ul class="points body">
+      <li>No project manager, no team lead. <strong>Five equals</strong> working at the same time</li>
+      <li><strong>Stilla</strong> supported the meetings: prepared agendas and discussion topics, summarised each session, and surfaced the open tickets</li>
+      <li>It did not run standups, assign the work, or own the backlog. We did that together</li>
+      <li>Everything stayed visible and explicit through <strong>GitHub PRs</strong> and <strong>Linear</strong></li>
+    </ul>
+  </div>
+  <div class="notes-src">Pelle. "Headless" means no PM role exists at all. The team self-organised as five equals. Stilla was a meeting aide, not a coordinator: it prepared agendas, summarised sessions, and surfaced tickets, but the team owned the standups, the assignments, and the backlog.</div>
+</section>
+
+<!-- THE IRREDUCIBLE STACK -->
+<section class="slide stack">
+  <div class="label">How we organized</div>
+  <h2 class="title" style="margin-bottom:0.3em;">The Irreducible Stack</h2>
+  <div class="subtitle">A five-person, AI-native digital company, organised by capability, not by tool.</div>
+  <div class="stack-tiers">
+    <div class="tier">
+      <div class="tier-label">Orchestrate</div>
+      <div class="tier-cards">
+        <div class="scard lead">
+          <div class="sc-title">Stilla</div>
+          <div class="sc-line">The agent that coordinates across the tools below it</div>
+          <div class="sc-sub">Prepares agendas, surfaces open tickets, summarises sessions, routes context</div>
+          <span class="sc-badge">lightens the human-as-glue work</span>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-label">Coordinate</div>
+      <div class="tier-cards">
+        <div class="scard">
+          <div class="sc-title">Slack</div>
+          <div class="sc-line">Human coordination, in real time</div>
+          <div class="sc-sub">where five people stay in sync</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">Linear</div>
+          <div class="sc-line">Work-state and orchestration spine</div>
+          <div class="sc-sub">what work exists, and is it done</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">Miro</div>
+          <div class="sc-line">Shared canvas and info sharing</div>
+          <div class="sc-sub">where thinking is made visible</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-label">Produce</div>
+      <div class="tier-cards">
+        <div class="scard">
+          <div class="sc-title">Claude</div>
+          <div class="sc-line">Generate · turns intent into software</div>
+          <div class="sc-sub">the layer that collapsed the old stack</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">GitHub</div>
+          <div class="sc-line">Version · code as source of truth</div>
+        </div>
+        <div class="scard">
+          <div class="sc-title">Vercel</div>
+          <div class="sc-line">Deploy and host · ships it to the world</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-label">Foundation</div>
+      <div class="tier-cards">
+        <div class="scard">
+          <div class="sc-title">GSuite · Google Auth</div>
+          <div class="sc-line">Identity</div>
+          <div class="sc-sub">who is allowed to do what</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="notes-src">The team and the stack are organised by capability, not by tool: orchestrate, coordinate, produce, foundation. Stilla sits on top, coordinating across the layers below. Note the produce tier is where Claude collapsed the old stack into one generate step.</div>
+</section>
+
+<!-- LINEARISATION: IDEA TO LIVE -->
+<section class="slide flow">
+  <div class="label">How we organized</div>
+  <h2 class="title" style="margin-bottom:0.2em;">Linearisation: idea to live</h2>
+  <div class="flow-steps">
+    <div class="fstep">
+      <div class="fnum">01</div>
+      <div class="fname">Discover</div>
+      <div class="fdesc">Claude interviews you on the Solo canvas</div>
+      <span class="fchip">Claude (chat)</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">02</div>
+      <div class="fname">Compress</div>
+      <div class="fdesc">Claude stress-tests and writes the feature cards</div>
+      <span class="fchip">Claude (chat)</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">03</div>
+      <div class="fname">Track</div>
+      <div class="fdesc">Each card becomes a Linear issue</div>
+      <span class="fchip">Linear</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">04</div>
+      <div class="fname">Build</div>
+      <div class="fdesc">Claude Code works the issue in the terminal</div>
+      <span class="fchip">Terminal (reads Linear)</span>
+    </div>
+    <div class="flow-arrow">›</div>
+    <div class="fstep">
+      <div class="fnum">05</div>
+      <div class="fname">Ship</div>
+      <div class="fdesc">Open a PR, review, merge, live</div>
+      <span class="fchip">GitHub + Vercel</span>
+    </div>
+  </div>
+  <div class="flow-foot">No human writes the code. We specify and review, the pipeline does the rest.</div>
+  <div class="notes-src">The punchline: humans direct and review while the agent builds, and work moves in one direction. Idea to live in five steps: discover, compress, track, build, ship. We specify and review at the ends, the pipeline does the work in the middle. This is the Linear cycles workflow.</div>
+</section>
+
+<!-- OPERATING RHYTHM -->
+<section class="slide">
+  <div class="label">How we organized</div>
+  <div class="content">
+    <h2 class="title">Operating rhythm</h2>
+    <ul class="points body">
+      <li>Weekly <strong>sync</strong>, 20:00 CET</li>
+      <li>Async through the week via <strong>Slack</strong> and <strong>GitHub</strong></li>
+      <li>Stilla summarises each session and surfaces the open tickets</li>
+    </ul>
+  </div>
+  <div style="position:absolute; bottom:6cqh; right:8cqw; font-size:0.62em; color:var(--muted-dim); max-width:14em; text-align:right; line-height:1.4;">Biggest blocker: which meeting tool to use</div>
+  <div class="notes-src">Pelle. Weekly sync at 20:00 CET, async the rest of the week via Slack and GitHub. Stilla summarises each session and surfaces the open tickets. The corner joke is real and lands: every team has lost a week to tooling debates. Use it to humanise the story.</div>
+</section>
