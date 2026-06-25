@@ -278,6 +278,13 @@
   /* Speaker notes travel inside each slide but are never shown on the slide. */
   .notes-src { display: none; }
 
+  /* ---------- Click-stepped reveals ----------
+     Generic and inert: any element with class "fragment" starts hidden and is
+     revealed one step at a time by forward nav. Slides with no .fragment behave
+     exactly as before, so this affects no other section. ---------------------- */
+  .fragment { opacity: 0; transition: opacity 0.45s ease, transform 0.45s ease; }
+  .fragment.revealed { opacity: 1; }
+
   .deck-loading {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center;
@@ -350,9 +357,32 @@
     }
   }
 
+  // Jump directly to a slide (Home/End). Fragments on the target reset to
+  // hidden so they can be stepped through.
   function go(n) {
     current = Math.max(0, Math.min(total - 1, n));
+    setFragments(slides[current], false);
     render();
+  }
+
+  // ----- click-stepped reveals -----
+  // Forward nav reveals a slide's .fragment elements one at a time before
+  // advancing; back nav hides them one at a time. Inert on slides without any.
+  function fragmentsOf(slide) {
+    return slide ? Array.from(slide.querySelectorAll('.fragment')) : [];
+  }
+  function setFragments(slide, revealed) {
+    fragmentsOf(slide).forEach(f => f.classList.toggle('revealed', revealed));
+  }
+  function next() {
+    const hidden = fragmentsOf(slides[current]).find(f => !f.classList.contains('revealed'));
+    if (hidden) { hidden.classList.add('revealed'); return; }
+    if (current < total - 1) { current++; setFragments(slides[current], false); render(); }
+  }
+  function prev() {
+    const shown = fragmentsOf(slides[current]).reverse().find(f => f.classList.contains('revealed'));
+    if (shown) { shown.classList.remove('revealed'); return; }
+    if (current > 0) { current--; setFragments(slides[current], true); render(); }
   }
 
   // ----- section loader: pulls each fragment in sections.json, in order -----
@@ -382,18 +412,18 @@
     render();
   }
 
-  document.getElementById('prevBtn').addEventListener('click', () => go(current - 1));
-  document.getElementById('nextBtn').addEventListener('click', () => go(current + 1));
+  document.getElementById('prevBtn').addEventListener('click', prev);
+  document.getElementById('nextBtn').addEventListener('click', next);
 
   document.addEventListener('keydown', (e) => {
     switch (e.key) {
       case 'ArrowRight':
       case 'PageDown':
       case ' ':
-        e.preventDefault(); go(current + 1); break;
+        e.preventDefault(); next(); break;
       case 'ArrowLeft':
       case 'PageUp':
-        e.preventDefault(); go(current - 1); break;
+        e.preventDefault(); prev(); break;
       case 'Home':
         e.preventDefault(); go(0); break;
       case 'End':

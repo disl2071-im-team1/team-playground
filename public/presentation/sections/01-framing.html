@@ -1,6 +1,7 @@
 <!-- ===================================================================
      SECTION 01 · FRAMING
-     Owner: ______   ·   Edit only this file. See ../README.md
+     Owner: Pelle   ·   Edit only this file. See ../README.md
+     Audience: non-technical. Takeaway = the How, not the What.
      =================================================================== -->
 <style>
   /* Section-scoped styles for the title slide */
@@ -23,6 +24,18 @@
     line-height: 1.7;
   }
   .title-slide .team .org { display: block; color: var(--muted-dim); margin-top: 0.4em; letter-spacing: 0.1em; text-transform: uppercase; font-size: 0.85em; }
+
+  /* Plain definition callout (used on the Brief slide) */
+  .def {
+    margin-top: 1.1em;
+    font-size: 0.82em;
+    color: var(--muted);
+    border-left: 2px solid var(--accent);
+    padding-left: 0.8em;
+    max-width: 27em;
+    line-height: 1.45;
+  }
+  .def b { color: var(--fg); font-weight: 600; }
 </style>
 
 <!-- TITLE -->
@@ -41,34 +54,64 @@
   <div class="dnum">01</div>
   <div class="dtitle">Framing</div>
   <div class="drule"></div>
-  <div class="notes-src">Pelle, 3 minutes. Set up the central decision: we built the operating model, not just a product.</div>
+  <div class="notes-src">Pelle, 3 minutes. Set the scene fast, then get to the real point: the How, not the What.</div>
 </section>
 
-<!-- THE BRIEF -->
+<!-- BACKGROUND (scene-setting, keep tiny) -->
 <section class="slide">
   <div class="label">Framing</div>
   <div class="content">
-    <h2 class="title">The brief asked for a prototype. We built the operating model behind it.</h2>
+    <h2 class="title">Background</h2>
     <ul class="points body">
-      <li>The brief placed us as a <strong>thinktank</strong>: take a direction, make it real, critically evaluate it</li>
-      <li>We did not form a company. We built the <strong>operating model</strong> a five-person AI-native team runs on</li>
-      <li><strong>Clean Path</strong> is the first thing that model produced</li>
+      <li>We were shown a set of future scenarios and asked to bring one to life.</li>
+      <li>We chose the one about an air-pollution warning system in Mumbai.</li>
     </ul>
   </div>
-  <div class="notes-src">Pelle owns this. This slide is about the operating model, not a literal company. Position it as a systems choice: the model is the deliverable, and Clean Path is what the model produced.</div>
+  <div class="notes-src">Just set the scene. Two sentences, then move on. Do not explain Clean Path yet, that is the next slide.</div>
 </section>
 
-<!-- THE USER -->
+<!-- BRIEF (the turn from the scenario to Clean Path) -->
+<section class="slide">
+  <div class="label">Framing</div>
+  <div class="content">
+    <h2 class="title">The brief</h2>
+    <ul class="points body">
+      <li>On its face: take a scenario, make it real, and evaluate it critically.</li>
+      <li>The turn: we did not build the Mumbai system. We followed open city data we could actually build on, and it became <strong>Clean Path</strong>.</li>
+      <li>The point: the brief was the springboard, not the subject. We focused on the How.</li>
+    </ul>
+    <p class="def"><b>AI-native</b> means the tools are not bolted on, they are how the team exists at all.</p>
+  </div>
+  <div class="notes-src">Honesty: the open data is Swedish (SMHI, HaV, pollen, Copernicus), not Mumbai. Say "open city data we could build on", do not imply Mumbai data was available. The brief got us moving, the How is what we kept.</div>
+</section>
+
+<!-- OPENER (the How, not the What) -->
+<section class="slide">
+  <div class="label">Framing</div>
+  <!-- TODO (Pelle): the operating-model anchor analogy (a "how a kitchen runs vs a single dish" style line) likely lands here. Not written in yet, decide wording. -->
+  <div class="content">
+    <h2 class="title">The brief asked for a prototype. We built the operating model behind it.</h2>
+    <ul class="points body">
+      <li>We were placed as a <strong>thinktank</strong>: take a direction, make it real, and judge it honestly.</li>
+      <li>So we focused on the <strong>How</strong>, not the What. We built the operating model a five-person AI-native team runs on.</li>
+      <li>It produced an application, Clean Path. It could have been almost anything. The model is the point.</li>
+    </ul>
+  </div>
+  <div class="notes-src">This is the spine of my whole section. The How is the takeaway. The model is the deliverable; Clean Path is just what it happened to produce.</div>
+</section>
+
+<!-- APPLICATION (what Clean Path is) -->
+<!-- TODO (Pelle): this application slide may belong in the Demo section instead of Framing. Kept in Framing for now. -->
+<!-- FLAG: this says five hazards (air, water, fire, heat, rain). Pablo's Demo slide lists four tabs and drops Fire. These must be reconciled. -->
 <section class="slide">
   <div class="label">Framing</div>
   <div class="content">
     <h2 class="title">Who it's for, and what it is</h2>
     <ul class="points body">
-      <li><strong>Municipality environmental departments</strong></li>
-      <li>The need: officer-ready visibility of five hazards, air quality, bathing-water algae, fire risk, extreme heat, and rainfall</li>
-      <li><strong>Clean Path</strong>: a monitoring and decision surface, one shell per hazard</li>
-      <li>Built and running on real, source-tagged data, every layer labelled measured, forecast, modelled or sampled</li>
+      <li>Municipal environmental teams need to see today's hazards at a glance, air, water, fire, heat and rain, without chasing five separate sources.</li>
+      <li><strong>Clean Path</strong> puts all of it on one screen: a map, the live readings, and a clear signal of how serious each hazard is right now.</li>
+      <li>Real data, every layer labelled by where it comes from: measured, forecast, modelled or sampled.</li>
     </ul>
   </div>
-  <div class="notes-src">Pelle. The data is real and source-tagged now, so lead with that. Five hazards, each in its own shell, every layer labelled measured, forecast, modelled or sampled. Don't deflect into "it's just a scenario", the surface is running on real data.</div>
+  <div class="notes-src">Plain language. The need is the pain of chasing five sources; Clean Path is one screen that answers "how bad is it right now". The provenance labelling is the honesty guarantee.</div>
 </section>
