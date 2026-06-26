@@ -69,6 +69,41 @@
   /* Headless slide: slightly tighter bullets so the three points + the agent
      definition fit with the standard label spacing and no clipping. */
   .slide.headless ul.points li { font-size: 0.94em; margin-bottom: 0.55em; line-height: 1.35; }
+
+  /* ---- Interaction-flow copy of the stack: arrows trace one change through
+     the existing cards. Cards dim by default (Stilla stays lit); each hop is a
+     fragment, drawn one per keypress, current hop bright, earlier hops dim. ---- */
+  .stack-flow .scard { transition: opacity 0.45s ease, border-color 0.45s ease; }
+  .stack-flow .scard:not(.lead-card) { opacity: 0.3; }
+  .stack-flow .lead-card { opacity: 1; }            /* Stilla presides over every hop */
+  .stack-flow:has(.hop1.revealed) .c-slack,
+  .stack-flow:has(.hop1.revealed) .c-linear,
+  .stack-flow:has(.hop2.revealed) .c-claude,
+  .stack-flow:has(.hop3.revealed) .c-github,
+  .stack-flow:has(.hop4.revealed) .c-vercel {
+    opacity: 1;
+    border-color: rgba(126, 200, 160, 0.55);
+  }
+
+  .flow-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; overflow: visible; }
+  .flow-svg .hop { opacity: 0; transition: opacity 0.35s ease; }
+  .flow-svg .hop.revealed { opacity: 0.25; }                                   /* drawn but dim */
+  .flow-svg .hop.revealed:not(:has(~ .hop.revealed)) { opacity: 1; }           /* current hop bright */
+  .flow-svg .arrow-path {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.65s ease;
+  }
+  .flow-svg .hop.revealed .arrow-path { stroke-dashoffset: 0; }                /* draw in along the path */
+  .flow-svg .arrow-head { fill: var(--accent); }
+  /* review gate on the Claude -> GitHub hop: a distinct accent */
+  .flow-svg .gate { fill: var(--placeholder); stroke: var(--bg); stroke-width: 1.5; }
+  .flow-svg .gate-label { fill: var(--placeholder); font-family: var(--sans); font-size: 15px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 </style>
 
 <!-- DIVIDER -->
@@ -161,6 +196,96 @@
     </div>
   </div>
   <div class="notes-src">ANIMATED. The orienting line shows first. Then press right to build the stack from the ground up: Foundation, Produce, Coordinate, Orchestrate. Let each land before the next. Go deeper only on Stilla, Linear, GitHub and Vercel. The closing point: the stack shrinks in people, not in tools.</div>
+</section>
+
+<!-- THE IRREDUCIBLE STACK, ANIMATED: one change traced through the cards.
+     Same layout as the slide above; the arrows are revealed one hop per key. -->
+<section class="slide stack stack-flow">
+  <div class="label">How we organised</div>
+  <h2 class="title" style="margin-bottom:0.3em;">The Irreducible Stack</h2>
+  <div class="subtitle">One small change, traced through the stack: across, down, across, and out.</div>
+  <div class="stack-tiers">
+    <div class="tier">
+      <div class="tier-label">Foundation</div>
+      <div class="tier-cards">
+        <div class="scard c-gsuite">
+          <div class="sc-title">GSuite · Google Auth</div>
+          <div class="sc-line">identity, who is allowed to do what</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-label">Produce</div>
+      <div class="tier-cards">
+        <div class="scard c-claude">
+          <div class="sc-title">Claude</div>
+          <div class="sc-line">turns plain instructions into working software</div>
+        </div>
+        <div class="scard c-github">
+          <div class="sc-title">GitHub</div>
+          <div class="sc-line">where the code lives, every change proposed, reviewed and recorded</div>
+          <div class="sc-sub">the single source of truth for what the software is</div>
+        </div>
+        <div class="scard c-vercel">
+          <div class="sc-title">Vercel</div>
+          <div class="sc-line">takes approved code and puts it live automatically</div>
+          <div class="sc-sub">so anyone on the internet can use it</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-label">Coordinate</div>
+      <div class="tier-cards">
+        <div class="scard c-slack">
+          <div class="sc-title">Slack</div>
+          <div class="sc-line">real-time human chat</div>
+        </div>
+        <div class="scard c-linear">
+          <div class="sc-title">Linear</div>
+          <div class="sc-line">where the work lives as a list</div>
+          <div class="sc-sub">every task is a ticket, so you can see what exists and whether it is done</div>
+        </div>
+        <div class="scard c-miro">
+          <div class="sc-title">Miro</div>
+          <div class="sc-line">shared visual canvas</div>
+        </div>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-label">Orchestrate</div>
+      <div class="tier-cards">
+        <div class="scard lead-card c-stilla">
+          <div class="sc-title">Stilla</div>
+          <div class="sc-line">the AI agent that sits across the tools and keeps work moving</div>
+          <div class="sc-sub">it does the coordinating a project manager used to do</div>
+          <div class="sc-point">The stack shrinks in people, not in tools. Stilla replaces the person who used to be the glue.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <svg class="flow-svg" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <marker id="ah" markerWidth="7" markerHeight="7" refX="5.2" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path class="arrow-head" d="M0,0 L6,3 L0,6 Z" />
+      </marker>
+    </defs>
+    <!-- hop coordinates in a 1600x900 viewBox, fitted to the measured card edges -->
+    <!-- 1: Slack -> Linear, across the Coordinate row -->
+    <g class="hop hop1 fragment"><path class="arrow-path" pathLength="1" marker-end="url(#ah)" d="M718 429 L733 429" /></g>
+    <!-- 2: Linear -> Claude, down between the rows then across into Produce -->
+    <g class="hop hop2 fragment"><path class="arrow-path" pathLength="1" marker-end="url(#ah)" d="M916 510 L916 516 L539 516 L539 519" /></g>
+    <!-- 3: Claude -> GitHub, across Produce. Carries the review gate. -->
+    <g class="hop hop3 fragment">
+      <path class="arrow-path" pathLength="1" marker-end="url(#ah)" d="M718 617 L733 617" />
+      <path class="gate" d="M727 609 l8 8 l-8 8 l-8 -8 z" />
+      <text class="gate-label" x="727" y="567" text-anchor="middle" transform="rotate(-90 727 567)">Review</text>
+    </g>
+    <!-- 4: GitHub -> Vercel, across Produce -->
+    <g class="hop hop4 fragment"><path class="arrow-path" pathLength="1" marker-end="url(#ah)" d="M1095 617 L1110 617" /></g>
+    <!-- 5: Vercel -> out, off the right edge to the world -->
+    <g class="hop hop5 fragment"><path class="arrow-path" pathLength="1" marker-end="url(#ah)" d="M1472 617 L1576 617" /></g>
+  </svg>
+  <div class="notes-src">ANIMATED, one hop per key. Same stack, now traced by one change: Slack to Linear (idea becomes a ticket), Linear down to Claude (picked up and built), Claude to GitHub (proposed and reviewed, the gate), GitHub to Vercel (ships), Vercel out (live). Stilla stays lit across the top, it presides over every hop. The gate on the Claude to GitHub hop is the review: nothing reaches GitHub unseen.</div>
 </section>
 
 <!-- THE PULL REQUEST (replaces Linearisation; honest mechanism of collaboration) -->
