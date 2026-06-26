@@ -3,18 +3,23 @@
      Owner: Mike   ·   Edit only this file. See ../README.md
      =================================================================== -->
 <style>
-  /* Performance Reviews: full-bleed image slide */
+  /* Performance Reviews */
   .slide.perf-reviews {
     background: #0a0a0a;
-    padding: 0;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2.8em 6cqw 2em;
   }
   .perf-reviews .pr-bg {
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: 80%;
+    max-width: 100%;
     object-fit: cover;
     object-position: center;
-    display: block;
+    border-radius: 4px;
+    flex: 1;
+    min-height: 0;
   }
 </style>
 
@@ -28,6 +33,7 @@
 
 <!-- PERFORMANCE REVIEWS: FULL IMAGE -->
 <section class="slide perf-reviews" id="perf-slide">
+  <div class="label">Our performance review</div>
   <img src="performance-review.png" alt="Performance review" class="pr-bg">
   <audio id="perf-audio" src="voice-over-feedback.m4a" preload="auto"></audio>
 
@@ -35,22 +41,41 @@
     (function () {
       var audio = document.getElementById('perf-audio');
       var slide = document.getElementById('perf-slide');
+      var pendingPlay = false;
+
+      function tryPlay() {
+        audio.currentTime = 0;
+        audio.play().catch(function () {
+          pendingPlay = true;
+        });
+      }
+
+      function onGesture() {
+        if (pendingPlay && slide.classList.contains('active')) {
+          pendingPlay = false;
+          audio.play().catch(function () {});
+        }
+      }
+
+      window.addEventListener('keydown', onGesture);
+      window.addEventListener('pointerdown', onGesture);
 
       new MutationObserver(function () {
         if (slide.classList.contains('active')) {
-          audio.currentTime = 0;
-          audio.play().catch(function () {});
+          tryPlay();
         } else {
+          pendingPlay = false;
           audio.pause();
           audio.currentTime = 0;
         }
       }).observe(slide, { attributes: true, attributeFilter: ['class'] });
 
       slide.addEventListener('click', function () {
+        pendingPlay = false;
         if (audio.paused) { audio.play(); } else { audio.pause(); }
       });
     })();
   </script>
 
-  <div class="notes-src">Audio autoplays when slide becomes active, resets when leaving. Click to pause/resume.</div>
+  <div class="notes-src">Audio autoplays when slide becomes active. Click to pause/resume.</div>
 </section>
