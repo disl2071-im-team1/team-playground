@@ -36,6 +36,28 @@
     line-height: 1.45;
   }
   .def b { color: var(--fg); font-weight: 600; }
+
+  /* Team intro slide: five round photos in one row, name under each */
+  .team-slide { justify-content: center; align-items: center; text-align: center; padding-top: 7cqh; }
+  .team-row { display: flex; gap: 2.5cqw; justify-content: center; align-items: flex-start; width: 100%; }
+  .team-member { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.8em; flex: 0 0 auto; width: 13cqw; }
+  .team-member img {
+    width: 13cqw; height: 13cqw;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    border: 2px solid var(--line);
+    background: var(--bg-soft);
+    display: block;
+  }
+  .team-member .tm-name { font-size: 0.78em; color: var(--fg); font-weight: 600; line-height: 1.25; }
+  .team-slide .team-tag { margin-top: 2.6em; font-size: 0.95em; color: var(--muted); letter-spacing: 0.04em; }
+
+  /* Agenda intro slide: the shape of the talk */
+  .agenda-list { list-style: none; max-width: 24em; margin-top: 0.2em; }
+  .agenda-list li { display: flex; gap: 0.9em; align-items: baseline; font-size: 1.04em; padding: 0.42em 0; color: #d8d8d8; border-top: 1px solid var(--line); }
+  .agenda-list li:last-child { border-bottom: 1px solid var(--line); }
+  .agenda-list li .ag-num { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; min-width: 1.3em; }
 </style>
 
 <!-- TITLE -->
@@ -47,6 +69,51 @@
     <span class="org">Hyperisland Digital Interactive&nbsp;·&nbsp;June 2026</span>
   </div>
   <div class="notes-src">Opening moment. Let it breathe. No need to say anything yet.</div>
+</section>
+
+<!-- TEAM (intro, second slide) -->
+<section class="slide team-slide">
+  <div class="team-row">
+    <figure class="team-member">
+      <img src="img/team/jonas.png" alt="Jónas Valtýsson" />
+      <figcaption class="tm-name">Jónas Valtýsson</figcaption>
+    </figure>
+    <figure class="team-member">
+      <img src="img/team/mike.png" alt="Mike Pedersen" />
+      <figcaption class="tm-name">Mike Pedersen</figcaption>
+    </figure>
+    <figure class="team-member">
+      <img src="img/team/natalie.png" alt="Natálie Kolářová" />
+      <figcaption class="tm-name">Natálie Kolářová</figcaption>
+    </figure>
+    <figure class="team-member">
+      <img src="img/team/pablo.png" alt="Pablo Santos" />
+      <figcaption class="tm-name">Pablo Santos</figcaption>
+    </figure>
+    <figure class="team-member">
+      <img src="img/team/pelle.png" alt="Pelle Kimvall" />
+      <figcaption class="tm-name">Pelle Kimvall</figcaption>
+    </figure>
+  </div>
+  <div class="team-tag">Five people. No roles.</div>
+  <div class="notes-src">The team: five equals, no roles. Let the faces land, then move on.</div>
+</section>
+
+<!-- AGENDA (intro, third slide) -->
+<section class="slide">
+  <div class="content">
+    <h2 class="title">How the talk runs</h2>
+    <ol class="agenda-list">
+      <li><span class="ag-num">1</span> Framing</li>
+      <li><span class="ag-num">2</span> How we organised</li>
+      <li><span class="ag-num">3</span> Demo</li>
+      <li><span class="ag-num">4</span> AI usability review</li>
+      <li><span class="ag-num">5</span> Design and build</li>
+      <li><span class="ag-num">6</span> Performance review</li>
+      <li><span class="ag-num">7</span> Summary</li>
+    </ol>
+  </div>
+  <div class="notes-src">The shape of the talk, a process walkthrough not a feature tour: the through-line is the How. Seven steps, in order.</div>
 </section>
 
 <!-- DIVIDER -->
@@ -98,20 +165,4 @@
     </ul>
   </div>
   <div class="notes-src">This is the spine of my whole section. The How is the takeaway. The model is the deliverable; Clean Path is just what it happened to produce.</div>
-</section>
-
-<!-- APPLICATION (what Clean Path is) -->
-<!-- TODO (Pelle): this application slide may belong in the Demo section instead of Framing. Kept in Framing for now. -->
-<!-- FLAG: this says five hazards (air, water, fire, heat, rain). Pablo's Demo slide lists four tabs and drops Fire. These must be reconciled. -->
-<section class="slide">
-  <div class="label">Framing</div>
-  <div class="content">
-    <h2 class="title">Who it's for, and what it is</h2>
-    <ul class="points body">
-      <li>Municipal environmental teams need to see today's hazards at a glance, air, water, fire, heat and rain, without chasing five separate sources.</li>
-      <li><strong>Clean Path</strong> puts all of it on one screen: a map, the live readings, and a clear signal of how serious each hazard is right now.</li>
-      <li>Real data, every layer labelled by where it comes from: measured, forecast, modelled or sampled.</li>
-    </ul>
-  </div>
-  <div class="notes-src">Plain language. The need is the pain of chasing five sources; Clean Path is one screen that answers "how bad is it right now". The provenance labelling is the honesty guarantee.</div>
 </section>
