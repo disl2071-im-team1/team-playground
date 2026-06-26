@@ -65,18 +65,29 @@
     overflow: hidden;
   }
 
-  /* ---------- Slides (shared base) ---------- */
+  /* ---------- Slides (shared base) ----------
+     Content slides top-align below the label with breathing room (top padding
+     clears the absolute label at 6cqh). Centred slide types (title, divider,
+     quote, closer) re-assert justify-content:center in their own rules. */
   .slide {
     position: absolute;
     inset: 0;
-    padding: 7cqh 8cqw;
+    padding: 12.5cqh 8cqw 7cqh;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     opacity: 0;
     transform: translateX(28px);
     transition: opacity 0.55s ease, transform 0.55s ease;
     pointer-events: none;
+  }
+  /* Centred slide types keep their vertical centring and tighter top padding. */
+  .slide.title-slide,
+  .slide.divider,
+  .slide.quote-slide,
+  .slide.closer {
+    justify-content: center;
+    padding-top: 7cqh;
   }
   .slide.active {
     opacity: 1;
