@@ -1,33 +1,11 @@
 <!-- ===================================================================
      SECTION 03 · DEMO
-     live app · 3-4 real scenarios
-     Owner: ______   ·   Edit only this file. See ../README.md
+     A fun, problem-first story · ends in the live app
+     Owner: Pablo   ·   Edit only this file. See ../README.md
      =================================================================== -->
 <style>
-  /* Scenario card grid for the demo walk-through */
-  .scenario-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.6em;
-    width: 100%;
-    max-width: none;
-    margin-top: 0.4em;
-  }
-  .scenario-card {
-    background: linear-gradient(150deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012));
-    border: 1px solid var(--line);
-    border-radius: 0.5em;
-    padding: 0.7em 0.85em;
-  }
-  .scenario-card .sc-when { font-size: 0.56em; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); font-weight: 700; margin-bottom: 0.25em; }
-  .scenario-card .sc-head { font-size: 0.84em; font-weight: 700; color: var(--fg); margin-bottom: 0.2em; }
-  .scenario-card .sc-text { font-size: 0.6em; color: #cfcfcf; line-height: 1.4; }
-  .scenario-card.placeholder { border-style: dashed; border-color: var(--placeholder); background: var(--placeholder-bg); }
-  .scenario-card.placeholder .sc-when { color: var(--placeholder); }
-  .scenario-card.placeholder .sc-text { color: var(--placeholder); font-style: italic; opacity: 0.85; }
-
   /* Live product shot of the running prototype, sized to nearly fill the stage */
-  .demo-shot { justify-content: center; padding: 3cqh 3cqw; }
+  .demo-shot { justify-content: center; padding: 1cqh 3cqw; }
   .demo-shot .shot-head { display: flex; align-items: baseline; justify-content: center; gap: 0.7em; flex-wrap: wrap; margin-bottom: 0.45em; }
   .demo-shot .shot-head h2 { font-size: 1.05em; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
   .demo-shot .shot-head .shot-sub { font-size: 0.6em; color: var(--muted); letter-spacing: 0.02em; }
@@ -43,6 +21,19 @@
   .shot-frame img { display: block; width: auto; height: auto; max-width: 94cqw; max-height: 82cqh; }
   .shot-caption { font-size: 0.56em; color: var(--muted); line-height: 1.4; text-align: center; max-width: 46em; margin: 0.45em auto 0; }
   .shot-caption .kicker { color: var(--accent); font-weight: 600; }
+  /* Oversized one-line story beats */
+  .beat .content { max-width: 26em; }
+  .beat .title { line-height: 1.05; }
+  /* Interactive iframe embed */
+  .app-embed { position: relative; width: 100%; height: 88cqh; border: 1px solid var(--line); border-radius: 0.55em; overflow: hidden; background: var(--bg-soft); }
+  .app-embed iframe { display: block; width: 100%; height: 100%; border: none; }
+  .app-embed .backup-img { display: none; width: 100%; height: 100%; object-fit: contain; }
+  .app-embed.show-backup iframe { display: none; }
+  .app-embed.show-backup .backup-img { display: block; }
+  .app-embed .icon-btn { position: absolute; z-index: 10; width: 1.6em; height: 1.6em; padding: 0; background: transparent; color: var(--muted-dim); border: none; border-radius: 0.25em; font-size: 0.9em; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; opacity: 0.4; }
+  .app-embed .icon-btn:hover { opacity: 0.8; color: var(--accent); }
+  .app-embed .toggle-btn { bottom: 0.4em; left: 0.4em; }
+  .app-embed .expand-btn { bottom: 0.4em; right: 0.4em; }
 </style>
 
 <!-- DIVIDER -->
@@ -50,94 +41,88 @@
   <div class="dnum">03</div>
   <div class="dtitle">Demo</div>
   <div class="drule"></div>
-  <div class="notes-src">Pablo, 5 to 6 minutes. Hand off to the live app after the app intro slide.</div>
+  <div class="notes-src">Pablo, 5 to 6 minutes. This section is a story, not a feature tour. Hook, then stakes, then the idea, then I switch to the live app, then the trust beat, then emoji finale. Lead with the problem the whole way.</div>
 </section>
 
-<!-- WHO IT'S FOR (moved from Framing; now opens the Demo) -->
-<!-- FLAG: this says five hazards (air, water, fire, heat, rain). Pablo's "The app: Clean Path" slide lists four tabs and drops Fire. These must be reconciled. -->
-<section class="slide">
+<!-- 1 · THE HOOK -->
+<section class="slide beat">
   <div class="label">Demo</div>
   <div class="content">
-    <h2 class="title">Who it's for, and what it is</h2>
-    <ul class="points body">
-      <li>Municipal environmental teams need to see today's hazards at a glance, air, water, fire, heat and rain, without chasing five separate sources.</li>
-      <li><strong>Clean Path</strong> puts all of it on one screen: a map, the live readings, and a clear signal of how serious each hazard is right now.</li>
-      <li>Real data, every layer labelled by where it comes from: measured, forecast, modelled or sampled.</li>
-    </ul>
+    <h2 class="title">It is going to hit 38 degrees.</h2>
+    <p class="lead" style="margin-top:0.5em;">And not for a day. For a whole week.</p>
   </div>
-  <div class="notes-src">Plain language. The need is the pain of chasing five sources; Clean Path is one screen that answers "how bad is it right now". The provenance labelling is the honesty guarantee.</div>
+  <div class="notes-src">Open with the scene, not the app. Picture the hottest week of your life, and it just does not stop. Stockholm, seven days of extreme heat. Let it land for a second before the next slide.</div>
 </section>
 
-<!-- THE APP -->
-<section class="slide">
-  <div class="label">Demo</div>
+<!-- 2 · THE STAKES -->
+<section class="slide beat">
+  <div class="label">Demo · The problem</div>
   <div class="content">
-    <h2 class="title">The app: Clean Path</h2>
-    <ul class="points body">
-      <li>Real environmental monitoring for municipalities, one shell per hazard</li>
-      <li>Five hazards: <strong>Air</strong> (pollen), <strong>Algae</strong> (bathing water), <strong>Fire</strong> risk, <strong>Heat</strong>, <strong>Rain</strong></li>
-      <li>Each hazard: a map with markers, the relevant readings, severity and provenance</li>
-      <li>Design unified under <strong>Natálie's pastel UI system</strong></li>
+    <h2 class="title">Someone has to choose who to help first.</h2>
+    <ul class="points body" style="margin-top:0.6em;">
+      <li>The people most at risk are the very old and the very young</li>
+      <li>One person at the city decides who gets help, and when</li>
+      <li>Wait too long, and people end up in hospital</li>
     </ul>
   </div>
-  <div class="notes-src">Pablo owns this. This slide is just a handoff. Pablo does the live demo from the actual app, switch to the browser tab now.</div>
+  <div class="notes-src">This is the human problem. There is a real person whose job is to keep the city safe in a heatwave, and they cannot help everyone at once. So they have to choose. And if they choose too late, it hurts people. That is the problem we set out to solve, before we wrote a single line of code.</div>
 </section>
 
-<!-- LIVE SHOT · RUNNING PROTOTYPE -->
+<!-- 3 · THE IDEA (handoff to live app) -->
+<section class="slide beat">
+  <div class="label">Demo · The idea</div>
+  <div class="content">
+    <h2 class="title">What if a map could help them choose?</h2>
+    <p class="lead" style="margin-top:0.5em;">Clean Path puts two things on one screen: where the heat will hit hardest, and where the people who need help most actually live.</p>
+  </div>
+  <div class="notes-src">Here is the turn. When you can see the danger and the vulnerable people on the same map, the choice gets a lot easier. This is my cue to switch to the live app. Show, do not tell.</div>
+</section>
+
+<!-- 4 · SHOW IT · LIVE PROTOTYPE (INTERACTIVE) -->
 <section class="slide demo-shot">
-  <div class="label">Demo</div>
-  <div class="shot-head">
-    <h2>One shell, every hazard</h2>
-    <span class="shot-sub">Clean Path, Stockholm municipal monitor</span>
+  <div class="label" style="position:absolute; top:1.5em; left:3cqw; z-index:5;">Demo · Live</div>
+  <div class="shot-head" style="margin-bottom:0.6em;">
+    <h2 style="font-size:0.95em; margin-bottom:0.2em;">Heat + vulnerable sites on one map</h2>
+    <span class="shot-sub" style="font-size:0.65em; display:block;">Clean Path, Stockholm · Click to interact</span>
   </div>
-  <figure class="shot-frame">
-    <img src="Images/Clean_path_homescreen.png" alt="Clean Path municipal monitor: a hazard map with markers and an officer decision panel, every reading source-tagged." />
-  </figure>
-  <p class="shot-caption">A live map, the readings, and a one-click officer decision panel, <span class="kicker">every reading source-tagged</span>.</p>
-  <div class="notes-src">This is the screen Pablo demos live. Point out the shared shell (same header and tabs on every hazard), the source-tagged readings, and the officer decision panel on the right. Where a hazard uses placeholder data it is always labelled, so nothing modelled is passed off as a real measurement.</div>
+  <div class="app-embed" id="appEmbed">
+    <iframe src="https://team-playground-ten.vercel.app/cleanpath/index.html#heat" title="Clean Path interactive prototype"></iframe>
+    <img class="backup-img" src="../Images/Clean_path_homescreen.png" alt="Clean Path app backup screenshot" />
+    <button class="icon-btn toggle-btn" title="Show backup screenshot" onclick="document.getElementById('appEmbed').classList.toggle('show-backup')">🖼️</button>
+    <button class="icon-btn expand-btn" title="Open in fullscreen" onclick="window.open('https://team-playground-ten.vercel.app/cleanpath/index.html', '_blank')">⛶</button>
+  </div>
+  <p class="shot-caption" style="font-size:0.56em; margin-top:0.5em;">Red zones: extreme heat. Blue marks: where elderly and children live. <span class="kicker">All at once.</span></p>
+  <div class="notes-src">This is the interactive heat layer, embedded live. You can scroll, zoom, click the heat layer toggle. The expand button opens fullscreen in a new tab. Point at the red temperature zones and the blue markers for care homes and preschools. That co-location is the insight.</div>
 </section>
 
-<!-- SCENARIOS -->
-<section class="slide">
-  <div class="label">Demo</div>
-  <p class="lead" style="margin-bottom:0.6em;"><span class="kicker">It's a hot July morning.</span> The city's environmental team gets to work.</p>
-  <div class="scenario-grid">
-    <div class="scenario-card">
-      <div class="sc-when">Air quality</div>
-      <div class="sc-head">Pollen spike</div>
-      <div class="sc-text">Levels spiking in three districts, the team pushes an advisory.</div>
-    </div>
-    <div class="scenario-card">
-      <div class="sc-when">Rain</div>
-      <div class="sc-head">Drainage alert</div>
-      <div class="sc-text">Heavy precipitation forecast, drainage flagged ahead of time.</div>
-    </div>
-    <div class="scenario-card">
-      <div class="sc-when">Heat</div>
-      <div class="sc-head">Threshold crossed</div>
-      <div class="sc-text">Two districts above the heat threshold, the city issues an advisory.</div>
-    </div>
-    <div class="scenario-card">
-      <div class="sc-when">Algae</div>
-      <div class="sc-head">Bathing water warning</div>
-      <div class="sc-text">Algae levels exceed safe thresholds at three beaches. The city issues a bathing advisory before the weekend.</div>
-    </div>
-  </div>
-  <div class="notes-src">Walk through three to four realistic cases. Keep it tight, the point is value, not features. Tie each card back to the live demo Pablo just gave. Replace the dashed placeholder with a real fourth scenario.</div>
-</section>
-
-<!-- AUDIENCE PROMPT 4 -->
-<section class="slide">
-  <div class="label">Demo · Audience prompt</div>
+<!-- 5 · TRUST IT -->
+<section class="slide beat">
+  <div class="label">Demo · Can we trust it?</div>
   <div class="content">
-    <h2 class="title">Your turn</h2>
-    <p class="lead" style="margin-bottom:0.8em;">A heat alert just triggered for your neighborhood. The system gives you 3 options:</p>
-    <ul class="points body">
-      <li><strong>1.</strong> Get an SMS</li>
-      <li><strong>2.</strong> Open the dashboard yourself</li>
-      <li><strong>3.</strong> Let the AI handle it automatically</li>
+    <h2 class="title">Every dot says where it came from.</h2>
+    <ul class="points body" style="margin-top:0.6em;">
+      <li>Heat, rain and fire: live forecasts from SMHI, Sweden's weather service</li>
+      <li>Air and water: real measurements from real stations</li>
+      <li>If a number is a guess, the app says so. It never fakes a reading.</li>
     </ul>
-    <p class="lead" style="margin-top:0.7em;">Show of hands. Which do you pick, and why?</p>
   </div>
-  <div class="notes-src">Pablo runs this. Show of hands for each option. Comment on the split before moving on.</div>
+  <div class="notes-src">A forecast is a prediction, like your phone weather app. A measurement is what is happening right now. The app labels which is which, so the officer knows how sure to be before acting. That honesty is the whole point of trusting it with a real decision.</div>
+</section>
+
+<!-- 6 · YOUR TURN · EMOJI EDITION -->
+<section class="slide">
+  <div class="label">Demo · Your turn</div>
+  <div class="content">
+    <h2 class="title">Heat alert just hit your block. You've got a second to decide.</h2>
+    <p class="lead" style="margin-bottom:0.8em; white-space:nowrap; font-size:0.8em;">Pick your emoji. No words. Just instinct.</p>
+    <ul class="body" style="list-style:none; padding-left:0; line-height:1.7;">
+      <li style="margin-bottom:0.25em;">😎 &nbsp;Our team can handle it</li>
+      <li style="margin-bottom:0.25em;">😰 &nbsp;We need serious tech support</li>
+      <li style="margin-bottom:0.25em;">🤖 &nbsp;AI watches, we stay in control</li>
+      <li style="margin-bottom:0.25em;">🦾 &nbsp;Let AI think and act for us</li>
+      <li>📱 &nbsp;Just alert everyone fast</li>
+    </ul>
+    <p class="lead" style="margin-top:0.8em; font-size:0.8em;">Shout it. Hold it up. One emoji only.</p>
+  </div>
+  <div class="notes-src">Pablo runs this. Five distinct choices: local confidence, need for help, AI as advisor, AI as autonomous agent, and pure communication. Read the spread: lots of 😰 means the gap Clean Path closes. Split between 🤖 and 🦾 shows the real tension about AI in decision-making. Perfect moment to say this is exactly what we prototyped.</div>
 </section>
