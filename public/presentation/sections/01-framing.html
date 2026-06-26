@@ -50,8 +50,10 @@
     background: var(--bg-soft);
     display: block;
   }
-  .team-member .tm-name { font-size: 0.78em; color: var(--fg); font-weight: 600; line-height: 1.25; }
-  .team-slide .team-tag { margin-top: 2.6em; font-size: 0.95em; color: var(--muted); letter-spacing: 0.04em; }
+  /* Names on one line for everyone: let the label be as wide as it needs and
+     never wrap, so the longest name (Jónas Valtýsson) matches the rest. */
+  .team-member .tm-name { font-size: 0.74em; color: var(--fg); font-weight: 600; line-height: 1.25; white-space: nowrap; }
+  .team-slide .team-tag { margin-top: 2.6em; font-size: 1.15em; color: var(--fg); font-weight: 600; letter-spacing: 0.06em; }
 
   /* Agenda intro slide: the shape of the talk */
   .agenda-list { list-style: none; max-width: 24em; margin-top: 0.2em; }
@@ -95,7 +97,7 @@
       <figcaption class="tm-name">Pelle Kimvall</figcaption>
     </figure>
   </div>
-  <div class="team-tag">Five people. No roles.</div>
+  <div class="team-tag">Team Polygon</div>
   <div class="notes-src">The team: five equals, no roles. Let the faces land, then move on.</div>
 </section>
 
