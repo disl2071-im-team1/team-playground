@@ -3,76 +3,18 @@
      Owner: Mike   ·   Edit only this file. See ../README.md
      =================================================================== -->
 <style>
-  /* Performance Reviews: dark, face-grid slide */
+  /* Performance Reviews: full-bleed image slide */
   .slide.perf-reviews {
     background: #0a0a0a;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.2em;
+    padding: 0;
+    overflow: hidden;
   }
-  .perf-reviews .pr-title {
-    font-family: var(--serif);
-    font-size: 1.4em;
-    font-weight: 500;
-    color: #ffffff;
-    letter-spacing: -0.01em;
-    text-align: center;
-  }
-  .faces-grid {
-    display: grid;
-    grid-template-areas:
-      ".     natalie  .    "
-      "mike  stilla   jonas"
-      "pelle .        pablo";
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: auto auto auto;
-    gap: 1.6em 2.4em;
-  }
-  .face-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5em;
-  }
-  #perf-natalie { grid-area: natalie; }
-  #perf-mike    { grid-area: mike; }
-  #perf-jonas   { grid-area: jonas; }
-  #perf-stilla  { grid-area: stilla; }
-  #perf-pelle   { grid-area: pelle; }
-  #perf-pablo   { grid-area: pablo; }
-
-  .face-item img {
-    width: 7.5em;
-    height: 7.5em;
-    border-radius: 50%;
+  .perf-reviews .pr-bg {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
-    object-position: center top;
-    border: 3px solid transparent;
-    transition: border-color 0.2s ease;
-    background: #222;
-  }
-  .face-item .face-name {
-    font-family: var(--sans);
-    font-size: 0.78em;
-    font-weight: 600;
-    color: #ffffff;
-    letter-spacing: 0.02em;
-    text-align: center;
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 0 3px #00e676, 0 0 14px #00e676, 0 0 28px rgba(0,230,118,0.35);
-    }
-    50% {
-      box-shadow: 0 0 0 3px #00e676, 0 0 26px #00e676, 0 0 52px rgba(0,230,118,0.55);
-    }
-  }
-  .face-item.active img {
-    border-color: #00e676;
-    animation: pulse-glow 1.1s ease-in-out infinite;
+    object-position: center;
+    display: block;
   }
 </style>
 
@@ -84,87 +26,31 @@
   <div class="notes-src">Mike, 5 minutes. Audio plays and pulses highlight each person as their review is read. Click the slide to start the audio.</div>
 </section>
 
-<!-- PERFORMANCE REVIEWS: FACE GRID -->
+<!-- PERFORMANCE REVIEWS: FULL IMAGE -->
 <section class="slide perf-reviews" id="perf-slide">
-  <div class="label">Our performance review</div>
-  <div class="pr-title">Performance Reviews</div>
-
-  <div class="faces-grid">
-    <div class="face-item" id="perf-natalie">
-      <img src="natalie.png" alt="Natálie">
-      <span class="face-name">Natálie</span>
-    </div>
-    <div class="face-item" id="perf-mike">
-      <img src="mike.png" alt="Mike">
-      <span class="face-name">Mike</span>
-    </div>
-    <div class="face-item" id="perf-jonas">
-      <img src="jonas.png" alt="Jónas">
-      <span class="face-name">Jónas</span>
-    </div>
-    <div class="face-item" id="perf-stilla">
-      <!-- stilla.png needs to be added to public/presentation/ -->
-      <img src="stilla.png" alt="Sir Stilla Caine" onerror="this.style.background='#1a1a1a'">
-      <span class="face-name">Sir Stilla Caine</span>
-    </div>
-    <div class="face-item" id="perf-pelle">
-      <!-- pelle.png needs to be added to public/presentation/ -->
-      <img src="pelle.png" alt="Pelle" onerror="this.style.background='#1a1a1a'">
-      <span class="face-name">Pelle</span>
-    </div>
-    <div class="face-item" id="perf-pablo">
-      <img src="pablo.png" alt="Pablo">
-      <span class="face-name">Pablo</span>
-    </div>
-  </div>
-
+  <img src="performance-review.png" alt="Performance review" class="pr-bg">
   <audio id="perf-audio" src="voice-over-feedback.m4a" preload="auto"></audio>
 
   <script>
     (function () {
-      var intervals = [
-        { start: 0,  end: 9,  id: 'perf-pelle'   },
-        { start: 10, end: 19, id: 'perf-mike'    },
-        { start: 20, end: 32, id: 'perf-natalie' },
-        { start: 33, end: 45, id: 'perf-jonas'   },
-        { start: 46, end: 58, id: 'perf-pablo'   },
-        { start: 59, end: 71, id: 'perf-stilla'  },
-      ];
-
       var audio = document.getElementById('perf-audio');
       var slide = document.getElementById('perf-slide');
 
-      function clearActive() {
-        intervals.forEach(function (iv) {
-          var el = document.getElementById(iv.id);
-          if (el) el.classList.remove('active');
-        });
-      }
-
-      audio.addEventListener('timeupdate', function () {
-        var t = audio.currentTime;
-        clearActive();
-        intervals.forEach(function (iv) {
-          if (t >= iv.start && t <= iv.end) {
-            var el = document.getElementById(iv.id);
-            if (el) el.classList.add('active');
-          }
-        });
-      });
-
-      audio.addEventListener('ended', function () {
-        clearActive();
-      });
-
-      slide.addEventListener('click', function () {
-        if (audio.paused) {
-          audio.play();
+      new MutationObserver(function () {
+        if (slide.classList.contains('active')) {
+          audio.currentTime = 0;
+          audio.play().catch(function () {});
         } else {
           audio.pause();
+          audio.currentTime = 0;
         }
+      }).observe(slide, { attributes: true, attributeFilter: ['class'] });
+
+      slide.addEventListener('click', function () {
+        if (audio.paused) { audio.play(); } else { audio.pause(); }
       });
     })();
   </script>
 
-  <div class="notes-src">Click anywhere on the slide to start/pause the audio. Each face glows green during their review interval. pelle.png and stilla.png need to be added to public/presentation/ before the deck goes live.</div>
+  <div class="notes-src">Audio autoplays when slide becomes active, resets when leaving. Click to pause/resume.</div>
 </section>
