@@ -1,76 +1,170 @@
 <!-- ===================================================================
-     SECTION 06 · STILLA'S PERFORMANCE REVIEW  (the closer)
-     Owner: ______   ·   Edit only this file. See ../README.md
+     SECTION 06 · OUR PERFORMANCE REVIEW  (the closer)
+     Owner: Mike   ·   Edit only this file. See ../README.md
      =================================================================== -->
 <style>
-  /* Performance review: light, serif, form-styled slide */
-  .slide.review {
-    background: #f4f1ea;
-    color: #2a2a2a;
-    padding: 6cqh 9cqw;
-    justify-content: flex-start;
-  }
-  .slide.review .label { color: #9a9488; }
-  .slide.review .label::before { background: #b08d57; }
-  .slide.review .ph-tag { background: rgba(176, 141, 87, 0.12); }
-  .review .form-head {
-    border-bottom: 2px solid #2a2a2a;
-    padding-bottom: 0.6em;
-    margin-bottom: 1em;
-    margin-top: 1.4em;
+  /* Performance Reviews: dark, face-grid slide */
+  .slide.perf-reviews {
+    background: #0a0a0a;
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.2em;
   }
-  .review .form-head h2 { font-family: var(--serif); font-size: 1.5em; font-weight: 500; letter-spacing: 0; color: #1a1a1a; }
-  .review .form-head .stamp { font-family: var(--sans); font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.18em; color: #b08d57; font-weight: 700; }
-  .review .meta-row { display: flex; gap: 3em; font-family: var(--serif); font-size: 0.85em; margin-bottom: 1.4em; }
-  .review .meta-row span b { font-weight: 500; }
-  .review .meta-row .field { border-bottom: 1px solid #c9c2b4; padding: 0.1em 0.4em; min-width: 7em; display: inline-block; color: #555; }
-  .review .field-block { margin-bottom: 1em; }
-  .review .field-block .ftitle {
+  .perf-reviews .pr-title {
+    font-family: var(--serif);
+    font-size: 1.4em;
+    font-weight: 500;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+    text-align: center;
+  }
+  .faces-grid {
+    display: grid;
+    grid-template-areas:
+      ".     natalie  .    "
+      "mike  stilla   jonas"
+      "pelle .        pablo";
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 1.6em 2.4em;
+  }
+  .face-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+  }
+  #perf-natalie { grid-area: natalie; }
+  #perf-mike    { grid-area: mike; }
+  #perf-jonas   { grid-area: jonas; }
+  #perf-stilla  { grid-area: stilla; }
+  #perf-pelle   { grid-area: pelle; }
+  #perf-pablo   { grid-area: pablo; }
+
+  .face-item img {
+    width: 7.5em;
+    height: 7.5em;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center top;
+    border: 3px solid transparent;
+    transition: border-color 0.2s ease;
+    background: #222;
+  }
+  .face-item .face-name {
     font-family: var(--sans);
-    font-size: 0.6em;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: #8a8478;
-    font-weight: 700;
-    margin-bottom: 0.3em;
+    font-size: 0.78em;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+    text-align: center;
   }
-  .review .field-block .fbody { font-family: var(--serif); font-size: 0.92em; line-height: 1.4; color: #333; max-width: 30em; }
-  .review .rating { font-family: var(--serif); font-style: italic; }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 0 3px #00e676, 0 0 14px #00e676, 0 0 28px rgba(0,230,118,0.35);
+    }
+    50% {
+      box-shadow: 0 0 0 3px #00e676, 0 0 26px #00e676, 0 0 52px rgba(0,230,118,0.55);
+    }
+  }
+  .face-item.active img {
+    border-color: #00e676;
+    animation: pulse-glow 1.1s ease-in-out infinite;
+  }
 </style>
 
 <!-- DIVIDER -->
 <section class="slide divider">
   <div class="dnum">06</div>
-  <div class="dtitle">Stilla's performance review</div>
+  <div class="dtitle">Our performance review</div>
   <div class="drule"></div>
-  <div class="notes-src">Mike, 5 minutes. Narrated by an ElevenLabs voice. The next slide is the visual backdrop. This is the closer.</div>
+  <div class="notes-src">Mike, 5 minutes. Audio plays and pulses highlight each person as their review is read. Click the slide to start the audio.</div>
 </section>
 
-<!-- PERFORMANCE REVIEW (PLACEHOLDER) -->
-<section class="slide review">
-  <div class="label">Stilla's performance review</div>
-  <div class="form-head">
-    <h2>Performance Review · Q2 2026</h2>
-    <span class="stamp">Confidential</span>
+<!-- PERFORMANCE REVIEWS: FACE GRID -->
+<section class="slide perf-reviews" id="perf-slide">
+  <div class="label">Our performance review</div>
+  <div class="pr-title">Performance Reviews</div>
+
+  <div class="faces-grid">
+    <div class="face-item" id="perf-natalie">
+      <img src="natalie.png" alt="Natálie">
+      <span class="face-name">Natálie</span>
+    </div>
+    <div class="face-item" id="perf-mike">
+      <img src="mike.png" alt="Mike">
+      <span class="face-name">Mike</span>
+    </div>
+    <div class="face-item" id="perf-jonas">
+      <img src="jonas.png" alt="Jónas">
+      <span class="face-name">Jónas</span>
+    </div>
+    <div class="face-item" id="perf-stilla">
+      <!-- stilla.png needs to be added to public/presentation/ -->
+      <img src="stilla.png" alt="Sir Stilla Caine" onerror="this.style.background='#1a1a1a'">
+      <span class="face-name">Sir Stilla Caine</span>
+    </div>
+    <div class="face-item" id="perf-pelle">
+      <!-- pelle.png needs to be added to public/presentation/ -->
+      <img src="pelle.png" alt="Pelle" onerror="this.style.background='#1a1a1a'">
+      <span class="face-name">Pelle</span>
+    </div>
+    <div class="face-item" id="perf-pablo">
+      <img src="pablo.png" alt="Pablo">
+      <span class="face-name">Pablo</span>
+    </div>
   </div>
-  <div class="meta-row">
-    <span><b>Employee:</b> <span class="field">Stilla, AI meeting aide</span></span>
-    <span><b>Reviewer:</b> <span class="field">The Team</span></span>
-  </div>
-  <div class="field-block">
-    <div class="ftitle">Strengths</div>
-    <div class="fbody">Provided consistent technical feedback, code review, PR facilitation, and planning support.</div>
-  </div>
-  <div class="field-block">
-    <div class="ftitle">Areas for development</div>
-    <div class="fbody">Should push harder to close open backlog items before new work is scoped.</div>
-  </div>
-  <div class="field-block">
-    <div class="ftitle">Overall rating</div>
-    <div class="fbody rating">Meets and exceeds expectations. Never absent, never billable. Recommended for renewal, pending token budget.</div>
-  </div>
-  <div class="notes-src">Mike owns this. Narrated by an ElevenLabs voice; the slide is visual backdrop only. Voice carries the section.</div>
+
+  <audio id="perf-audio" src="voice-over-feedback.m4a" preload="auto"></audio>
+
+  <script>
+    (function () {
+      var intervals = [
+        { start: 0,  end: 9,  id: 'perf-pelle'   },
+        { start: 10, end: 19, id: 'perf-mike'    },
+        { start: 20, end: 32, id: 'perf-natalie' },
+        { start: 33, end: 45, id: 'perf-jonas'   },
+        { start: 46, end: 58, id: 'perf-pablo'   },
+        { start: 59, end: 71, id: 'perf-stilla'  },
+      ];
+
+      var audio = document.getElementById('perf-audio');
+      var slide = document.getElementById('perf-slide');
+
+      function clearActive() {
+        intervals.forEach(function (iv) {
+          var el = document.getElementById(iv.id);
+          if (el) el.classList.remove('active');
+        });
+      }
+
+      audio.addEventListener('timeupdate', function () {
+        var t = audio.currentTime;
+        clearActive();
+        intervals.forEach(function (iv) {
+          if (t >= iv.start && t <= iv.end) {
+            var el = document.getElementById(iv.id);
+            if (el) el.classList.add('active');
+          }
+        });
+      });
+
+      audio.addEventListener('ended', function () {
+        clearActive();
+      });
+
+      slide.addEventListener('click', function () {
+        if (audio.paused) {
+          audio.play();
+        } else {
+          audio.pause();
+        }
+      });
+    })();
+  </script>
+
+  <div class="notes-src">Click anywhere on the slide to start/pause the audio. Each face glows green during their review interval. pelle.png and stilla.png need to be added to public/presentation/ before the deck goes live.</div>
 </section>
