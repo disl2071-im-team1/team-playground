@@ -21,6 +21,37 @@
     flex: 1;
     min-height: 0;
   }
+
+  /* Voice-over play control (mouse-clickable; never takes keyboard focus) */
+  .perf-reviews .audio-controls {
+    position: absolute;
+    left: 50%;
+    bottom: 3.4cqh;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5em;
+    z-index: 20;
+  }
+  .perf-reviews .audio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-family: inherit;
+    font-size: 0.6em;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--fg);
+    background: rgba(18, 18, 18, 0.9);
+    border: 1px solid var(--line);
+    border-radius: 0.7em;
+    padding: 0.7em 1.3em;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .perf-reviews .audio-btn:hover { background: rgba(40, 40, 40, 0.95); border-color: var(--accent); }
+  .perf-reviews .audio-btn:active { background: rgba(55, 55, 55, 0.98); }
+  .perf-reviews .audio-btn .ab-icon { color: var(--accent); font-size: 1.2em; }
+  .perf-reviews .audio-btn.restart { padding: 0.7em 1em; }
 </style>
 
 <!-- DIVIDER -->
@@ -28,7 +59,7 @@
   <div class="dnum">06</div>
   <div class="dtitle">Our performance review</div>
   <div class="drule"></div>
-  <div class="notes-src">Mike, 5 minutes. Audio plays and pulses highlight each person as their review is read. Click the slide to start the audio.</div>
+  <div class="notes-src">Mike, 5 minutes. Audio plays and pulses highlight each person as their review is read. Press the Play voice-over button to start the audio.</div>
 </section>
 
 <!-- PERFORMANCE REVIEWS: FULL IMAGE -->
@@ -37,26 +68,62 @@
   <img src="performance-review.png" alt="Performance review" class="pr-bg">
   <audio id="perf-audio" src="voice-over-feedback.m4a" preload="auto"></audio>
 
-  <script>
-    (function () {
-      var audio = document.getElementById('perf-audio');
-      var slide = document.getElementById('perf-slide');
+  <div class="audio-controls" id="perf-audio-controls">
+    <button class="audio-btn play" id="perf-play" type="button" tabindex="-1" aria-label="Play voice-over">
+      <span class="ab-icon">&#9654;</span><span class="ab-text">Play voice-over</span>
+    </button>
+    <button class="audio-btn restart" id="perf-restart" type="button" tabindex="-1" aria-label="Restart voice-over" title="Restart from the beginning">
+      <span class="ab-icon">&#8635;</span>
+    </button>
+  </div>
 
-      window.deckOnRender = function () {
-        if (slide.classList.contains('active')) {
-          audio.currentTime = 0;
-          audio.play().catch(function () {});
-        } else {
-          audio.pause();
-          audio.currentTime = 0;
-        }
-      };
-
-      slide.addEventListener('click', function () {
-        if (audio.paused) { audio.play(); } else { audio.pause(); }
-      });
-    })();
-  </script>
-
-  <div class="notes-src">Audio autoplays when slide becomes active. Click to pause/resume.</div>
+  <div class="notes-src">Mike: press the Play voice-over button to start. The button toggles play and pause; the round arrow restarts from the top. Audio stops on its own when you leave the slide.</div>
 </section>
+
+<!-- Audio control logic. Must live at the file root (NOT inside a <section>): the deck
+     loader moves each section into the stage before it runs scripts, so a <script> nested
+     inside a section is carried out of the parser document and never executes. -->
+<script>
+  (function () {
+    var audio = document.getElementById('perf-audio');
+    var slide = document.getElementById('perf-slide');
+    var playBtn = document.getElementById('perf-play');
+    var restartBtn = document.getElementById('perf-restart');
+    var icon = playBtn.querySelector('.ab-icon');
+    var text = playBtn.querySelector('.ab-text');
+
+    function reflect() {
+      var playing = !audio.paused && !audio.ended;
+      icon.textContent = playing ? '⏸' : '▶';
+      text.textContent = playing ? 'Pause' : 'Play voice-over';
+      playBtn.setAttribute('aria-label', playing ? 'Pause voice-over' : 'Play voice-over');
+    }
+
+    // A real click is a user gesture, so this plays with sound in every browser.
+    playBtn.addEventListener('click', function () {
+      if (audio.paused) { audio.play(); } else { audio.pause(); }
+    });
+    restartBtn.addEventListener('click', function () {
+      audio.currentTime = 0;
+      audio.play();
+    });
+    audio.addEventListener('play', reflect);
+    audio.addEventListener('pause', reflect);
+    audio.addEventListener('ended', reflect);
+
+    // Mouse-clickable but never keyboard-focusable, so the controls never
+    // capture the arrow keys, space, N or F used for deck navigation.
+    [playBtn, restartBtn].forEach(function (b) {
+      b.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    });
+
+    // No autoplay. Only stop and reset the audio when leaving this slide,
+    // so the voice-over never bleeds into the next slide.
+    window.deckOnRender = function () {
+      if (!slide.classList.contains('active')) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    };
+  })();
+</script>
