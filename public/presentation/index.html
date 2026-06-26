@@ -366,6 +366,7 @@
       npBody.textContent = 'No notes for this slide.';
       npBody.classList.add('empty');
     }
+    if (window.deckOnRender) window.deckOnRender();
   }
 
   // Jump directly to a slide (Home/End). Fragments on the target reset to

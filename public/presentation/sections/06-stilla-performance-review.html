@@ -41,37 +41,18 @@
     (function () {
       var audio = document.getElementById('perf-audio');
       var slide = document.getElementById('perf-slide');
-      var pendingPlay = false;
 
-      function tryPlay() {
-        audio.currentTime = 0;
-        audio.play().catch(function () {
-          pendingPlay = true;
-        });
-      }
-
-      function onGesture() {
-        if (pendingPlay && slide.classList.contains('active')) {
-          pendingPlay = false;
-          audio.play().catch(function () {});
-        }
-      }
-
-      window.addEventListener('keydown', onGesture);
-      window.addEventListener('pointerdown', onGesture);
-
-      new MutationObserver(function () {
+      window.deckOnRender = function () {
         if (slide.classList.contains('active')) {
-          tryPlay();
+          audio.currentTime = 0;
+          audio.play().catch(function () {});
         } else {
-          pendingPlay = false;
           audio.pause();
           audio.currentTime = 0;
         }
-      }).observe(slide, { attributes: true, attributeFilter: ['class'] });
+      };
 
       slide.addEventListener('click', function () {
-        pendingPlay = false;
         if (audio.paused) { audio.play(); } else { audio.pause(); }
       });
     })();
