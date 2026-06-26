@@ -37,7 +37,9 @@
     border-radius: 0.45em;
     padding: 0.42em 0.65em;
   }
-  .scard.lead {
+  /* Stilla's Orchestrate card. Named lead-card, not "lead", to avoid the
+     shared .lead paragraph class (which caps width at 20em and clipped it). */
+  .scard.lead-card {
     background: linear-gradient(145deg, var(--accent-dim), rgba(255,255,255,0.012));
     border-color: rgba(126, 200, 160, 0.3);
   }
@@ -63,6 +65,10 @@
   .principle .pn { color: var(--accent); font-weight: 700; font-size: 0.95em; }
   .principle .pbody b { display: block; color: var(--fg); font-weight: 600; font-size: 0.95em; }
   .principle .pbody span { display: block; color: var(--muted); font-size: 0.8em; margin-top: 0.15em; line-height: 1.35; }
+
+  /* Headless slide: slightly tighter bullets so the three points + the agent
+     definition fit with the standard label spacing and no clipping. */
+  .slide.headless ul.points li { font-size: 0.94em; margin-bottom: 0.55em; line-height: 1.35; }
 </style>
 
 <!-- DIVIDER -->
@@ -74,19 +80,18 @@
 </section>
 
 <!-- HEADLESS TEAM -->
-<section class="slide">
+<section class="slide headless">
   <div class="label">How we organised</div>
   <div class="content">
     <h2 class="title">A headless team</h2>
     <ul class="points body">
       <li>No roles. No project manager, no team lead. <strong>Five people, equal,</strong> working at the same time.</li>
       <li>We brought in an AI agent, <strong>Stilla</strong>, to orchestrate the work. It prepared agendas, summarised each session, and surfaced the open tickets.</li>
-      <li class="dim">An AI agent is one you give a standing job to: it acts on its own instead of waiting to be prompted each time.</li>
+      <li>An <strong>AI agent</strong> is one you give a standing job to: it acts on its own instead of waiting to be prompted each time.</li>
       <li>We kept the rest ourselves. We ran our own check-ins, divided the work, and owned the backlog together.</li>
-      <li>All of it stayed visible through two tools we will explain next, <strong>Linear</strong> and <strong>GitHub</strong>.</li>
     </ul>
   </div>
-  <div class="notes-src">Introduce Stilla as an AI agent BEFORE leaning on it, and gloss the term for newcomers. Human ownership is the active statement: we ran the check-ins, we owned the backlog. Linear and GitHub are named here but defined on the next slide, do not define them yet.</div>
+  <div class="notes-src">Introduce Stilla as an AI agent before leaning on it, and gloss the term for newcomers. Human ownership is the active statement: we ran the check-ins, we owned the backlog. Linear and GitHub get defined on the Irreducible Stack slide, so we don't define them here.</div>
 </section>
 
 <!-- THE IRREDUCIBLE STACK (animated, built bottom-up: Foundation first) -->
@@ -146,7 +151,7 @@
     <div class="tier fragment">
       <div class="tier-label">Orchestrate</div>
       <div class="tier-cards">
-        <div class="scard lead">
+        <div class="scard lead-card">
           <div class="sc-title">Stilla</div>
           <div class="sc-line">the AI agent that sits across the tools and keeps work moving</div>
           <div class="sc-sub">it does the coordinating a project manager used to do</div>
