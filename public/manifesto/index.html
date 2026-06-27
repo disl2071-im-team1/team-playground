@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manifesto &middot; Team Polygon</title>
+<meta name="description" content="Ten principles we learned building a real product with AI as a teammate.">
+<meta property="og:title" content="Team Polygon &middot; Manifesto">
+<meta property="og:description" content="Ten principles we learned building a real product with AI as a teammate.">
+<meta name="theme-color" content="#0f0f0f">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f0f0f; --fg:#f0f0f0; --muted:#8a8a8a; --muted-dim:#5c5c5c;
+    --accent:#7ec8a0; --accent-dim:rgba(126,200,160,.16); --line:rgba(255,255,255,.10);
+    --sans:"Inter",system-ui,-apple-system,sans-serif; --serif:"Newsreader",Georgia,serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    background:
+      radial-gradient(1200px 640px at 88% -10%, rgba(126,200,160,.12), transparent 58%),
+      radial-gradient(900px 520px at -10% 108%, rgba(126,200,160,.06), transparent 55%),
+      var(--bg);
+    color:var(--fg); font-family:var(--sans); line-height:1.5; min-height:100vh;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    padding:0 6vw 12vh;
+  }
+  ::selection{background:var(--accent);color:#0c0c0c}
+
+  .scrollbar{position:fixed;top:0;left:0;height:2px;width:0;background:var(--accent);box-shadow:0 0 12px rgba(126,200,160,.6);z-index:20}
+  .wrap{max-width:880px;margin:0 auto}
+
+  /* hero */
+  .hero{padding:19vh 0 8vh}
+  .kicker{display:inline-flex;align-items:center;gap:.85em;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .kicker::before{content:"";width:2em;height:1px;background:var(--accent);opacity:.7}
+  h1{font-family:var(--serif);font-weight:400;font-size:clamp(3.4rem,13vw,8rem);line-height:.92;letter-spacing:-.022em;margin:.32em 0 0}
+  h1 .dot{color:var(--accent)}
+  .lede{margin-top:1.7rem;max-width:30em;color:var(--muted);font-size:clamp(1.05rem,2.5vw,1.32rem);line-height:1.55}
+  .lede b{color:var(--fg);font-weight:500}
+
+  /* principles */
+  .list{list-style:none;margin-top:4vh;border-top:1px solid var(--line)}
+  .item{
+    position:relative;display:grid;grid-template-columns:4.4rem 1fr;gap:0 2.4rem;
+    padding:3.4rem 0;border-bottom:1px solid var(--line);
+    opacity:0;transform:translateY(26px);
+    transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .item.in{opacity:1;transform:none}
+  .item::before{content:"";position:absolute;left:0;top:3.4rem;width:2px;height:0;background:var(--accent);transition:height .45s ease}
+  .item:hover::before{height:calc(100% - 6.8rem)}
+  .num{font-family:var(--serif);font-style:italic;font-size:clamp(1.7rem,4.4vw,2.7rem);color:var(--accent);line-height:1;opacity:.5;font-variant-numeric:tabular-nums;transition:opacity .3s ease,transform .3s ease}
+  .item:hover .num{opacity:1;transform:translateX(4px)}
+  .body{font-size:clamp(1.18rem,2.7vw,1.6rem);line-height:1.42;max-width:25em}
+  .lead{font-weight:700;color:var(--fg);letter-spacing:-.01em}
+  .why{color:var(--muted);font-weight:400}
+
+  footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-top:8vh;padding-top:3vh;border-top:1px solid var(--line);color:var(--muted-dim);font-size:.85rem;letter-spacing:.02em}
+  footer a{color:var(--muted);text-decoration:none;border-bottom:1px solid var(--line);padding-bottom:.15em;transition:color .25s,border-color .25s}
+  footer a:hover{color:var(--accent);border-color:var(--accent)}
+
+  @media (max-width:600px){
+    .item{grid-template-columns:1fr;gap:.7rem 0}
+    .item::before{display:none}
+    .num{font-size:1.5rem;opacity:.85}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .item{opacity:1;transform:none;transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="scrollbar" id="bar"></div>
+<div class="wrap">
+  <header class="hero">
+    <span class="kicker">Team Polygon</span>
+    <h1>Manifesto<span class="dot">.</span></h1>
+    <p class="lede">Ten principles we learned building a real product with <b>AI as a teammate</b>, not a tool.</p>
+  </header>
+
+  <ol class="list">
+    <li class="item"><div class="num">01</div><p class="body"><span class="lead">Trust is the foundation of everything.</span> <span class="why">Without it, no tool, process, or plan will hold you together.</span></p></li>
+    <li class="item"><div class="num">02</div><p class="body"><span class="lead">Be brave enough to fully commit.</span> <span class="why">Insight only lives in the deep end.</span></p></li>
+    <li class="item"><div class="num">03</div><p class="body"><span class="lead">Align before you act.</span> <span class="why">Agree on why you're doing this, what you're building, and how everyone contributes.</span></p></li>
+    <li class="item"><div class="num">04</div><p class="body"><span class="lead">Make something real as fast as possible.</span> <span class="why">People can react to a thing, but never to an idea.</span></p></li>
+    <li class="item"><div class="num">05</div><p class="body"><span class="lead">Never underestimate a well-timed dad joke.</span> <span class="why">A team that laughs together ships together.</span></p></li>
+    <li class="item"><div class="num">06</div><p class="body"><span class="lead">Stop and reflect regularly.</span> <span class="why">Use the ceremonies you already have. Retrospectives and check-ins exist for a reason.</span></p></li>
+    <li class="item"><div class="num">07</div><p class="body"><span class="lead">Document as you go.</span> <span class="why">Undocumented work is forgotten work, and your future self will not thank you.</span></p></li>
+    <li class="item"><div class="num">08</div><p class="body"><span class="lead">Empower, don't control.</span> <span class="why">Let the person closest to the work lead in that moment.</span></p></li>
+    <li class="item"><div class="num">09</div><p class="body"><span class="lead">Spend real time debating decisions.</span> <span class="why">Then execute without second-guessing once the call is made.</span></p></li>
+    <li class="item"><div class="num">10</div><p class="body"><span class="lead">Stay critical of your choices and the AI's output.</span> <span class="why">Comfort is not the same as correctness.</span></p></li>
+  </ol>
+
+  <footer>
+    <span>Team Polygon &middot; Hyperisland Digital Interactive</span>
+    <a href="/presentation/index.html">Back to the presentation</a>
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var bar=document.getElementById('bar');
+    function onScroll(){var d=document.documentElement;var max=d.scrollHeight-d.clientHeight;bar.style.width=(max>0?(d.scrollTop/max*100):0)+'%';}
+    addEventListener('scroll',onScroll,{passive:true});onScroll();
+    var items=document.querySelectorAll('.item');
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches){items.forEach(function(i){i.classList.add('in');});return;}
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.18,rootMargin:'0px 0px -8% 0px'});
+    items.forEach(function(i){io.observe(i);});
+  })();
+</script>
+</body>
+</html>
