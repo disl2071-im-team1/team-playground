@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MANIFESTO &middot; Team Polygon</title>
+<meta name="description" content="Ten loud little rules we learned building a real product with AI as a teammate.">
+<meta name="theme-color" content="#fff1d6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#fff1d6; --ink:#161310;
+    --pink:#ff8fb1; --sky:#7fd8ff; --lime:#9be564; --lilac:#c4a1ff;
+    --orange:#ffa45b; --cyan:#5be7e0; --coral:#ff9f7a; --mint:#a0e8af; --yellow:#ffd23f;
+    --disp:"Shrikhand",Georgia,serif; --grot:"Space Grotesk",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--grot); color:var(--ink); background:var(--paper);
+    background-image:radial-gradient(rgba(0,0,0,.07) 1.4px, transparent 1.4px);
+    background-size:22px 22px;
+    min-height:100vh; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--ink);color:var(--yellow)}
+
+  /* floating blobs */
+  .blob{position:fixed;border-radius:50%;filter:blur(8px);opacity:.5;z-index:0;pointer-events:none;animation:float 9s ease-in-out infinite}
+  .blob.a{width:30vw;height:30vw;background:var(--pink);top:-6vw;right:-6vw}
+  .blob.b{width:24vw;height:24vw;background:var(--sky);bottom:8vw;left:-8vw;animation-delay:-3s}
+  .blob.c{width:16vw;height:16vw;background:var(--lime);top:42vh;right:4vw;animation-delay:-5s}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-26px) rotate(8deg)}}
+
+  .wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:0 5vw 16vh}
+
+  /* hero */
+  header{padding:13vh 0 6vh;text-align:center}
+  .badge{display:inline-block;font-family:var(--grot);font-weight:700;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;
+    background:var(--lime);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:.55em 1.2em;
+    box-shadow:4px 4px 0 var(--ink);transform:rotate(-3deg)}
+  h1{font-family:var(--disp);font-weight:400;line-height:.86;letter-spacing:.005em;margin:.28em 0 0;
+    font-size:clamp(3.6rem,18vw,11rem);color:var(--paper);
+    -webkit-text-stroke:3px var(--ink);
+    text-shadow:6px 6px 0 var(--pink),12px 12px 0 var(--sky);}
+  .lede{font-family:var(--grot);font-weight:500;font-size:clamp(1.05rem,2.6vw,1.4rem);max-width:24em;margin:1.8rem auto 0;line-height:1.45}
+  .lede mark{background:var(--yellow);padding:.05em .35em;box-decoration-break:clone;-webkit-box-decoration-break:clone;border:2px solid var(--ink)}
+
+  /* marquee */
+  .marquee{position:relative;z-index:1;margin:5vh 0 2vh;border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);
+    background:var(--cyan);overflow:hidden;white-space:nowrap;transform:rotate(-1.2deg)}
+  .marquee .track{display:inline-block;padding:.5em 0;font-family:var(--disp);font-size:clamp(1.1rem,3vw,1.9rem);
+    animation:scroll 22s linear infinite}
+  .marquee .track span{margin:0 .6em}
+  .marquee .track .star{color:var(--pink)}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* cards */
+  .cards{list-style:none;margin-top:7vh;display:flex;flex-direction:column;gap:5.5vh}
+  .card{position:relative;background:var(--c);border:3px solid var(--ink);border-radius:26px;
+    padding:2.6rem 2.4rem 2.4rem;box-shadow:9px 9px 0 var(--ink);transform:rotate(var(--r));
+    max-width:660px;transition:transform .18s ease,box-shadow .18s ease}
+  .cards li:nth-child(even) .card{margin-left:auto}
+  .card:hover{transform:rotate(0) translateY(-6px);box-shadow:14px 14px 0 var(--ink)}
+  .card .n{position:absolute;top:-26px;left:-18px;width:62px;height:62px;display:grid;place-items:center;
+    font-family:var(--disp);font-size:1.7rem;color:var(--paper);background:var(--ink);border:3px solid var(--ink);
+    border-radius:50%;box-shadow:4px 4px 0 var(--c);transform:rotate(-8deg)}
+  .card h2{font-family:var(--grot);font-weight:700;font-size:clamp(1.45rem,4vw,2.15rem);line-height:1.05;letter-spacing:-.02em}
+  .card p{font-family:var(--grot);font-weight:500;font-size:clamp(1rem,2.4vw,1.2rem);line-height:1.4;margin-top:.7rem;max-width:26em}
+
+  footer{position:relative;z-index:1;margin-top:11vh;text-align:center}
+  footer .stamp{display:inline-block;font-family:var(--disp);font-size:1.2rem;background:var(--lilac);color:var(--ink);
+    border:3px solid var(--ink);border-radius:14px;padding:.5em 1.1em;box-shadow:5px 5px 0 var(--ink);transform:rotate(2deg)}
+  footer a{display:inline-block;margin-top:1.6rem;font-family:var(--grot);font-weight:700;color:var(--ink);text-decoration:none;
+    border-bottom:3px solid var(--ink)}
+  footer a:hover{background:var(--yellow)}
+
+  @media (max-width:640px){
+    .card{padding:2.4rem 1.6rem 1.8rem}
+    .cards li:nth-child(even) .card{margin-left:0}
+    h1{text-shadow:4px 4px 0 var(--pink),8px 8px 0 var(--sky);-webkit-text-stroke:2px var(--ink)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .blob,.marquee .track{animation:none}
+    .card{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="blob a"></div><div class="blob b"></div><div class="blob c"></div>
+
+<div class="wrap">
+  <header>
+    <span class="badge">Team Polygon &middot; 10 rules</span>
+    <h1>MANIFESTO</h1>
+    <p class="lede">Ten loud little rules we learned building a real product with <mark>AI as a teammate</mark>, not a tool.</p>
+  </header>
+</div>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span class="star">&#9733;</span><span>TRUST</span><span class="star">&#9733;</span><span>COMMIT</span><span class="star">&#9733;</span><span>ALIGN</span><span class="star">&#9733;</span><span>SHIP REAL</span><span class="star">&#9733;</span><span>DAD JOKES</span><span class="star">&#9733;</span><span>REFLECT</span><span class="star">&#9733;</span><span>DOCUMENT</span><span class="star">&#9733;</span><span>EMPOWER</span><span class="star">&#9733;</span><span>DEBATE</span><span class="star">&#9733;</span><span>STAY CRITICAL</span><span class="star">&#9733;</span><span>TRUST</span><span class="star">&#9733;</span><span>COMMIT</span><span class="star">&#9733;</span><span>ALIGN</span><span class="star">&#9733;</span><span>SHIP REAL</span><span class="star">&#9733;</span><span>DAD JOKES</span><span class="star">&#9733;</span><span>REFLECT</span><span class="star">&#9733;</span><span>DOCUMENT</span><span class="star">&#9733;</span><span>EMPOWER</span><span class="star">&#9733;</span><span>DEBATE</span><span class="star">&#9733;</span><span>STAY CRITICAL</span><span class="star">&#9733;</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <ol class="cards">
+    <li><div class="card" style="--c:var(--yellow);--r:-2.2deg"><span class="n">1</span><h2>Trust is the foundation of everything.</h2><p>Without it, no tool, process, or plan will hold you together.</p></div></li>
+    <li><div class="card" style="--c:var(--sky);--r:1.8deg"><span class="n">2</span><h2>Be brave enough to fully commit.</h2><p>Insight only lives in the deep end.</p></div></li>
+    <li><div class="card" style="--c:var(--pink);--r:-1.5deg"><span class="n">3</span><h2>Align before you act.</h2><p>Agree on why you're doing this, what you're building, and how everyone contributes.</p></div></li>
+    <li><div class="card" style="--c:var(--lime);--r:2deg"><span class="n">4</span><h2>Make something real as fast as possible.</h2><p>People can react to a thing, but never to an idea.</p></div></li>
+    <li><div class="card" style="--c:var(--lilac);--r:-2deg"><span class="n">5</span><h2>Never underestimate a well-timed dad joke.</h2><p>A team that laughs together ships together.</p></div></li>
+    <li><div class="card" style="--c:var(--orange);--r:1.4deg"><span class="n">6</span><h2>Stop and reflect regularly.</h2><p>Use the ceremonies you already have. Retrospectives and check-ins exist for a reason.</p></div></li>
+    <li><div class="card" style="--c:var(--cyan);--r:-1.7deg"><span class="n">7</span><h2>Document as you go.</h2><p>Undocumented work is forgotten work, and your future self will not thank you.</p></div></li>
+    <li><div class="card" style="--c:var(--coral);--r:2.2deg"><span class="n">8</span><h2>Empower, don't control.</h2><p>Let the person closest to the work lead in that moment.</p></div></li>
+    <li><div class="card" style="--c:var(--mint);--r:-1.4deg"><span class="n">9</span><h2>Spend real time debating decisions.</h2><p>Then execute without second-guessing once the call is made.</p></div></li>
+    <li><div class="card" style="--c:var(--yellow);--r:1.7deg"><span class="n">10</span><h2>Stay critical of your choices and the AI's output.</h2><p>Comfort is not the same as correctness.</p></div></li>
+  </ol>
+
+  <footer>
+    <div class="stamp">made by Team Polygon &#9733;</div>
+    <div><a href="/presentation/index.html">&#8592; back to the presentation</a></div>
+  </footer>
+</div>
+</body>
+</html>
